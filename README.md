@@ -1,7 +1,7 @@
 # react-store-light
 
 A **minimal reactive state manager** for small React projects.
-Designed to be **simple, lightweight (< 2 KB)**, and easy to reason about.
+Designed to be **simple, lightweight**, and easy to reason about.
 
 No providers. No context. No boilerplate.
 
@@ -31,7 +31,6 @@ No providers. No context. No boilerplate.
   Create as many stores as you need — each one is fully isolated.
 
 * 🚀 **Tiny bundle size**
-  Size minified files < 2Kb.
 
 ---
 

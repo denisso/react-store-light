@@ -33,9 +33,9 @@ export const createStore = <T extends object>(initData: T) => {
   });
 
   const useStore = <K extends keyof T>(key: K): T[K] => {
-    const [value, setValue] = useState<T[K]>(store[key].value as T[K]);
-
     checkKey(store, key);
+
+    const [value, setValue] = useState<T[K]>(store[key].value as T[K]);
 
     useEffect(() => {
       (store[key] as unknown as Subject<T[K]>).subscribe(setValue);
