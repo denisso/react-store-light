@@ -147,14 +147,6 @@ const ProviderComponent = () => {
 };
 ```
 
-```tsx
-function Counter() {
-  const count = store.useStore('count');
-
-  return <button onClick={() => store.set('count', count + 1)}>Count: {count}</button>;
-}
-```
-
 ---
 
 ## 🔍 Reading and updating values outside React
