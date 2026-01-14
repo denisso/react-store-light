@@ -76,7 +76,7 @@ instantiated multiple times.
       - key that was assigned during initialization will be used, you cannot change it
   - useStore (Context) return store - returns the store for imperative access.
 
-### createPovider ()
+### createContext ()
 
 Creates a React Context and Provider for injecting stores.
 
@@ -123,7 +123,7 @@ import { createSlice } from 'react-store-light';
 
 type Slice = { count: number };
 const { createStore, useSelector } = createSlice<Slice>();
-const { Provider, Context } = createPovider();
+const { Provider, Context } = createContext();
 const store = createStore({ count: 1 });
 ```
 

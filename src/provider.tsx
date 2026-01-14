@@ -14,7 +14,7 @@ export type IProviderValue = { uniqId: {} }[];
  * The provider accepts multiple store instances and maps them by `uniqId`.
  * This allows different slices to coexist in the same React tree.
  */
-export const createPovider = () => {
+export const createContext = () => {
   const Context = React.createContext<IContext>(null as unknown as IContext);
 
   const Provider = ({ children, value }: { children: React.ReactNode; value: IProviderValue }) => {

@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { render, act, waitFor } from '@testing-library/react';
 import {
   createSlice,
-  createPovider,
+  createContext,
   type IAsync,
   createTypedPromise,
   asyncInit,
@@ -73,7 +73,7 @@ describe('React Store tests', () => {
       });
     };
 
-    const { Provider, Context } = createPovider();
+    const { Provider, Context } = createContext();
     let dispatchTest: (message: string) => void;
 
     const TestComponent1 = () => {

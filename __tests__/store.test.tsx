@@ -1,13 +1,13 @@
 import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, act } from '@testing-library/react';
-import { createSlice, createPovider } from '../src';
+import { createSlice, createContext } from '../src';
 
 describe('React Store tests', () => {
   it('test initialization store and usage Context', () => {
     type Slice = { count: number };
     const { createStore, useStore } = createSlice<Slice>();
-    const { Provider, Context } = createPovider();
+    const { Provider, Context } = createContext();
     const store = createStore({ count: 1 });
     let trigger!: () => number;
     const TestComponent = () => {
@@ -30,7 +30,7 @@ describe('React Store tests', () => {
     type Slice = { count: number };
     const { createStore: createStore1, useStore: useStore1 } = createSlice<Slice>();
     const { createStore: createStore2, useStore: useStore2 } = createSlice<Slice>();
-    const { Provider, Context } = createPovider();
+    const { Provider, Context } = createContext();
     const data1 = { count: 1 };
     const data2 = { count: 2 };
     const store1 = createStore1(data1);
@@ -64,7 +64,7 @@ describe('React Store tests', () => {
   it('test one store multiple providers', () => {
     type Slice = { count: number };
     const { createStore, useStore, useSelector } = createSlice<Slice>();
-    const { Provider, Context } = createPovider();
+    const { Provider, Context } = createContext();
     const store = createStore({ count: 1 });
     let countTest = 0;
 
@@ -106,8 +106,8 @@ describe('React Store tests', () => {
   it('test one store multiple different Providers', () => {
     type Slice = { count: number };
     const { createStore, useStore, useSelector } = createSlice<Slice>();
-    const { Provider: Provider1, Context: Context1 } = createPovider();
-    const { Provider: Provider2, Context: Context2 } = createPovider();
+    const { Provider: Provider1, Context: Context1 } = createContext();
+    const { Provider: Provider2, Context: Context2 } = createContext();
     const store = createStore({ count: 1 });
     let countTest = 0;
     const TestComponent1 = () => {
@@ -152,7 +152,7 @@ describe('React Store tests', () => {
 
     const store = createStore({ count: 0 });
 
-    const { Provider, Context } = createPovider();
+    const { Provider, Context } = createContext();
     let trigger!: () => void;
     let countTest = 0;
     const TestComponent = () => {
@@ -208,7 +208,7 @@ describe('React Store tests', () => {
       return store;
     };
 
-    const { Provider, Context } = createPovider();
+    const { Provider, Context } = createContext();
     let trigger!: () => void;
 
     const TestComponent = () => {

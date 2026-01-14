@@ -1,5 +1,5 @@
 export type { IStoreApi } from './types';
-export { createPovider, type IProviderValue } from './provider';
+export { createContext, type IProviderValue } from './provider';
 export { createSlice } from './slice';
 export {
   asyncInit,
