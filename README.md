@@ -149,7 +149,7 @@ const ProviderComponent = () => {
 
 ---
 
-## 🔍 Reading and updating values outside React
+### Reading and updating values outside React
 
 ```ts
 const currentCount = store.get('count');
@@ -159,7 +159,7 @@ store.set('count', currentCount + 1);
 
 ---
 
-## Listening to changes (side effects)
+### Listening to changes (side effects)
 
 Listeners are useful for reacting to state changes without triggering renders (e.g. syncing to
 `localStorage`, logging, analytics).
@@ -174,7 +174,7 @@ store.removeListener('count', listener);
 
 ---
 
-## 🗂 Multiple Stores Example
+### Multiple Stores Example
 
 ```ts
 const authStore = createStore({
