@@ -22,3 +22,4 @@ pnpm-debug.log*
 
 # test artifacts
 coverage/
+copy
