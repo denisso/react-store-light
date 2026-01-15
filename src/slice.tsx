@@ -1,11 +1,15 @@
 import React from 'react';
-import { createStore as _createStore} from 'observable-store-light';
+import { createStore as _createStore } from 'observable-store-light';
 import { IContext, IStoreApi } from './types';
 import { getStoreByContextFactory } from './helpers/get-store-by-context';
 import { useSelectorAsyncFactory } from './async';
 import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-store';
 
-export const createSlice = <T extends object>() => {
+type Reducer<T extends object> = (store: IStoreApi<T>, ...args: any[]) => void;
+
+export const createSlice = <T extends object, R extends Record<string, Reducer<IStoreApi<T>>>>(
+  reducers?: R,
+) => {
   // uniq id for store in context provider
   const uniqId = {};
 
@@ -50,5 +54,30 @@ export const createSlice = <T extends object>() => {
     return store;
   };
 
-  return { createStore, useSelector, useSelectorAsync, useStore };
+  type DropFirstArg<F> = F extends (store: IStoreApi<T>, ...args: infer A) => void
+    ? (...args: A) => void
+    : never;
+
+  type BindStoreReducers<R> = {
+    [K in keyof R]: DropFirstArg<R[K]>;
+  };
+
+  const useReducer = (Context: React.Context<IContext>) => {
+    const store = getStoreByContext(Context);
+    const bindStoreReducersRef = React.useRef<BindStoreReducers<R>>(null);
+
+    if (!bindStoreReducersRef.current) {
+      const bindStoreReducers = {} as BindStoreReducers<R>;
+      for (const key in reducers) {
+        const fn = reducers[key];
+        // save context "this" in function 
+        bindStoreReducers[key] = ((...args: any[]) =>
+          fn(store, ...args)) as BindStoreReducers<R>[typeof key];
+      }
+      bindStoreReducersRef.current = bindStoreReducers;
+    }
+
+    return bindStoreReducersRef.current as BindStoreReducers<R>;
+  };
+  return { createStore, useSelector, useSelectorAsync, useReducer, useStore };
 };

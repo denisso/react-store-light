@@ -6,12 +6,12 @@ import { createSlice, createContext } from '../src';
 describe('React Store tests', () => {
   it('test initialization store and usage Context', () => {
     type Slice = { count: number };
-    const { createStore, useStore } = createSlice<Slice>();
+    const slice = createSlice<Slice, {}>();
     const { Provider, Context } = createContext();
-    const store = createStore({ count: 1 });
+    const store = slice.createStore({ count: 1 });
     let trigger!: () => number;
     const TestComponent = () => {
-      const store = useStore(Context);
+      const store = slice.useStore(Context);
       trigger = () => {
         // ! test it
         return store.get('count');
@@ -28,19 +28,19 @@ describe('React Store tests', () => {
 
   it('test multiple stores one provider', () => {
     type Slice = { count: number };
-    const { createStore: createStore1, useStore: useStore1 } = createSlice<Slice>();
-    const { createStore: createStore2, useStore: useStore2 } = createSlice<Slice>();
+    const slice1 = createSlice<Slice, {}>();
+    const slice2 = createSlice<Slice, {}>();
     const { Provider, Context } = createContext();
     const data1 = { count: 1 };
     const data2 = { count: 2 };
-    const store1 = createStore1(data1);
-    const store2 = createStore2(data2);
+    const store1 = slice1.createStore(data1);
+    const store2 = slice2.createStore(data2);
     let trigger!: () => void;
     let countTest1 = 0;
     let countTest2 = 0;
     const TestComponent = () => {
-      const store1 = useStore1(Context);
-      const store2 = useStore2(Context);
+      const store1 = slice1.useStore(Context);
+      const store2 = slice2.useStore(Context);
       trigger = () => {
         // ! test it
         countTest1 = store1.get('count');
@@ -63,13 +63,13 @@ describe('React Store tests', () => {
 
   it('test one store multiple providers', () => {
     type Slice = { count: number };
-    const { createStore, useStore, useSelector } = createSlice<Slice>();
+    const slice = createSlice<Slice, {}>();
     const { Provider, Context } = createContext();
-    const store = createStore({ count: 1 });
+    const store = slice.createStore({ count: 1 });
     let countTest = 0;
 
     const TestComponent1 = () => {
-      const [count] = useSelector(Context, 'count');
+      const [count] = slice.useSelector(Context, 'count');
       React.useEffect(() => {
         countTest = count;
       }, [count]);
@@ -78,7 +78,7 @@ describe('React Store tests', () => {
     let trigger!: () => void;
 
     const TestComponent2 = () => {
-      const store = useStore(Context);
+      const store = slice.useStore(Context);
       trigger = () => {
         // ! test it
         store.set('count', 2);
@@ -105,13 +105,13 @@ describe('React Store tests', () => {
 
   it('test one store multiple different Providers', () => {
     type Slice = { count: number };
-    const { createStore, useStore, useSelector } = createSlice<Slice>();
+    const slice = createSlice<Slice, {}>();
     const { Provider: Provider1, Context: Context1 } = createContext();
     const { Provider: Provider2, Context: Context2 } = createContext();
-    const store = createStore({ count: 1 });
+    const store = slice.createStore({ count: 1 });
     let countTest = 0;
     const TestComponent1 = () => {
-      const [count] = useSelector(Context1, 'count');
+      const [count] = slice.useSelector(Context1, 'count');
       React.useEffect(() => {
         countTest = count;
       }, [count]);
@@ -120,7 +120,7 @@ describe('React Store tests', () => {
     let trigger!: () => void;
 
     const TestComponent2 = () => {
-      const store = useStore(Context2);
+      const store = slice.useStore(Context2);
       trigger = () => {
         // ! test it
         store.set('count', 2);
@@ -148,15 +148,15 @@ describe('React Store tests', () => {
   it('test rerender by change state', () => {
     type Slice = { count: number };
 
-    const { createStore, useSelector } = createSlice<Slice>();
+    const slice = createSlice<Slice, {}>();
 
-    const store = createStore({ count: 0 });
+    const store = slice.createStore({ count: 0 });
 
     const { Provider, Context } = createContext();
     let trigger!: () => void;
     let countTest = 0;
     const TestComponent = () => {
-      const [count, setCount] = useSelector(Context, 'count');
+      const [count, setCount] = slice.useSelector(Context, 'count');
 
       React.useEffect(() => {
         // ! test it
@@ -186,13 +186,13 @@ describe('React Store tests', () => {
   it('test store.addListener', () => {
     type Slice = { count: number; name: string };
 
-    const { createStore, useStore } = createSlice<Slice>();
+    const slice = createSlice<Slice, {}>();
 
     let countTest = 0;
     let nameTest = '';
 
     const initSlice = (count: number, name: string) => {
-      const store = createStore({ count, name });
+      const store = slice.createStore({ count, name });
       store.addListener('count', (_, value) => {
         // ! test it
         countTest = value;
@@ -212,7 +212,7 @@ describe('React Store tests', () => {
     let trigger!: () => void;
 
     const TestComponent = () => {
-      const store = useStore(Context);
+      const store = slice.useStore(Context);
 
       trigger = () => {
         store.set('count', 2);
@@ -237,6 +237,4 @@ describe('React Store tests', () => {
     expect(countTest).toBe(2);
     expect(nameTest).toBe('Tester');
   });
-
-
 });
