@@ -3,7 +3,7 @@ import { render, act } from '@testing-library/react';
 import { createSlice, createContext, IStoreApi } from '../src';
 
 describe('Reducers tests', () => {
-  it('test initialization store and usage Context', () => {
+  it('base case', () => {
     type Slice = { count: number };
     const count = (store: IStoreApi<Slice>, count: number) => {
       store.set('count', store.get('count') + count);

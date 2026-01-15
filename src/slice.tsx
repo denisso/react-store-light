@@ -7,7 +7,7 @@ import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-s
 
 type Reducer<T extends object> = (store: IStoreApi<T>, ...args: any[]) => void;
 
-export const createSlice = <T extends object, R extends Record<string, Reducer<IStoreApi<T>>>>(
+export const createSlice = <T extends object, R extends Record<string, Reducer<IStoreApi<T>>> = {}>(
   reducers?: R,
 ) => {
   // uniq id for store in context provider
@@ -67,10 +67,15 @@ export const createSlice = <T extends object, R extends Record<string, Reducer<I
     const bindStoreReducersRef = React.useRef<BindStoreReducers<R>>(null);
 
     if (!bindStoreReducersRef.current) {
+      if (!reducers) {
+        bindStoreReducersRef.current = {} as BindStoreReducers<R>;
+        return bindStoreReducersRef.current;
+      }
       const bindStoreReducers = {} as BindStoreReducers<R>;
+
       for (const key in reducers) {
         const fn = reducers[key];
-        // save context "this" in function 
+        // save context "this" in function
         bindStoreReducers[key] = ((...args: any[]) =>
           fn(store, ...args)) as BindStoreReducers<R>[typeof key];
       }

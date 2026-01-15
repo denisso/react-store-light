@@ -6,7 +6,7 @@ import { createSlice, createContext } from '../src';
 describe('React Store tests', () => {
   it('test initialization store and usage Context', () => {
     type Slice = { count: number };
-    const slice = createSlice<Slice, {}>();
+    const slice = createSlice<Slice>();
     const { Provider, Context } = createContext();
     const store = slice.createStore({ count: 1 });
     let trigger!: () => number;
@@ -28,8 +28,8 @@ describe('React Store tests', () => {
 
   it('test multiple stores one provider', () => {
     type Slice = { count: number };
-    const slice1 = createSlice<Slice, {}>();
-    const slice2 = createSlice<Slice, {}>();
+    const slice1 = createSlice<Slice>();
+    const slice2 = createSlice<Slice>();
     const { Provider, Context } = createContext();
     const data1 = { count: 1 };
     const data2 = { count: 2 };
@@ -63,7 +63,7 @@ describe('React Store tests', () => {
 
   it('test one store multiple providers', () => {
     type Slice = { count: number };
-    const slice = createSlice<Slice, {}>();
+    const slice = createSlice<Slice>();
     const { Provider, Context } = createContext();
     const store = slice.createStore({ count: 1 });
     let countTest = 0;
@@ -105,7 +105,7 @@ describe('React Store tests', () => {
 
   it('test one store multiple different Providers', () => {
     type Slice = { count: number };
-    const slice = createSlice<Slice, {}>();
+    const slice = createSlice<Slice>();
     const { Provider: Provider1, Context: Context1 } = createContext();
     const { Provider: Provider2, Context: Context2 } = createContext();
     const store = slice.createStore({ count: 1 });
@@ -148,7 +148,7 @@ describe('React Store tests', () => {
   it('test rerender by change state', () => {
     type Slice = { count: number };
 
-    const slice = createSlice<Slice, {}>();
+    const slice = createSlice<Slice>();
 
     const store = slice.createStore({ count: 0 });
 
@@ -186,7 +186,7 @@ describe('React Store tests', () => {
   it('test store.addListener', () => {
     type Slice = { count: number; name: string };
 
-    const slice = createSlice<Slice, {}>();
+    const slice = createSlice<Slice>();
 
     let countTest = 0;
     let nameTest = '';
