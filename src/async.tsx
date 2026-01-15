@@ -94,7 +94,7 @@ function getAsyncValueByKey<P>(value: P) {
   return value;
 }
 
-export function useSelectorAsyncFactory<T extends object>(uniqId: {}) {
+export function useStateAsyncFactory<T extends object>(uniqId: {}) {
   const getStoreByContext = getStoreByContextFactory<T>(uniqId);
   let uniq = {};
   return function <Args extends unknown[], K extends keyof T>(

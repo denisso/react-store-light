@@ -56,14 +56,14 @@ describe('React Store tests', () => {
     ]);
   });
 
-  it('test asynchronous operations using useSelectorAsync', async () => {
+  it('test asynchronous operations using useStateAsync', async () => {
     type Slice = {
       one: IAsync<string, { message: string }>;
     };
     const sliceData: Slice = {
       one: asyncInit(''),
     };
-    const { createStore, useSelectorAsync, useSelector } = createSlice<Slice>();
+    const { createStore, useStateAsync, useState } = createSlice<Slice>();
 
     const slice = createStore(sliceData);
 
@@ -77,14 +77,14 @@ describe('React Store tests', () => {
     let dispatchTest: (message: string) => void;
 
     const TestComponent1 = () => {
-      const { dispatch } = useSelectorAsync(Context, 'one', promiseFn);
+      const { dispatch } = useStateAsync(Context, 'one', promiseFn);
       dispatchTest = dispatch;
       return null;
     };
 
     const results: Slice['one'][] = [];
     const TestComponent2 = () => {
-      const [value] = useSelector(Context, 'one');
+      const [value] = useState(Context, 'one');
       React.useEffect(() => {
         results.push(value);
       }, [value]);

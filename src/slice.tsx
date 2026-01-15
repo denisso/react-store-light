@@ -2,7 +2,7 @@ import React from 'react';
 import { createStore as _createStore } from 'observable-store-light';
 import { IContext, IStoreApi } from './types';
 import { getStoreByContextFactory } from './helpers/get-store-by-context';
-import { useSelectorAsyncFactory } from './async';
+import { useStateAsyncFactory } from './async';
 import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-store';
 
 type Reducer<T extends object> = (store: IStoreApi<T>, ...args: any[]) => void;
@@ -32,7 +32,7 @@ export const createSlice = <T extends object, R extends Record<string, Reducer<I
 
   const getStoreByContext = getStoreByContextFactory<T>(uniqId);
 
-  const useSelector = <K extends keyof T>(
+  const useState = <K extends keyof T>(
     Context: React.Context<IContext>,
     key: K,
   ): [T[K], (args: IArgs<K>) => void] => {
@@ -47,7 +47,7 @@ export const createSlice = <T extends object, R extends Record<string, Reducer<I
     return [state, setStateRef.current];
   };
 
-  const useSelectorAsync = useSelectorAsyncFactory<T>(uniqId);
+  const useStateAsync = useStateAsyncFactory<T>(uniqId);
 
   const useStore = (Context: React.Context<IContext>) => {
     const store = getStoreByContext(Context);
@@ -84,5 +84,5 @@ export const createSlice = <T extends object, R extends Record<string, Reducer<I
 
     return bindStoreReducersRef.current as BindStoreReducers<R>;
   };
-  return { createStore, useSelector, useSelectorAsync, useReducer, useStore };
+  return { createStore, useState, useStateAsync, useReducer, useStore };
 };

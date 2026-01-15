@@ -69,7 +69,7 @@ describe('React Store tests', () => {
     let countTest = 0;
 
     const TestComponent1 = () => {
-      const [count] = slice.useSelector(Context, 'count');
+      const [count] = slice.useState(Context, 'count');
       React.useEffect(() => {
         countTest = count;
       }, [count]);
@@ -111,7 +111,7 @@ describe('React Store tests', () => {
     const store = slice.createStore({ count: 1 });
     let countTest = 0;
     const TestComponent1 = () => {
-      const [count] = slice.useSelector(Context1, 'count');
+      const [count] = slice.useState(Context1, 'count');
       React.useEffect(() => {
         countTest = count;
       }, [count]);
@@ -156,7 +156,7 @@ describe('React Store tests', () => {
     let trigger!: () => void;
     let countTest = 0;
     const TestComponent = () => {
-      const [count, setCount] = slice.useSelector(Context, 'count');
+      const [count, setCount] = slice.useState(Context, 'count');
 
       React.useEffect(() => {
         // ! test it

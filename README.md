@@ -60,13 +60,13 @@ instantiated multiple times.
     - returns:
       - store - store with api
 
-  - useSelector (Context, key) subscribes a component to a single store field by key.
+  - useState (Context, key) subscribes a component to a single store field by key.
     - returns:
       - [value, setValue] = analog React.useState
     - features:
       - key that was assigned during initialization will be used, you cannot change it
 
-  - useSelectorAsync (Context, key, async callback) return {dispatch, value, abort()} - subscribes a
+  - useStateAsync (Context, key, async callback) return {dispatch, value, abort()} - subscribes a
     component to a single **async store field** by key.
     - returns:
       - dispatch - runs asynchronous callback
@@ -82,8 +82,8 @@ Creates a React Context and Provider for injecting stores.
 
 - returns:
   - Context - React Context used by:
-    - useSelector
-    - useSelectorAsync
+    - useState
+    - useStateAsync
     - useStore
 
   - Provider - Registers store instances in the React tree.
@@ -122,7 +122,7 @@ Creates a React Context and Provider for injecting stores.
 import { createSlice } from 'react-store-light';
 
 type Slice = { count: number };
-const { createStore, useSelector } = createSlice<Slice>();
+const { createStore, useState } = createSlice<Slice>();
 const { Provider, Context } = createContext();
 const store = createStore({ count: 1 });
 ```
@@ -133,7 +133,7 @@ Add Provider to React tree and Componentwith selector
 
 ```tsx
 const Counter = () => {
-  const [count, setCount] = store.useSelector(Context, 'count');
+  const [count, setCount] = store.useState(Context, 'count');
 
   return <button onClick={() => setCount((prev) => prev + 1)}>Count: {count}</button>;
 };

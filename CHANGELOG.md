@@ -18,7 +18,7 @@
   * Each slice generates its own `uniqId`.
   * Guarantees strict isolation between stores.
 
-* **`useStore(key) v1` → `useSelector(Context, key)`**
+* **`useStore(key) v1` → `useState(Context, key)`**
 
   * State access now requires explicit Context.
   * Setter is separated from state reading.
@@ -33,7 +33,7 @@
   * `IAsync<T, E>` with explicit lifecycle.
   * Async state lives in the store, not in components.
 
-* **`useSelectorAsync(Context, key, async callback)` hook**
+* **`useStateAsync(Context, key, async callback)` hook**
 
   * Dispatch + subscription in one place.
   * Built-in race condition protection.
