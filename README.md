@@ -50,7 +50,7 @@ pnpm add react-store-light
 This library provides a **slice-based, context-driven state management API** with built-in async
 support.
 
-### createSlice ()
+### createSlice<StoreData, [Reducers]> (Context|null, reducers)
 
 Creates an isolated slice definition. Each slice owns its **own store identity** and can be
 instantiated multiple times.
@@ -60,13 +60,13 @@ instantiated multiple times.
     - returns:
       - store - store with api
 
-  - useState (Context, key) subscribes a component to a single store field by key.
+  - useState (key, [Context]) subscribes a component to a single store field by key.
     - returns:
       - [value, setValue] = analog React.useState
     - features:
       - key that was assigned during initialization will be used, you cannot change it
 
-  - useStateAsync (Context, key, async callback) return {dispatch, value, abort()} - subscribes a
+  - useAsync (key, async callback, [Context]) return {dispatch, value, abort()} - subscribes a
     component to a single **async store field** by key.
     - returns:
       - dispatch - runs asynchronous callback
@@ -74,18 +74,34 @@ instantiated multiple times.
       - abort - abort the callback if the callback has not yet returned the result.
     - features:
       - key that was assigned during initialization will be used, you cannot change it
-  - useStore (Context) return store - returns the store for imperative access.
+      - async function callback signature like Promise callback
+        - (resolve, reject) => void | Promise<void>
+
+  - useStore ([Context]) - returns the store for imperative access.
+    - returns:
+      - store - store with api
+
+  - useReducer([Context]) return - 
+    - returns:
+      - reducer is a function that describes a deterministic state transition. Reducers may mutate the store via its API instead of returning a new state. function reducer signature is:
+        - (store, ...custom args) => void
 
 ### createContext ()
 
-Creates a React Context and Provider for injecting stores.
+Creates a React Context.
 
 - returns:
-  - Context - React Context used by:
+  - Context - React Context optional used by:
+    - createSlice
     - useState
-    - useStateAsync
+    - useAsync
     - useStore
+  
+### createProvider (Context)
 
+Creates a Provider for injecting stores.
+
+- returns:
   - Provider - Registers store instances in the React tree.
     - props:
       - children: ReactNode

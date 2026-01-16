@@ -57,7 +57,7 @@ describe('Async', () => {
     ]);
   });
 
-  it('test asynchronous operations using useStateAsync', async () => {
+  it('test asynchronous operations using useAsync', async () => {
     type Slice = {
       one: IAsync<string, { message: string }>;
     };

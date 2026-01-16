@@ -33,7 +33,7 @@
   * `IAsync<T, E>` with explicit lifecycle.
   * Async state lives in the store, not in components.
 
-* **`useStateAsync(Context, key, async callback)` hook**
+* **`useAsync(Context, key, async callback)` hook**
 
   * Dispatch + subscription in one place.
   * Built-in race condition protection.
