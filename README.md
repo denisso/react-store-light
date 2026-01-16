@@ -135,11 +135,12 @@ Creates a Provider for injecting stores.
 ## Quick Start
 
 ```ts
-import { createSlice } from 'react-store-light';
+import { createSlice, createContext, createProvider } from 'react-store-light';
 
 type Slice = { count: number };
-const { createStore, useState } = createSlice<Slice>();
-const { Provider, Context } = createContext();
+const Context = createContext();
+const { createStore, useState } = createSlice<Slice>(Context);
+const Provider = createProvider(Context)
 const store = createStore({ count: 1 });
 ```
 
@@ -149,7 +150,7 @@ Add Provider to React tree and Componentwith selector
 
 ```tsx
 const Counter = () => {
-  const [count, setCount] = store.useState(Context, 'count');
+  const [count, setCount] = store.useState('count');
 
   return <button onClick={() => setCount((prev) => prev + 1)}>Count: {count}</button>;
 };
