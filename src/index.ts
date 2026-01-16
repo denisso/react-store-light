@@ -1,5 +1,5 @@
 export type { IStoreApi } from './types';
-export { createContext, type IProviderValue } from './provider';
+export { createContext, createProvider, type IProviderValue } from './context';
 export { createSlice } from './slice';
 export {
   asyncInit,
@@ -9,5 +9,5 @@ export {
   createTypedPromise,
   type IAsync,
   type IAsyncValue,
-  type IAsyncError
+  type IAsyncError,
 } from './async';

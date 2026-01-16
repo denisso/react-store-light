@@ -1,17 +1,17 @@
 import { describe, it, expect } from 'vitest';
 import { render, act } from '@testing-library/react';
-import { createSlice, createContext, IStoreApi } from '../src';
+import { createSlice, createContext, IStoreApi, createProvider } from '../src';
 
-describe('Reducers tests', () => {
+describe('Reducer', () => {
   it('base case', () => {
     type Slice = { count: number };
     const count = (store: IStoreApi<Slice>, count: number) => {
       store.set('count', store.get('count') + count);
     };
     const reducers = { count };
-    const slice = createSlice<Slice, typeof reducers>(reducers);
+    const Context = createContext();
+    const slice = createSlice<Slice, typeof reducers>(Context, reducers);
     const store = slice.createStore({ count: 0 });
-    const { Provider, Context } = createContext();
 
     let countFntest: (arg: number) => void;
 
@@ -21,6 +21,7 @@ describe('Reducers tests', () => {
       return null;
     };
 
+    const Provider = createProvider(Context);
     render(
       <Provider value={[store]}>
         <Counter />
@@ -31,6 +32,6 @@ describe('Reducers tests', () => {
       countFntest(2);
     });
 
-    expect(store.get('count')).toBe(2)
+    expect(store.get('count')).toBe(2);
   });
 });

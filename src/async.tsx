@@ -1,7 +1,7 @@
 import React from 'react';
 import { ErrorMessages, ErrorWithMessage } from './helpers/error';
 import type { IContext } from './types';
-import { getStoreByContextFactory } from './helpers/get-store-by-context';
+import { createGetStoreByContext } from './helpers/get-store-by-context';
 import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-store';
 
 type DispatchStatus = 'init' | 'pending' | 'fulfilled' | 'rejected';
@@ -94,15 +94,18 @@ function getAsyncValueByKey<P>(value: P) {
   return value;
 }
 
-export function useStateAsyncFactory<T extends object>(uniqId: {}) {
-  const getStoreByContext = getStoreByContextFactory<T>(uniqId);
+export function createUseAsync<T extends object>(
+  uniqId: {},
+  Context: React.Context<IContext> | null,
+) {
+  const getStoreByContext = createGetStoreByContext<T>(uniqId);
   let uniq = {};
   return function <Args extends unknown[], K extends keyof T>(
-    Context: React.Context<IContext>,
     key: K,
     cb: (...args: [...Args]) => Promise<T[K]>,
+    _Context?: React.Context<IContext>
   ) {
-    const store = getStoreByContext(Context);
+    const store = getStoreByContext(_Context ? _Context : Context);
     const [value, setValue] = React.useState(getAsyncValueByKey(store.get(key)));
     const refDispatch = React.useRef<(...args: [...Args]) => void>(null);
     const refAbort = React.useRef<() => void>(() => {

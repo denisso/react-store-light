@@ -10,9 +10,10 @@ import {
   asyncPending,
   asyncFulfilled,
   asyncError,
+  createProvider,
 } from '../src';
 
-describe('React Store tests', () => {
+describe('Async', () => {
   it('test asynchronous operations without React', async () => {
     type Slice = {
       one: IAsync<string, { message: string }>;
@@ -20,7 +21,7 @@ describe('React Store tests', () => {
     const sliceData: Slice = {
       one: asyncInit(''),
     };
-    const { createStore } = createSlice<Slice>();
+    const { createStore } = createSlice<Slice>(null);
 
     const slice = createStore(sliceData);
     const results: Slice['one'][] = [];
@@ -63,7 +64,8 @@ describe('React Store tests', () => {
     const sliceData: Slice = {
       one: asyncInit(''),
     };
-    const { createStore, useStateAsync, useState } = createSlice<Slice>();
+    const Context = createContext();
+    const { createStore, useAsync, useState } = createSlice<Slice>(Context);
 
     const slice = createStore(sliceData);
 
@@ -73,24 +75,24 @@ describe('React Store tests', () => {
       });
     };
 
-    const { Provider, Context } = createContext();
     let dispatchTest: (message: string) => void;
 
     const TestComponent1 = () => {
-      const { dispatch } = useStateAsync(Context, 'one', promiseFn);
+      const { dispatch } = useAsync('one', promiseFn);
       dispatchTest = dispatch;
       return null;
     };
 
     const results: Slice['one'][] = [];
     const TestComponent2 = () => {
-      const [value] = useState(Context, 'one');
+      const [value] = useState('one');
       React.useEffect(() => {
         results.push(value);
       }, [value]);
       return null;
     };
 
+    const Provider = createProvider(Context);
     render(
       <Provider value={[slice]}>
         <TestComponent1 />

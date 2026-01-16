@@ -1,13 +1,14 @@
 import React from 'react';
 import { createStore as _createStore } from 'observable-store-light';
 import { IContext, IStoreApi } from './types';
-import { getStoreByContextFactory } from './helpers/get-store-by-context';
-import { useStateAsyncFactory } from './async';
+import { createGetStoreByContext } from './helpers/get-store-by-context';
+import { createUseAsync } from './async';
 import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-store';
 
 type Reducer<T extends object> = (store: IStoreApi<T>, ...args: any[]) => void;
 
 export const createSlice = <T extends object, R extends Record<string, Reducer<IStoreApi<T>>> = {}>(
+  Context: React.Context<IContext> | null,
   reducers?: R,
 ) => {
   // uniq id for store in context provider
@@ -30,13 +31,13 @@ export const createSlice = <T extends object, R extends Record<string, Reducer<I
     };
   };
 
-  const getStoreByContext = getStoreByContextFactory<T>(uniqId);
+  const getStoreByContext = createGetStoreByContext<T>(uniqId);
 
   const useState = <K extends keyof T>(
-    Context: React.Context<IContext>,
     key: K,
+    _Context?: React.Context<IContext>,
   ): [T[K], (args: IArgs<K>) => void] => {
-    const store = getStoreByContext(Context);
+    const store = getStoreByContext(_Context ? _Context : Context);
     const [state, setState] = React.useState<T[K]>(store.get(key));
     const setStateRef = React.useRef<ReturnType<typeof setStateProxy<K>>>(null);
     if (setStateRef.current === null) {
@@ -47,10 +48,10 @@ export const createSlice = <T extends object, R extends Record<string, Reducer<I
     return [state, setStateRef.current];
   };
 
-  const useStateAsync = useStateAsyncFactory<T>(uniqId);
+  const useAsync = createUseAsync<T>(uniqId, Context);
 
-  const useStore = (Context: React.Context<IContext>) => {
-    const store = getStoreByContext(Context);
+  const useStore = (_Context?: React.Context<IContext>) => {
+    const store = getStoreByContext(_Context ? _Context : Context);
     return store;
   };
 
@@ -62,8 +63,8 @@ export const createSlice = <T extends object, R extends Record<string, Reducer<I
     [K in keyof R]: DropFirstArg<R[K]>;
   };
 
-  const useReducer = (Context: React.Context<IContext>) => {
-    const store = getStoreByContext(Context);
+  const useReducer = (_Context?: React.Context<IContext>) => {
+    const store = getStoreByContext(_Context ? _Context : Context);
     const bindStoreReducersRef = React.useRef<BindStoreReducers<R>>(null);
 
     if (!bindStoreReducersRef.current) {
@@ -84,5 +85,5 @@ export const createSlice = <T extends object, R extends Record<string, Reducer<I
 
     return bindStoreReducersRef.current as BindStoreReducers<R>;
   };
-  return { createStore, useState, useStateAsync, useReducer, useStore };
+  return { createStore, useState, useAsync, useReducer, useStore };
 };

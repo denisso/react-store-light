@@ -9,14 +9,20 @@ import { IContext } from './types';
 export type IProviderValue = { uniqId: {} }[];
 
 /**
- * Creates a Context + Provider pair for store injection.
+ * Creates a Context.
+ */
+export const createContext = () => {
+  const Context = React.createContext<IContext>(null as unknown as IContext);
+  return Context;
+};
+
+/**
+ * Creates a Provider 
  *
  * The provider accepts multiple store instances and maps them by `uniqId`.
  * This allows different slices to coexist in the same React tree.
  */
-export const createContext = () => {
-  const Context = React.createContext<IContext>(null as unknown as IContext);
-
+export const createProvider = (Context: React.Context<IContext>) => {
   const Provider = ({ children, value }: { children: React.ReactNode; value: IProviderValue }) => {
     const ref = React.useRef<IContext>(null as unknown as IContext);
 
@@ -33,5 +39,5 @@ export const createContext = () => {
 
     return <Context.Provider value={ref.current}>{children}</Context.Provider>;
   };
-  return { Context, Provider };
+  return Provider;
 };
