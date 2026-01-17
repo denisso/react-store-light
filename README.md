@@ -58,19 +58,18 @@ instantiated multiple times.
 - returns:
   - createStore (initData) - creates a store instance with uniq id for this slice.
     - returns:
-      - store - store with api
+      - store - store with api type IStoreAPI<T>
 
   - useState (key, [Context]) subscribes a component to a single store field by key.
     - returns:
-      - [value, setValue] = analog React.useState
+      - analog [value, setValue] = React.useState
     - features:
       - key that was assigned during initialization will be used, you cannot change it
 
-  - useAsync (key, async callback, [Context]) return {dispatch, value, abort()} - subscribes a
-    component to a single **async store field** by key.
+  - useAsync (key, async callback, [Context]) - subscribes a   component to a single **async store field** by key.
     - returns:
       - dispatch - runs asynchronous callback
-      - value - async store field
+      - value - async store state type IAsync 
       - abort - abort the callback if the callback has not yet returned the result.
     - features:
       - key that was assigned during initialization will be used, you cannot change it
@@ -81,7 +80,7 @@ instantiated multiple times.
     - returns:
       - store - store with api
 
-  - useReducer([Context]) return - 
+  - useReducer([Context]) - returns registered reducers 
     - returns:
       - reducer is a function that describes a deterministic state transition. Reducers may mutate the store via its API instead of returning a new state. function reducer signature is:
         - (store, ...custom args) => void
@@ -118,14 +117,15 @@ Creates a Provider for injecting stores.
 - asyncPending - creates a pending async state
 - asyncFulfilled - creates a fulfilled async state
 - asyncError - creates a rejected async state
-- createTypedPromise(cb) - wraps a Promise executor and always resolves to an async value
+- createPromise(cb) - wraps a Promise executor and always resolves to an async value
   - cb function signature promise like (resolve, reject) => void
 
 #### Types
 
-- type IAsync\<V,E> - represents an async value stored in the store.
+- type IAsync\<V,E> - represents an async value in the store.
   - V - value type
   - E - error type
+  - result type {status: 'init' | 'pending' | 'fulfilled' | 'rejected', value: T | null, error: E|null}
 - type IAsyncValue\<T> - infers the value type from IAsync.
 - type IAsyncError\<T> - infers the error type from IAsync.
 - type IStoreApi - Store API provided by observable-store-light.

@@ -6,7 +6,7 @@ export {
   asyncPending,
   asyncFulfilled,
   asyncError,
-  createTypedPromise,
+  createPromise,
   type IAsync,
   type IAsyncValue,
   type IAsyncError,

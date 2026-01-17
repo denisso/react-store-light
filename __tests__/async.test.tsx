@@ -5,7 +5,7 @@ import {
   createSlice,
   createContext,
   type IAsync,
-  createTypedPromise,
+  createPromise,
   asyncInit,
   asyncPending,
   asyncFulfilled,
@@ -14,7 +14,7 @@ import {
 } from '../src';
 
 describe('Async', () => {
-  it('test asynchronous operations without React', async () => {
+  it('asynchronous operations resolve and reject without React', async () => {
     type Slice = {
       one: IAsync<string, { message: string }>;
     };
@@ -31,7 +31,7 @@ describe('Async', () => {
     });
 
     const promiseFn = async (message: string) => {
-      return createTypedPromise<Slice['one']>((resolve, reject) => {
+      return createPromise<Slice['one']>((resolve, reject) => {
         if (message == 'error') {
           reject({ message });
         } else {
@@ -70,7 +70,7 @@ describe('Async', () => {
     const slice = createStore(sliceData);
 
     const promiseFn = async (message: string) => {
-      return createTypedPromise<Slice['one']>((resolve) => {
+      return createPromise<Slice['one']>((resolve) => {
         resolve(message);
       });
     };
@@ -108,4 +108,35 @@ describe('Async', () => {
       expect(results).toEqual([asyncInit(''), asyncPending(), asyncFulfilled('hello')]);
     });
   });
+
+  it('abort operation for one store', () => {
+    type Slice = {
+      one: IAsync<string>;
+    };
+    const sliceData: Slice = {
+      one: asyncInit(''),
+    };
+    const slice = createSlice<Slice>(null);
+    const promiseFn = (arg: string) =>
+      createPromise<Slice['one']>((resolve) => {
+        setTimeout(() => resolve('hello'));
+      });
+      
+    const Context = createContext();
+    const Provider = createProvider(Context);
+    const store = slice.createStore({ one: asyncInit('') });
+
+    const TestComponent1 = () => {
+      const { dispatch, abort } = slice.useAsync('one', promiseFn);
+      // dispatchTest = dispatch;
+      return null;
+    };
+    render(
+      <Provider value={[store]}>
+        <TestComponent1 />
+      </Provider>,
+    );
+  });
+
+  it('abort operation for multiple stores instances from same slice', () => {});
 });

@@ -3,9 +3,9 @@ import { render, act } from '@testing-library/react';
 import { createSlice, createContext, IStoreApi, createProvider } from '../src';
 
 describe('Reducer', () => {
-  it('base case', () => {
+  it('one reducer', () => {
     type Slice = { count: number };
-    const count = (store: IStoreApi<Slice>, count: number) => {
+    const count = (count: number) => (store: IStoreApi<Slice>) => {
       store.set('count', store.get('count') + count);
     };
     const reducers = { count };
