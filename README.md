@@ -74,7 +74,7 @@ instantiated multiple times.
     - features:
       - key that was assigned during initialization will be used, you cannot change it
       - async function callback signature like Promise callback
-        - (resolve, reject) => void | Promise<void>
+        - (...custom args) => (store, resolve, reject) => void | Promise<void>
 
   - useStore ([Context]) - returns the store for imperative access.
     - returns:
@@ -83,7 +83,7 @@ instantiated multiple times.
   - useReducer([Context]) - returns registered reducers 
     - returns:
       - reducer is a function that describes a deterministic state transition. Reducers may mutate the store via its API instead of returning a new state. function reducer signature is:
-        - (store, ...custom args) => void
+        - (...custom args) => (store) => void
 
 ### createContext ()
 
