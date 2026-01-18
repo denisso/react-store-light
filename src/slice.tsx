@@ -2,7 +2,7 @@ import React from 'react';
 import { createStore as _createStore } from 'observable-store-light';
 import { IContext, IStoreApi } from './types';
 import { ErrorMessages, ErrorWithMessage } from './helpers/error';
-import { useAsync as _useAsync } from './async';
+import { useAsync as _useAsync, type IAsyncCallback } from './async';
 import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-store';
 
 /**
@@ -87,7 +87,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
      * Returns:
      * - dispatch: runs async callback
      * - value: current async state
-     * - abort: break async callback and resets to {status: 'abort', value: current; error: current;}
+     * - abort: break async callback and resets to {status: 'aborted', value: current; error: current;}
      *
      * @param key - name field in the store
      * @param callback - async callback
@@ -95,7 +95,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
      */
     useAsync<Args extends unknown[], K extends keyof T>(
       key: K,
-      callback: (...args: [...Args]) => Promise<T[K]>,
+      callback: (...args: [...Args]) => IAsyncCallback<T, K>,
       _Context?: React.Context<IContext>,
     ) {
       const store = useStoreByContext(_Context ? _Context : Context);

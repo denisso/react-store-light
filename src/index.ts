@@ -2,12 +2,15 @@ export type { IStoreApi } from './types';
 export { createContext, createProvider, type IProviderValue } from './context';
 export { createSlice } from './slice';
 export {
-  asyncInit,
+  asyncInitial,
   asyncPending,
   asyncFulfilled,
-  asyncError,
-  createPromise,
+  asyncRejected,
+  asyncAborded,
+  runAsyncCallback,
+  getAsyncValueByKey,
+  type IAsyncCallback,
   type IAsync,
   type IAsyncValue,
-  type IAsyncError,
+  type IasyncRejected,
 } from './async';

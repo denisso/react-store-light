@@ -125,7 +125,7 @@ Creates a Provider for injecting stores.
 - type IAsync\<V,E> - represents an async value in the store.
   - V - value type
   - E - error type
-  - result type {status: 'init' | 'pending' | 'fulfilled' | 'rejected', value: T | null, error: E|null}
+  - result type {status: 'initial' | 'pending' | 'fulfilled' | 'rejected', value: T | null, error: E|null}
 - type IAsyncValue\<T> - infers the value type from IAsync.
 - type IAsyncError\<T> - infers the error type from IAsync.
 - type IStoreApi - Store API provided by observable-store-light.

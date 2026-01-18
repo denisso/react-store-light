@@ -1,5 +1,5 @@
 export const ErrorMessages = {
-  context: 'useStoreState must be used within a StoreProvider.',
+  context: 'useStoreByContext must be used within a Store Provider.',
   storeUniqIdAlreadyExist: 'a store with this id already exists in the provider.',
   isNotAsync: "in the useAsync hook, only IAsync values can be used."
 };
