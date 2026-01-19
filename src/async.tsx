@@ -83,7 +83,7 @@ export const runAsyncCallback = async <T extends object, K extends keyof T>(
   key: K,
   cb: IAsyncCallback<T, K>,
 ) => {
-  const val = getAsyncValueByKey(store.get(key));
+  const val = checkAsyncValue(store.get(key));
   if (val.status == 'pending') {
     return Promise.resolve(val);
   }
@@ -128,7 +128,7 @@ function isAsync(item: unknown): item is IAsync<unknown, unknown> {
   );
 }
 
-export function getAsyncValueByKey<P>(value: P) {
+export function checkAsyncValue<P>(value: P) {
   if (!isAsync(value)) {
     throw ErrorWithMessage(ErrorMessages['isNotAsync']);
   }
@@ -141,7 +141,7 @@ export function useAsync<T extends object, Args extends unknown[], K extends key
   store: IStoreApi<T>,
   _Context?: React.Context<IContext>,
 ) {
-  const [value, setValue] = React.useState(getAsyncValueByKey(store.get(key)));
+  const [value, setValue] = React.useState(checkAsyncValue(store.get(key)));
   const refDispatch = React.useRef<(...args: [...Args]) => void>(null);
   const refAbort = React.useRef<() => void>(() => {
     store.set(key, asyncAborded() as T[K]);

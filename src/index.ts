@@ -8,7 +8,6 @@ export {
   asyncRejected,
   asyncAborded,
   runAsyncCallback,
-  getAsyncValueByKey,
   type IAsyncCallback,
   type IAsync,
   type IAsyncValue,
