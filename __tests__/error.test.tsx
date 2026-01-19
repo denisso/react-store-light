@@ -34,13 +34,13 @@ describe('Error', () => {
     const slice = createSlice<Slice>(Context);
     const Provider = createProvider(Context);
     const Test = () => {
-      // throw error need Context
       slice.useStore();
       return null;
     };
 
     expect(() =>
       render(
+        // stroe must be added to the provider 
         <Provider value={[]}>
           <Test />
         </Provider>,
@@ -55,13 +55,13 @@ describe('Error', () => {
     const store = slice.createStore({ one: '' });
     const Provider = createProvider(Context);
     const Test = () => {
-      // throw error need Context
       slice.useStore();
       return null;
     };
 
     expect(() =>
       render(
+        // store must be uniq
         <Provider value={[store, store]}>
           <Test />
         </Provider>,
@@ -77,7 +77,7 @@ describe('Error', () => {
     const Provider = createProvider(Context);
 
     const Test = () => {
-      // throw error need Context
+      // prop "one" must be IAsync type
       slice.useAsync('one', () => () => {});
       return null;
     };
