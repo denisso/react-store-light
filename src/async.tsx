@@ -117,7 +117,7 @@ const statusAsyncSet = new Set<DispatchStatus>([
   'aborted',
 ]);
 
-function isAsync(item: unknown): item is IAsync<unknown, unknown> {
+export function isAsync(item: unknown): item is IAsync<unknown, unknown> {
   const _item = item as IAsync<unknown, unknown>;
   return (
     _item instanceof Object &&
@@ -128,7 +128,7 @@ function isAsync(item: unknown): item is IAsync<unknown, unknown> {
   );
 }
 
-export function checkAsyncValue<P>(value: P) {
+function checkAsyncValue<P>(value: P) {
   if (!isAsync(value)) {
     throw ErrorWithMessage(ErrorMessages['isNotAsync']);
   }
@@ -139,7 +139,6 @@ export function useAsync<T extends object, Args extends unknown[], K extends key
   key: K,
   cb: (...args: [...Args]) => IAsyncCallback<T, K>,
   store: IStoreApi<T>,
-  _Context?: React.Context<IContext>,
 ) {
   const [value, setValue] = React.useState(checkAsyncValue(store.get(key)));
   const refDispatch = React.useRef<(...args: [...Args]) => void>(null);

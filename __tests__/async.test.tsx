@@ -5,7 +5,7 @@ import {
   createSlice,
   createContext,
   type IAsync,
-  IAsyncCallback,
+  type IAsyncCallback,
   asyncInitial,
   asyncPending,
   asyncFulfilled,

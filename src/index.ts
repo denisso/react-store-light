@@ -7,6 +7,7 @@ export {
   asyncFulfilled,
   asyncRejected,
   asyncAborded,
+  isAsync,
   runAsyncCallback,
   type IAsyncCallback,
   type IAsync,

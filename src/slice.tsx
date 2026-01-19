@@ -57,6 +57,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
     }
     return store;
   };
+
   type ReducerArgsFn<R> = R extends (...args: infer A) => (store: IStoreApi<any>) => void
     ? (...args: A) => void
     : never;
@@ -99,7 +100,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
       _Context?: React.Context<IContext>,
     ) {
       const store = useStoreByContext(_Context ? _Context : Context);
-      return _useAsync(key, callback, store, _Context);
+      return _useAsync(key, callback, store);
     }
 
     /**
