@@ -78,48 +78,35 @@ export interface IAsyncCallback<T extends object, K extends keyof T> {
   ): void;
 }
 
-export const runAsyncCallback = <T extends object, K extends keyof T>(
+export const runAsyncCallback = async <T extends object, K extends keyof T>(
   store: IStoreApi<T>,
   key: K,
   cb: IAsyncCallback<T, K>,
-  result?: (arg: T[K]) => void,
 ) => {
   const val = getAsyncValueByKey(store.get(key));
   if (val.status == 'pending') {
-    if (result) {
-      result(val);
-    }
-    return;
+    return Promise.resolve(val);
   }
 
   store.set(key, asyncPending() as T[K]);
 
-  const listener = (_: string, value: T[K]) => {
-    if (result) {
-      result(value);
-    }
-    store.removeListener(key, listener);
-  };
+  const prev = store.get(key);
 
-  if (result) {
-    store.addListener(key, listener, false);
-  }
-
-  ((_uniq) => {
-    new Promise<IAsyncValue<T[K]>>((resolve, reject) => {
-      cb(store, resolve, reject);
+  return new Promise<IAsyncValue<T[K]>>((resolve, reject) => {
+    cb(store, resolve, reject);
+  })
+    .then((result) => {
+      if (prev === store.get(key)) {
+        store.set(key, asyncFulfilled(result) as T[K]);
+      }
+      return asyncFulfilled(result) ;
     })
-      .then((result) => {
-        if (_uniq === store.get(key)) {
-          store.set(key, asyncFulfilled(result) as T[K]);
-        }
-      })
-      .catch((error) => {
-        if (_uniq === store.get(key)) {
-          store.set(key, asyncRejected(error) as T[K]);
-        }
-      });
-  })(store.get(key));
+    .catch((error) => {
+      if (prev === store.get(key)) {
+        store.set(key, asyncRejected(error) as T[K]);
+      }
+      return asyncRejected(error);
+    });
 };
 
 const statusAsyncSet = new Set<DispatchStatus>([

@@ -16,7 +16,7 @@ import {
 } from '../src';
 
 describe('Async', () => {
-  it('asynchronous operations resolve and reject without React', async () => {
+  it('asynchronous operations resolve and reject with concurrence without React', async () => {
     type Slice = {
       one: IAsync<string, { message: string }>;
     };
@@ -37,22 +37,23 @@ describe('Async', () => {
     const callback =
       (message: string): IAsyncCallback<Slice, 'one'> =>
       (_, resolve, reject) => {
-        try {
+        setTimeout(() => {
           if (message === 'error') {
-            reject({ message });
-            throw message;
+            return reject({ message });
           }
-
           resolve(message);
-        } catch (e) {
-          throw e;
-        }
+        }, 100);
       };
 
     for (const message of ['error', 'success']) {
-      await new Promise<Slice['one']>((resolve) => {
-        runAsyncCallback(store, 'one', callback(message), resolve);
-      });
+      // Only 1 out of 10 should work.
+      const res = await Promise.all(
+        Array.from({ length: 10 }, () => runAsyncCallback(store, 'one', callback(message))),
+      );
+      expect(res).toEqual([
+        message == 'error' ? asyncRejected({ message: 'error' }) : asyncFulfilled(message),
+        ...Array.from({ length: 9 }, () => asyncPending()),
+      ]);
     }
 
     expect(results).toEqual([
@@ -121,7 +122,6 @@ describe('Async', () => {
       one: IAsync<string>;
     };
 
-    
     const promiseFn =
       (arg: string): IAsyncCallback<Slice, 'one'> =>
       (_, resolve) => {
@@ -156,16 +156,10 @@ describe('Async', () => {
     act(() => {
       abortTest();
     });
-    
+
     await waitFor(() => {
-      console.log(results)
-      expect(results).toEqual([
-        asyncInitial(''),
-        asyncPending(),
-        asyncAborded(),
-      ]);
+      console.log(results);
+      expect(results).toEqual([asyncInitial(''), asyncPending(), asyncAborded()]);
     });
   });
-
-
 });
