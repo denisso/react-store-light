@@ -1,5 +1,5 @@
 import React from 'react';
-import { ErrorWithMessage, ErrorMessages } from './helpers/error';
+import { formatError } from './helpers/error';
 import { IContext } from './types';
 
 /**
@@ -17,10 +17,12 @@ export const createContext = () => {
 };
 
 /**
- * Creates a Provider 
+ * Creates a Provider
  *
  * The provider accepts multiple store instances and maps them by `uniqId`.
  * This allows different slices to coexist in the same React tree.
+ *
+ *  @param Context React Context
  */
 export const createProvider = (Context: React.Context<IContext>) => {
   const Provider = ({ children, value }: { children: React.ReactNode; value: IProviderValue }) => {
@@ -30,7 +32,7 @@ export const createProvider = (Context: React.Context<IContext>) => {
       const map = new Map();
       for (const item of value) {
         if (map.has(item.uniqId)) {
-          throw ErrorWithMessage(ErrorMessages['storeUniqIdAlreadyExist']);
+          throw formatError['storeUniqIdAlreadyExist']();
         }
         map.set(item.uniqId, item);
       }

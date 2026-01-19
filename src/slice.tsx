@@ -1,7 +1,7 @@
 import React from 'react';
 import { createStore as _createStore } from 'observable-store-light';
 import { IContext, IStoreApi } from './types';
-import { ErrorMessages, ErrorWithMessage } from './helpers/error';
+import { formatError } from './helpers/error';
 import { useAsync as _useAsync, type IAsyncCallback } from './async';
 import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-store';
 
@@ -24,7 +24,7 @@ type IReducer<T extends object> = (...args: any[]) => (store: IStoreApi<T>) => v
  * - useStore - returns the store for imperative access.
  *
  * @param Context - React Context or null, if the Context is null, it will need to be specified in each hook.
- * @param reducers - object with reducers, reducers are created once and cached. signature reducer object {[key:string]: (store, ...custom args) => void}
+ * @param reducers - [optional] object with reducers, reducers are created once and cached. signature reducer object {[key:string]: (store, ...custom args) => void}
  */
 export const createSlice = <T extends object, R extends Record<string, IReducer<T>> = {}>(
   Context: React.Context<IContext> | null,
@@ -46,14 +46,18 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
   };
 
   // get store by Context and uniqId
-  const useStoreByContext = (Context?: React.Context<IContext> | null) => {
+  const useStoreByContext = (
+    hook: string,
+    key: string | null,
+    Context?: React.Context<IContext> | null,
+  ) => {
     if (!Context) {
-      throw ErrorWithMessage(ErrorMessages['context']);
+      throw formatError['contextNotExist'](hook, key);
     }
     const context = React.useContext(Context) as IContext;
     const store = context.get(uniqId) as IStoreApi<T>;
     if (!store) {
-      throw ErrorWithMessage(ErrorMessages['context']);
+      throw formatError['storeNotExist'](hook, key);
     }
     return store;
   };
@@ -92,14 +96,14 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
      *
      * @param key - name field in the store
      * @param callback - async callback
-     * @param _Context - optional React Context
+     * @param _Context - [optional] React Context
      */
     useAsync<Args extends unknown[], K extends keyof T>(
       key: K,
       callback: (...args: [...Args]) => IAsyncCallback<T, K>,
       _Context?: React.Context<IContext>,
     ) {
-      const store = useStoreByContext(_Context ? _Context : Context);
+      const store = useStoreByContext('useAsync', key as string, _Context ? _Context : Context);
       return _useAsync(key, callback, store);
     }
 
@@ -110,13 +114,13 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
      * - analog [value, setValue] = React.useState
      *
      * @param key - name field in the store
-     * @param _Context - optional React Context
+     * @param _Context - [optional] React Context
      */
     useState<K extends keyof T>(
       key: K,
       _Context?: React.Context<IContext>,
     ): [T[K], (args: IArgs<K>) => void] {
-      const store = useStoreByContext(_Context ? _Context : Context);
+      const store = useStoreByContext('useState', key as string, _Context ? _Context : Context);
       const [state, setState] = React.useState<T[K]>(store.get(key));
       const setStateRef = React.useRef<ReturnType<typeof setStateProxy<K>>>(null);
       if (setStateRef.current === null) {
@@ -130,11 +134,12 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
     /**
      * Returns reducers already bound to the store.
      * Reducers are created once and cached.
-     * @param _Context - optional React Context
+     * 
+     * @param _Context - [optional] React Context
      */
 
     useReducer(_Context?: React.Context<IContext>) {
-      const store = useStoreByContext(_Context ? _Context : Context);
+      const store = useStoreByContext('useReducer', null, _Context ? _Context : Context);
       const bindStoreReducersRef = React.useRef<BindStoreReducers<R>>(null);
 
       if (!bindStoreReducersRef.current) {
@@ -158,10 +163,11 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
 
     /**
      * Returns the store instance directly.
-     * @param _Context - optional React Context
+     * 
+     * @param _Context - [optional] React Context
      */
     useStore(_Context?: React.Context<IContext>) {
-      const store = useStoreByContext(_Context ? _Context : Context);
+      const store = useStoreByContext('useStore', null, _Context ? _Context : Context);
       return store;
     }
   }
