@@ -1,0 +1,105 @@
+name: Manual release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # -----------------------------
+      # Checkout (with tags)
+      # -----------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # -----------------------------
+      # Node setup
+      # -----------------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # -----------------------------
+      # Install dependencies
+      # -----------------------------
+      - name: Install dependencies
+        run: npm ci
+
+      # -----------------------------
+      # Run tests
+      # -----------------------------
+      - name: Run tests
+        run: npm test
+
+      # -----------------------------
+      # Git identity (REQUIRED)
+      # -----------------------------
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # -----------------------------
+      # Get last tag (safe)
+      # -----------------------------
+      - name: Get last tag
+        id: last_tag
+        run: |
+          tag=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      # -----------------------------
+      # Collect commit messages
+      # -----------------------------
+      - name: Collect commits since last tag
+        id: changelog
+        run: |
+          if [ -z "${{ steps.last_tag.outputs.tag }}" ]; then
+            log=$(git log --pretty=format:"- %s")
+          else
+            log=$(git log "${{ steps.last_tag.outputs.tag }}..HEAD" --pretty=format:"- %s")
+          fi
+
+          if [ -z "$log" ]; then
+            log="- No changes since last release"
+          fi
+
+          echo "log<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$log" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      # -----------------------------
+      # Bump version + annotated tag
+      # -----------------------------
+      - name: Bump version and create annotated tag
+        run: |
+          npm version patch -m "chore(release): v%s"
+
+      # -----------------------------
+      # Push commit and tags
+      # -----------------------------
+      - name: Push commit and tags
+        run: |
+          git push origin HEAD --tags
+
+      # -----------------------------
+      # Create GitHub Release
+      # -----------------------------
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+
+          gh release create "v$version" \
+            --title "v$version" \
+            --notes "${{ steps.changelog.outputs.log }}"
