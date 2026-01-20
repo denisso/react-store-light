@@ -58,7 +58,7 @@ instantiated multiple times.
 - returns:
   - createStore (initData) - creates a store instance with uniq id for this slice.
     - returns:
-      - store - store with api type IStoreAPI<T>
+      - store - store with api type IStore<T>
 
   - useState (key, [Context]) subscribes a component to a single store field by key.
     - returns:
@@ -128,7 +128,7 @@ Creates a Provider for injecting stores.
   - result type {status: 'initial' | 'pending' | 'fulfilled' | 'rejected', value: T | null, error: E|null}
 - type IAsyncValue\<T> - infers the value type from IAsync.
 - type IAsyncError\<T> - infers the error type from IAsync.
-- type IStoreApi - Store API provided by observable-store-light.
+- type IStore - Store API provided by observable-store-light.
 
 ---
 

@@ -1,4 +1,4 @@
-import { type StoreApi } from 'observable-store-light';
+import { type Store } from 'observable-store-light';
 
 export type IContext = Map<{}, unknown>;
-export type IStoreApi<T extends object> = StoreApi<T> & { uniqId: {} };
+export type IStore<T extends object> = Store<T> & { uniqId: {} };

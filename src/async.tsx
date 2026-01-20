@@ -1,6 +1,6 @@
 import React from 'react';
 import { formatError } from './helpers/error';
-import type { IContext, IStoreApi } from './types';
+import type { IContext, IStore } from './types';
 import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-store';
 
 type DispatchStatus = 'initial' | 'pending' | 'fulfilled' | 'rejected' | 'aborted';
@@ -72,7 +72,7 @@ export function asyncAborded(): IAsync<never, never> {
  */
 export interface IAsyncCallback<T extends object, K extends keyof T> {
   (
-    store: IStoreApi<T>,
+    store: IStore<T>,
     resolve: (arg: IAsyncValue<T[K]> | PromiseLike<IAsyncValue<T[K]>>) => void,
     reject: (arg: IasyncRejected<T[K]>) => void,
   ): void;
@@ -103,7 +103,7 @@ export interface IAsyncCallback<T extends object, K extends keyof T> {
  * @returns - A promise resolving to the resulting async value
  */
 export const runAsyncCallback = async <T extends object, K extends keyof T>(
-  store: IStoreApi<T>,
+  store: IStore<T>,
   key: K,
   cb: IAsyncCallback<T, K>,
 ) => {
@@ -163,7 +163,7 @@ export function isAsync(item: unknown): item is IAsync<unknown, unknown> {
   );
 }
 
-function getAsyncValue<T extends object, K extends keyof T>(store: IStoreApi<T>, key: K) {
+function getAsyncValue<T extends object, K extends keyof T>(store: IStore<T>, key: K) {
   const value = store.get(key);
   if (!isAsync(value)) {
     throw formatError['isNotAsync'](key as string);
@@ -174,7 +174,7 @@ function getAsyncValue<T extends object, K extends keyof T>(store: IStoreApi<T>,
 export function useAsync<T extends object, Args extends unknown[], K extends keyof T>(
   key: K,
   cb: (...args: [...Args]) => IAsyncCallback<T, K>,
-  store: IStoreApi<T>,
+  store: IStore<T>,
 ) {
   const [value, setValue] = React.useState(getAsyncValue(store, key));
   const refDispatch = React.useRef<(...args: [...Args]) => void>(null);

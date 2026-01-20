@@ -1,6 +1,6 @@
 import React from 'react';
 import { createStore as _createStore } from 'observable-store-light';
-import { IContext, IStoreApi } from './types';
+import { IContext, IStore } from './types';
 import { formatError } from './helpers/error';
 import { useAsync as _useAsync, type IAsyncCallback } from './async';
 import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-store';
@@ -11,8 +11,9 @@ import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-s
  * The first argument is always the store instance,
  * the rest are user-defined arguments.
  */
-type IReducer<T extends object> = (...args: any[]) => (store: IStoreApi<T>) => void;
+export type IReducer<T extends object> = (...args: any[]) => (store: IStore<T>) => void;
 
+export type IReducers<T extends object> = Record<string, IReducer<T>>
 /**
  * Creates an isolated slice definition with Store type and reducers.
  *
@@ -36,7 +37,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
   type IArgs<K extends keyof T> = T[K] | ((prev: T[K]) => T[K]);
 
   // proxy method for set field in the store by key
-  const setStateProxy = <K extends keyof T>(store: IStoreApi<T>, key: K) => {
+  const setStateProxy = <K extends keyof T>(store: IStore<T>, key: K) => {
     return (arg: IArgs<K>) => {
       if (typeof arg === 'function') {
         return store.set(key, (arg as (prev: T[K]) => T[K])(store.get(key)));
@@ -55,14 +56,14 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
       throw formatError['contextNotExist'](hook, key);
     }
     const context = React.useContext(Context) as IContext;
-    const store = context.get(uniqId) as IStoreApi<T>;
+    const store = context.get(uniqId) as IStore<T>;
     if (!store) {
       throw formatError['storeNotExist'](hook, key);
     }
     return store;
   };
 
-  type ReducerArgsFn<R> = R extends (...args: infer A) => (store: IStoreApi<any>) => void
+  type ReducerArgsFn<R> = R extends (...args: infer A) => (store: IStore<any>) => void
     ? (...args: A) => void
     : never;
 
@@ -76,12 +77,12 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
      * so the Provider can register it in Context.
      *
      * Returns:
-     * - store with type IStoreAPI\<T>
+     * - store with type IStore\<T>
      *
      * @param data - data for store
      */
-    createStore(data: T): IStoreApi<T> {
-      const store = _createStore<T>(data) as IStoreApi<T>;
+    createStore(data: T): IStore<T> {
+      const store = _createStore<T>(data) as IStore<T>;
       store.uniqId = uniqId;
       return store;
     }

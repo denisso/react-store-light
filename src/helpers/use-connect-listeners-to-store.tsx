@@ -1,10 +1,10 @@
 import React from 'react';
-import { IStoreApi } from '../types';
+import { IStore } from '../types';
 
 export const useConnectListenerstoStore = <T extends object, K extends keyof T>(
   setValue: (value: T[K]) => void,
   key: K,
-  store: IStoreApi<T>,
+  store: IStore<T>,
 ) => {
   React.useEffect(() => {
     const listener = (_: string, value: T[K]) => {

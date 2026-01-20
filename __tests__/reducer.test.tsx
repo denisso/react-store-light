@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { render, act } from '@testing-library/react';
-import { createSlice, createContext, IStoreApi, createProvider } from '../src';
+import { createSlice, createContext, IStore, createProvider } from '../src';
 
 describe('Reducer', () => {
   it('one reducer', () => {
     type Slice = { count: number };
-    const count = (count: number) => (store: IStoreApi<Slice>) => {
+    const count = (count: number) => (store: IStore<Slice>) => {
       store.set('count', store.get('count') + count);
     };
     const reducers = { count };

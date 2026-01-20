@@ -39,7 +39,7 @@
     "typescript"
   ],
   "peerDependencies": {
-    "observable-store-light": "^2.0.9",
+    "observable-store-light": "^2.0.12",
     "react": ">=18"
   },
   "devDependencies": {
