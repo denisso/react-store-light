@@ -39,7 +39,6 @@
     "typescript"
   ],
   "peerDependencies": {
-    "observable-store-light": "^2.0.12",
     "react": ">=18"
   },
   "devDependencies": {
@@ -50,5 +49,8 @@
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vitest": "^4.0.16"
+  },
+  "dependencies": {
+    "observable-store-light": "^2.0.13"
   }
 }

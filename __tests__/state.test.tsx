@@ -27,9 +27,11 @@ describe('useState', () => {
 
       return null;
     };
-    const Provider = createProvider(Context)
+    const Provider = createProvider(Context);
+    const value = new Map();
+    value.set(store.uniqId, store);
     render(
-      <Provider value={[store]}>
+      <Provider value={value}>
         <TestComponent />
       </Provider>,
     );

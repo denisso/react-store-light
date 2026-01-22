@@ -1,4 +1,3 @@
-import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, act } from '@testing-library/react';
 import { createSlice, createContext, createProvider } from '../src';
@@ -12,22 +11,20 @@ describe('Listeners', () => {
     let countTest = 0;
     let nameTest = '';
 
-    const initSlice = (count: number, name: string) => {
-      const store = slice.createStore({ count, name });
-      store.addListener('count', (_, value) => {
+    const store = slice.createStore({ count: 1, name: 'test name' });
+    store.addListener('count', (_, value) => {
+      // ! test it
+      countTest = value;
+    });
+    store.addListener(
+      'name',
+      (_, value) => {
         // ! test it
-        countTest = value;
-      });
-      store.addListener(
-        'name',
-        (_, value) => {
-          // ! test it
-          nameTest = value;
-        },
-        false, // ! test it
-      );
-      return store;
-    };
+        nameTest = value;
+      },
+      false, // ! test it
+    );
+    return store;
 
     let trigger!: () => void;
 
@@ -43,8 +40,10 @@ describe('Listeners', () => {
     };
 
     const Provider = createProvider(Context);
+    const value = new Map();
+    value.set(store.uniqId, store);
     render(
-      <Provider value={[initSlice(1, 'test name')]}>
+      <Provider value={value}>
         <TestComponent />
       </Provider>,
     );

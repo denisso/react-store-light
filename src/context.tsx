@@ -1,12 +1,5 @@
 import React from 'react';
-import { formatError } from './helpers/error';
 import { IContext } from './types';
-
-/**
- * Provider value type.
- * An array of store instances, each identified by its unique `uniqId`.
- */
-export type IProviderValue = { uniqId: {} }[];
 
 /**
  * Creates a Context.
@@ -25,21 +18,18 @@ export const createContext = () => {
  *  @param Context React Context
  */
 export const createProvider = (Context: React.Context<IContext>) => {
-  const Provider = ({ children, value }: { children: React.ReactNode; value: IProviderValue }) => {
-    const ref = React.useRef<IContext>(null as unknown as IContext);
+  type Props = {
+    children: React.ReactNode;
+    value: IContext;
+  };
 
-    if (!ref.current) {
-      const map = new Map();
-      for (const item of value) {
-        if (map.has(item.uniqId)) {
-          throw formatError['storeUniqIdAlreadyExist']();
-        }
-        map.set(item.uniqId, item);
-      }
-      ref.current = map;
-    }
+  const Provider = ({ children, value }: Props) => {
+    // https://react.dev/reference/react/useState#avoiding-recreating-the-initial-state
+    const [context] = React.useState<IContext>(() => {
+      return value;
+    });
 
-    return <Context.Provider value={ref.current}>{children}</Context.Provider>;
+    return <Context.Provider value={context}>{children}</Context.Provider>;
   };
   return Provider;
 };

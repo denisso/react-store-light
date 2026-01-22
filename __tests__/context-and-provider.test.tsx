@@ -19,8 +19,10 @@ describe('Context and Provider', () => {
       return null;
     };
     const Provider = createProvider(Context);
+    const value = new Map();
+    value.set(store.uniqId, store);
     render(
-      <Provider value={[store]}>
+      <Provider value={value}>
         <TestComponent />
       </Provider>,
     );
@@ -51,8 +53,11 @@ describe('Context and Provider', () => {
       return null;
     };
     const Provider = createProvider(Context);
+    const value = new Map();
+    value.set(store1.uniqId, store1);
+    value.set(store2.uniqId, store2);
     render(
-      <Provider value={[store1, store2]}>
+      <Provider value={value}>
         <TestComponent />
       </Provider>,
     );
@@ -91,12 +96,14 @@ describe('Context and Provider', () => {
     };
 
     const Provider = createProvider(Context);
+    const value = new Map();
+    value.set(store.uniqId, store);
     render(
       <>
-        <Provider value={[store]}>
+        <Provider value={value}>
           <TestComponent1 />
         </Provider>
-        <Provider value={[store]}>
+        <Provider value={value}>
           <TestComponent2 />
         </Provider>
       </>,
@@ -116,7 +123,7 @@ describe('Context and Provider', () => {
 
     const Context1 = createContext();
     const Context2 = createContext();
-    
+
     let countTest = 0;
     const TestComponent1 = () => {
       const [count] = slice.useState('count', Context1);
@@ -135,14 +142,16 @@ describe('Context and Provider', () => {
       };
       return null;
     };
-    const Provider1 = createProvider(Context1)
-    const Provider2 = createProvider(Context2)
+    const Provider1 = createProvider(Context1);
+    const Provider2 = createProvider(Context2);
+    const value = new Map();
+    value.set(store.uniqId, store);
     render(
       <>
-        <Provider1 value={[store]}>
+        <Provider1 value={value}>
           <TestComponent1 />
         </Provider1>
-        <Provider2 value={[store]}>
+        <Provider2 value={value}>
           <TestComponent2 />
         </Provider2>
       </>,

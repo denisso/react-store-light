@@ -13,7 +13,7 @@ import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-s
  */
 export type IReducer<T extends object> = (...args: any[]) => (store: IStore<T>) => void;
 
-export type IReducers<T extends object> = Record<string, IReducer<T>>
+export type IReducers<T extends object> = Record<string, IReducer<T>>;
 /**
  * Creates an isolated slice definition with Store type and reducers.
  *
@@ -79,10 +79,11 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
      * Returns:
      * - store with type IStore\<T>
      *
-     * @param data - data for store
+     * @param initState - Initial store state
+     * @param isMutateState - [optional] is mutate initState
      */
-    createStore(data: T): IStore<T> {
-      const store = _createStore<T>(data) as IStore<T>;
+    createStore(initState: T, isMutateState?: boolean): IStore<T> {
+      const store = _createStore<T>(initState, isMutateState) as IStore<T>;
       store.uniqId = uniqId;
       return store;
     }
@@ -135,7 +136,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
     /**
      * Returns reducers already bound to the store.
      * Reducers are created once and cached.
-     * 
+     *
      * @param _Context - [optional] React Context
      */
 
@@ -164,7 +165,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
 
     /**
      * Returns the store instance directly.
-     * 
+     *
      * @param _Context - [optional] React Context
      */
     useStore(_Context?: React.Context<IContext>) {

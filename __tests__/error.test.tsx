@@ -1,10 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
-import {
-  createSlice,
-  createContext,
-  createProvider,
-} from '../src';
+import { createSlice, createContext, createProvider } from '../src';
 import { formatError } from '../src/helpers/error';
 
 describe('Error', () => {
@@ -19,9 +15,11 @@ describe('Error', () => {
       slice.useStore();
       return null;
     };
+    const value = new Map();
+    value.set(store.uniqId, store);
     expect(() =>
       render(
-        <Provider value={[store]}>
+        <Provider value={value}>
           <Test />
         </Provider>,
       ),
@@ -37,36 +35,15 @@ describe('Error', () => {
       slice.useStore();
       return null;
     };
-
+    const value = new Map();
     expect(() =>
       render(
-        // stroe must be added to the provider 
-        <Provider value={[]}>
+        // stroe must be added to the provider
+        <Provider value={value}>
           <Test />
         </Provider>,
       ),
     ).toThrow(formatError['storeNotExist']('useStore', null));
-  });
-
-  it('A store with this id already exists in the provider.', () => {
-    type Slice = { one: string };
-    const Context = createContext();
-    const slice = createSlice<Slice>(Context);
-    const store = slice.createStore({ one: '' });
-    const Provider = createProvider(Context);
-    const Test = () => {
-      slice.useStore();
-      return null;
-    };
-
-    expect(() =>
-      render(
-        // store must be uniq
-        <Provider value={[store, store]}>
-          <Test />
-        </Provider>,
-      ),
-    ).toThrow(formatError['storeUniqIdAlreadyExist']());
   });
 
   it('In the useAsync hook, only IAsync values can be used.', () => {
@@ -81,13 +58,14 @@ describe('Error', () => {
       slice.useAsync('one', () => () => {});
       return null;
     };
-
+    const value = new Map();
+    value.set(store.uniqId, store);
     expect(() =>
       render(
-        <Provider value={[store]}>
+        <Provider value={value}>
           <Test />
         </Provider>,
       ),
-    ).toThrow(formatError['isNotAsync']("one"));
+    ).toThrow(formatError['isNotAsync']('one'));
   });
 });
