@@ -157,7 +157,6 @@ describe('Async', () => {
     });
 
     await waitFor(() => {
-      console.log(results);
       expect(results).toEqual([createAsync.initial(''), createAsync.pending(), createAsync.aborted()]);
     });
   });

@@ -3,7 +3,7 @@ import { render, act } from '@testing-library/react';
 import { createSlice, createContext, createProvider } from '../src';
 
 describe('Listeners', () => {
-  it('test store.addListener', () => {
+  it('addListener', () => {
     type Slice = { count: number; name: string };
     const Context = createContext();
     const slice = createSlice<Slice>(Context);
@@ -24,7 +24,6 @@ describe('Listeners', () => {
       },
       false, // ! test it
     );
-    return store;
 
     let trigger!: () => void;
 
@@ -57,5 +56,52 @@ describe('Listeners', () => {
 
     expect(countTest).toBe(2);
     expect(nameTest).toBe('Tester');
+  });
+
+  it('removeListener', () => {
+    type Slice = { count: number };
+    const Context = createContext();
+    const slice = createSlice<Slice>(Context);
+    let countTest = 0;
+    const store = slice.createStore({ count: 0 });
+    const listener = (_: string, value: number) => {
+      // ! test it
+      countTest = value;
+    };
+    store.addListener('count', listener, false);
+
+    let trigger!: (arg: number) => void;
+
+    const TestComponent = () => {
+      const store = slice.useStore();
+
+      trigger = (arg: number) => {
+        store.set('count', arg);
+      };
+
+      return null;
+    };
+
+    const Provider = createProvider(Context);
+    const value = new Map();
+    value.set(store.uniqId, store);
+    render(
+      <Provider value={value}>
+        <TestComponent />
+      </Provider>,
+    );
+
+    act(() => {
+      trigger(2);
+    });
+
+    expect(countTest).toBe(2);
+    act(() => {
+      store.removeListener('count', listener);
+    });
+    act(() => {
+      trigger(4);
+    });
+    expect(countTest).toBe(2);
   });
 });
