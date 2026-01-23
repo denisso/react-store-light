@@ -1,6 +1,6 @@
 import React from 'react';
 import { formatError } from './helpers/error';
-import type { IContext, IStore } from './types';
+import type { IStore } from './types';
 import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-store';
 
 type DispatchStatus = 'initial' | 'pending' | 'fulfilled' | 'rejected' | 'aborted';
@@ -14,15 +14,15 @@ type DispatchStatus = 'initial' | 'pending' | 'fulfilled' | 'rejected' | 'aborte
  */
 export type IAsync<T, E = any> =
   | {
-      status: 'initial';
-      value: T | null;
-      error: null;
-    }
+    status: 'initial';
+    value: T | null;
+    error: null;
+  }
   | {
-      status: 'pending';
-      value: null;
-      error: null;
-    }
+    status: 'pending';
+    value: null;
+    error: null;
+  }
   | { status: 'fulfilled'; value: T; error: null }
   | { status: 'rejected'; value: null; error: E }
   | { status: 'aborted'; value: null; error: null };
@@ -37,33 +37,41 @@ export type IAsyncValue<T> = [T] extends [IAsync<infer Val, unknown>] ? Val : ne
  */
 export type IasyncRejected<T> = [T] extends [IAsync<unknown, infer Err>] ? Err : never;
 
-export function asyncInitial<T>(value: T): IAsync<T, never> {
+function asyncInitial<T>(value: T): IAsync<T, never> {
   return { status: 'initial', value, error: null };
 }
 /**
  * Creates a pending async state
  */
-export function asyncPending(): IAsync<never, never> {
+function asyncPending(): IAsync<never, never> {
   return { status: 'pending', value: null, error: null };
 }
 /**
  * Creates a fulfilled async state
  */
-export function asyncFulfilled<T>(value: T): IAsync<T, never> {
+function asyncFulfilled<T>(value: T): IAsync<T, never> {
   return { status: 'fulfilled', value, error: null };
 }
 /**
  * Creates a rejected async state
  */
-export function asyncRejected<T>(error: T): IAsync<never, T> {
+function asyncRejected<T>(error: T): IAsync<never, T> {
   return { status: 'rejected', value: null, error };
 }
 
 /**
  * Creates a aborted async state
  */
-export function asyncAborded(): IAsync<never, never> {
+function asyncAborted(): IAsync<never, never> {
   return { status: 'aborted', value: null, error: null };
+}
+
+export const createAsync = {
+  "initial": asyncInitial,
+  "pending": asyncPending,
+  "fulfilled": asyncFulfilled,
+  "rejected": asyncRejected,
+  "aborted": asyncAborted
 }
 
 /**
@@ -179,7 +187,7 @@ export function useAsync<T extends object, Args extends unknown[], K extends key
   const [value, setValue] = React.useState(getAsyncValue(store, key));
   const refDispatch = React.useRef<(...args: [...Args]) => void>(null);
   const refAbort = React.useRef<() => void>(() => {
-    store.set(key, asyncAborded() as T[K]);
+    store.set(key, asyncAborted() as T[K]);
   });
   useConnectListenerstoStore(setValue as (value: T[K]) => void, key, store);
 
