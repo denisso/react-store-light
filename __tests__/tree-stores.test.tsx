@@ -7,14 +7,20 @@ describe('Tree stores', () => {
   it('update top bottom', () => {
     type Counter = { id: number; count: number };
     type Slice = { counters: Counter[] };
+    // global 
     const GlobalContext = createContext();
     const globalSlice = createSlice<Slice>(GlobalContext);
     const globalStore = globalSlice.createStore({ counters: [{ id: 0, count: 0 }] });
 
+    // counter
     const CounterContext = createContext();
     const counterSlice = createSlice<Counter>(CounterContext);
     const CounterProvider = createProvider(CounterContext);
+
+    // for test
     const results: Counter['count'][] = [];
+
+    // tree
     const CounterState = () => {
       const [count] = counterSlice.useState('count');
       React.useEffect(() => {
@@ -26,17 +32,13 @@ describe('Tree stores', () => {
       const [counterStore] = React.useState<IStore<Counter>>(() => {
         return counterSlice.createStore(counter);
       });
-      const [value] = React.useState<IContext>(() => {
-        const map = new Map();
-        map.set(counterStore.uniqId, counterStore);
-        return map;
-      });
+
       React.useEffect(() => {
         // test it
         counterStore.setState(counter);
       }, [counter, counterStore]);
 
-      return <CounterProvider value={value}>{<CounterState />}</CounterProvider>;
+      return <CounterProvider value={[counterStore]}>{<CounterState />}</CounterProvider>;
     };
 
     const RootComponent = () => {
@@ -49,11 +51,10 @@ describe('Tree stores', () => {
         </>
       );
     };
+
     const Provider = createProvider(GlobalContext);
-    const value = new Map();
-    value.set(globalStore.uniqId, globalStore);
     render(
-      <Provider value={value}>
+      <Provider value={[globalStore]}>
         <RootComponent />
       </Provider>,
     );
@@ -64,19 +65,26 @@ describe('Tree stores', () => {
     });
     expect(results).toEqual([0, 2]);
   });
+
   it('update bottom top', () => {
     type Counter = { id: number; count: number };
     type Slice = { counters: Counter[] };
+
+    // global
     const GlobalContext = createContext();
     const globalSlice = createSlice<Slice>(GlobalContext);
     const counters = [{ id: 0, count: 0 }];
     const globalStore = globalSlice.createStore({ counters });
 
+    // counter
     const CounterContext = createContext();
     const counterSlice = createSlice<Counter>(CounterContext);
     const CounterProvider = createProvider(CounterContext);
 
+    // for test
     let trigger: () => void;
+
+    // tree
     const CounterState = () => {
       const store = counterSlice.useStore();
       // test it
@@ -87,16 +95,12 @@ describe('Tree stores', () => {
       const [counterStore] = React.useState<IStore<Counter>>(() => {
         return counterSlice.createStore(counter, true);
       });
-      const [value] = React.useState<IContext>(() => {
-        const map = new Map();
-        map.set(counterStore.uniqId, counterStore);
-        return map;
-      });
+
       React.useEffect(() => {
         counterStore.setState(counter);
       }, [counter, counterStore]);
 
-      return <CounterProvider value={value}>{<CounterState />}</CounterProvider>;
+      return <CounterProvider value={[counterStore]}>{<CounterState />}</CounterProvider>;
     };
 
     const RootComponent = () => {
@@ -110,10 +114,9 @@ describe('Tree stores', () => {
       );
     };
     const Provider = createProvider(GlobalContext);
-    const value = new Map();
-    value.set(globalStore.uniqId, globalStore);
+
     render(
-      <Provider value={value}>
+      <Provider value={[globalStore]}>
         <RootComponent />
       </Provider>,
     );

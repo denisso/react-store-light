@@ -71,6 +71,8 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
     [K in keyof R]: ReducerArgsFn<R[K]>;
   };
 
+  const map = new Map<T, Set<IStore<T>>>()
+
   class Slice {
     /**
      * Creates a store instance and attaches uniqId,
@@ -88,6 +90,11 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
       return store;
     }
 
+    createSubStore(initState: T): IStore<T> {
+      const store = _createStore<T>(initState, true) as IStore<T>;
+      store.uniqId = uniqId;
+      return store;
+    }
     /**
      * Subscribes a component to a single async store field by key.
      *

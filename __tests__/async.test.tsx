@@ -96,10 +96,8 @@ describe('Async', () => {
       return null;
     };
     const Provider = createProvider(Context);
-    const value = new Map();
-    value.set(store.uniqId, store);
     render(
-      <Provider value={value}>
+      <Provider value={[store]}>
         <TestComponent1 />
         <TestComponent2 />
       </Provider>,
@@ -141,10 +139,9 @@ describe('Async', () => {
       abortTest = abort;
       return null;
     };
-    const value = new Map();
-    value.set(store.uniqId, store);
+
     render(
-      <Provider value={value}>
+      <Provider value={[store]}>
         <TestComponent1 />
       </Provider>,
     );

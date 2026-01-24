@@ -19,10 +19,8 @@ describe('Context and Provider', () => {
       return null;
     };
     const Provider = createProvider(Context);
-    const value = new Map();
-    value.set(store.uniqId, store);
     render(
-      <Provider value={value}>
+      <Provider value={[store]}>
         <TestComponent />
       </Provider>,
     );
@@ -53,11 +51,8 @@ describe('Context and Provider', () => {
       return null;
     };
     const Provider = createProvider(Context);
-    const value = new Map();
-    value.set(store1.uniqId, store1);
-    value.set(store2.uniqId, store2);
     render(
-      <Provider value={value}>
+      <Provider value={[store1, store2]}>
         <TestComponent />
       </Provider>,
     );
@@ -96,14 +91,12 @@ describe('Context and Provider', () => {
     };
 
     const Provider = createProvider(Context);
-    const value = new Map();
-    value.set(store.uniqId, store);
     render(
       <>
-        <Provider value={value}>
+        <Provider value={[store]}>
           <TestComponent1 />
         </Provider>
-        <Provider value={value}>
+        <Provider value={[store]}>
           <TestComponent2 />
         </Provider>
       </>,
@@ -144,14 +137,13 @@ describe('Context and Provider', () => {
     };
     const Provider1 = createProvider(Context1);
     const Provider2 = createProvider(Context2);
-    const value = new Map();
-    value.set(store.uniqId, store);
+
     render(
       <>
-        <Provider1 value={value}>
+        <Provider1 value={[store]}>
           <TestComponent1 />
         </Provider1>
-        <Provider2 value={value}>
+        <Provider2 value={[store]}>
           <TestComponent2 />
         </Provider2>
       </>,

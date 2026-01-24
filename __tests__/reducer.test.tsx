@@ -22,10 +22,8 @@ describe('Reducer', () => {
     };
 
     const Provider = createProvider(Context);
-        const value = new Map();
-    value.set(store.uniqId, store);
     render(
-      <Provider value={value}>
+      <Provider value={[store]}>
         <Counter />
       </Provider>,
     );

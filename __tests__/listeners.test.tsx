@@ -39,10 +39,8 @@ describe('Listeners', () => {
     };
 
     const Provider = createProvider(Context);
-    const value = new Map();
-    value.set(store.uniqId, store);
     render(
-      <Provider value={value}>
+      <Provider value={[store]}>
         <TestComponent />
       </Provider>,
     );
@@ -83,10 +81,8 @@ describe('Listeners', () => {
     };
 
     const Provider = createProvider(Context);
-    const value = new Map();
-    value.set(store.uniqId, store);
     render(
-      <Provider value={value}>
+      <Provider value={[store]}>
         <TestComponent />
       </Provider>,
     );

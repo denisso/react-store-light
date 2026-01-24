@@ -15,11 +15,10 @@ describe('Error', () => {
       slice.useStore();
       return null;
     };
-    const value = new Map();
-    value.set(store.uniqId, store);
+
     expect(() =>
       render(
-        <Provider value={value}>
+        <Provider value={[store]}>
           <Test />
         </Provider>,
       ),
@@ -35,11 +34,10 @@ describe('Error', () => {
       slice.useStore();
       return null;
     };
-    const value = new Map();
     expect(() =>
       render(
         // stroe must be added to the provider
-        <Provider value={value}>
+        <Provider value={[]}>
           <Test />
         </Provider>,
       ),
@@ -58,11 +56,10 @@ describe('Error', () => {
       slice.useAsync('one', () => () => {});
       return null;
     };
-    const value = new Map();
-    value.set(store.uniqId, store);
+
     expect(() =>
       render(
-        <Provider value={value}>
+        <Provider value={[store]}>
           <Test />
         </Provider>,
       ),

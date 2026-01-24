@@ -1,5 +1,5 @@
 import React from 'react';
-import { IContext } from './types';
+import { IContext, IStore } from './types';
 
 /**
  * Creates a Context.
@@ -20,13 +20,18 @@ export const createContext = () => {
 export const createProvider = (Context: React.Context<IContext>) => {
   type Props = {
     children: React.ReactNode;
-    value: IContext;
+    value: IStore<{}>[];
   };
 
   const Provider = ({ children, value }: Props) => {
     // https://react.dev/reference/react/useState#avoiding-recreating-the-initial-state
     const [context] = React.useState<IContext>(() => {
-      return value;
+      const map = new Map<{}, IStore<{}>>();
+      for (const store of value) {
+        map.set(store.uniqId, store);
+      }
+
+      return map;
     });
 
     return <Context.Provider value={context}>{children}</Context.Provider>;
