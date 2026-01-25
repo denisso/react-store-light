@@ -71,7 +71,11 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
     [K in keyof R]: ReducerArgsFn<R[K]>;
   };
 
-  const map = new Map<T, Set<IStore<T>>>()
+  const mapSates = new Map<T, Set<IStore<T>>>();
+
+  type ISubStore<T extends object> = {
+    unMount: () => void;
+  } & IStore<T>;
 
   class Slice {
     /**
@@ -89,10 +93,66 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
       store.uniqId = uniqId;
       return store;
     }
-
-    createSubStore(initState: T): IStore<T> {
-      const store = _createStore<T>(initState, true) as IStore<T>;
+    /**
+     * Creates a store instance for build tree stores,
+     *
+     * Returns:
+     * - store with type IStore\<T>
+     *
+     * @param initState - Initial store state
+     */
+    createSubStore(initState: T): ISubStore<T> {
+      const store = _createStore<T>(initState, true) as ISubStore<T>;
       store.uniqId = uniqId;
+      const setState = store.setState.bind(store);
+      const set = store.set.bind(store);
+      const setStores = mapSates.get(initState);
+      if (setStores) {
+        setStores.add(store);
+      } else {
+        mapSates.set(initState, new Set([store]));
+      }
+      store.set = <K extends keyof T>(key: K, value: T[K]) => {
+        set(key, value);
+        const state = store.getState();
+        const setStores = mapSates.get(state);
+        for (const _store of setStores ?? []) {
+          if (_store !== store) {
+            _store.setState(state);
+          }
+        }
+      };
+      store.setState = (state: T) => {
+        const prevState = store.getState();
+        setState(state, true);
+        const setStores = mapSates.get(state);
+        if (prevState !== state) {
+          mapSates.delete(prevState);
+        }
+
+        if (setStores) {
+          for(const _store of setStores){
+            if(!_store.isStateActual() && _store !== store){
+              _store.setState(state)
+            }
+          }
+          setStores.add(store);
+          mapSates.set(state, setStores);
+
+        } else {
+          mapSates.set(state, new Set([store]));
+        }
+      };
+      store.unMount = () => {
+        const state = store.getState();
+        const setStores = mapSates.get(state);
+        if (setStores) {
+          setStores.delete(store);
+          if (setStores?.size) {
+            mapSates.delete(state);
+          }
+        }
+      };
       return store;
     }
     /**
