@@ -208,25 +208,20 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
 
     useReducer(_Context?: React.Context<IContext>) {
       const store = useStoreByContext('useReducer', null, _Context ? _Context : Context);
-      const bindStoreReducersRef = React.useRef<BindStoreReducers<R>>(null);
-
-      if (!bindStoreReducersRef.current) {
+      const [_reducers] = React.useState(() => {
+        const _reducers = {} as BindStoreReducers<R>;
         if (!reducers) {
-          bindStoreReducersRef.current = {} as BindStoreReducers<R>;
-          return bindStoreReducersRef.current;
+          return _reducers;
         }
-        const bindStoreReducers = {} as BindStoreReducers<R>;
-
         for (const key in reducers) {
           const fn = reducers[key];
-          bindStoreReducers[key] = ((...args: Parameters<typeof fn>) => {
+          _reducers[key] = ((...args: Parameters<typeof fn>) => {
             fn(...args)(store);
           }) as BindStoreReducers<R>[typeof key];
         }
-        bindStoreReducersRef.current = bindStoreReducers;
-      }
-
-      return bindStoreReducersRef.current as BindStoreReducers<R>;
+        return _reducers
+      });
+      return _reducers;
     }
 
     /**
