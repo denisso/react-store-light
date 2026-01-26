@@ -1,6 +1,6 @@
 import React from 'react';
 import { createStore as _createStore } from 'observable-store-light';
-import { IContext, IStore } from './types';
+import { IContext, IStore, ISubStore } from './types';
 import { formatError } from './helpers/error';
 import { useAsync as _useAsync, type IAsyncCallback } from './async';
 import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-store';
@@ -73,10 +73,6 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
 
   const mapSates = new Map<T, Set<IStore<T>>>();
 
-  type ISubStore<T extends object> = {
-    unMount: () => void;
-  } & IStore<T>;
-
   class Slice {
     /**
      * Creates a store instance and attaches uniqId,
@@ -131,26 +127,29 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
         }
 
         if (setStores) {
-          for(const _store of setStores){
-            if(!_store.isStateActual() && _store !== store){
-              _store.setState(state)
+          for (const _store of setStores) {
+            if (!_store.isStateActual() && _store !== store) {
+              _store.setState(state);
             }
           }
           setStores.add(store);
           mapSates.set(state, setStores);
-
         } else {
           mapSates.set(state, new Set([store]));
         }
       };
-      store.unMount = () => {
+
+      store.unLinkState = (hard: boolean = true) => {
         const state = store.getState();
         const setStores = mapSates.get(state);
         if (setStores) {
           setStores.delete(store);
-          if (setStores?.size) {
+          if (setStores.size === 0) {
             mapSates.delete(state);
           }
+        }
+        if (hard) {
+          setState(Object.assign({}, state));
         }
       };
       return store;
@@ -191,13 +190,13 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
     ): [T[K], (args: IArgs<K>) => void] {
       const store = useStoreByContext('useState', key as string, _Context ? _Context : Context);
       const [state, setState] = React.useState<T[K]>(store.get(key));
-      const setStateRef = React.useRef<ReturnType<typeof setStateProxy<K>>>(null);
-      if (setStateRef.current === null) {
-        setStateRef.current = setStateProxy(store, key);
-      }
+      const [_setState] = React.useState<ReturnType<typeof setStateProxy<K>>>(() => {
+        return setStateProxy(store, key);
+      });
+
       useConnectListenerstoStore(setState, key, store);
 
-      return [state, setStateRef.current];
+      return [state, _setState];
     }
 
     /**

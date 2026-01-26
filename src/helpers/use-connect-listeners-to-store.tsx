@@ -7,7 +7,7 @@ export const useConnectListenerstoStore = <T extends object, K extends keyof T>(
   store: IStore<T>,
 ) => {
   React.useEffect(() => {
-    const listener = (_: string, value: T[K]) => {
+    const listener = (_: K, value: T[K]) => {
       setValue(value);
     };
     store.addListener(key, listener);

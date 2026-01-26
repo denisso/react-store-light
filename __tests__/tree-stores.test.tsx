@@ -132,7 +132,8 @@ describe('Tree stores', () => {
     // global counters
     const GlobalContext = createContext();
     const globalSlice = createSlice<Counters>(GlobalContext);
-    const counters = [{ id: 0, count: 0 }];
+    const counter = { id: 0, count: 0 };
+    const counters = [counter];
     const globalStore = globalSlice.createStore({ counters });
 
     // counter
@@ -206,6 +207,26 @@ describe('Tree stores', () => {
     act(() => {
       writeCountSetCount(6);
     });
+
     expect(results).toEqual([0, 2, 4, 6]);
+
+    act(() => {
+      storeCounterWriter.unLinkState();
+      writeCountSet(8);
+    });
+
+    expect(results).toEqual([0, 2, 4, 6]);
+
+    act(() => {
+      storeCounterWriter.setState(counters[0]);
+    });
+
+    expect(results).toEqual([0, 2, 4, 6]);
+
+    act(() => {
+      writeCountSet(8);
+    });
+
+    expect(results).toEqual([0, 2, 4, 6, 8]);
   });
 });
