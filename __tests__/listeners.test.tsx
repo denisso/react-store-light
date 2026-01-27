@@ -8,31 +8,29 @@ describe('Listeners', () => {
     const Context = createContext();
     const slice = createSlice<Slice>(Context);
 
-    let countTest = 0;
-    let nameTest = '';
+    let testSlice: Slice = { count: 0, name: '' };
 
-    const store = slice.createStore({ count: 1, name: 'test name' });
+    const store = slice.createStore({ count: 0, name: 'test name' });
     store.addListener('count', (_, value) => {
       // ! test it
-      countTest = value;
+      testSlice.count = value;
     });
     store.addListener(
       'name',
       (_, value) => {
         // ! test it
-        nameTest = value;
+        testSlice.name = value;
       },
-      false, // ! test it
     );
 
-    let trigger!: () => void;
+    let trigger!: (slice: Slice) => void;
 
     const TestComponent = () => {
       const store = slice.useStore();
 
-      trigger = () => {
-        store.set('count', 2);
-        store.set('name', 'Tester');
+      trigger = (_slice: Slice) => {
+        store.set('count', _slice.count);
+        store.set('name', _slice.name);
       };
 
       return null;
@@ -44,16 +42,14 @@ describe('Listeners', () => {
         <TestComponent />
       </Provider>,
     );
-    expect(countTest).toBe(1);
-    // "" bacause third arg in addListener is false
-    expect(nameTest).toBe('');
+    expect(testSlice).toEqual({ count: 0, name: '' });
 
+    const testValue: Slice = { name: 'Test', count: 1 };
     act(() => {
-      trigger();
+      trigger(testValue);
     });
 
-    expect(countTest).toBe(2);
-    expect(nameTest).toBe('Tester');
+    expect(testSlice).toEqual(testValue);
   });
 
   it('removeListener', () => {

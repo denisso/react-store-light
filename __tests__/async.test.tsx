@@ -26,20 +26,24 @@ describe('Async', () => {
     // collect results of the test
     const results: Slice['one'][] = [];
 
-    store.addListener('one', (_, value) => {
-      results.push(value);
-    });
+    store.addListener(
+      'one',
+      (_, value) => {
+        results.push(value);
+      },
+      true,
+    );
 
     const callback =
       (message: string): IAsyncCallback<Slice, 'one'> =>
-        (_, resolve, reject) => {
-          setTimeout(() => {
-            if (message === 'error') {
-              return reject({ message });
-            }
-            resolve(message);
-          }, 100);
-        };
+      (_, resolve, reject) => {
+        setTimeout(() => {
+          if (message === 'error') {
+            return reject({ message });
+          }
+          resolve(message);
+        }, 100);
+      };
 
     for (const message of ['error', 'success']) {
       // Only 1 out of 10 should work.
@@ -47,7 +51,9 @@ describe('Async', () => {
         Array.from({ length: 10 }, () => runAsyncCallback(store, 'one', callback(message))),
       );
       expect(res).toEqual([
-        message == 'error' ? createAsync.rejected({ message: 'error' }) : createAsync.fulfilled(message),
+        message == 'error'
+          ? createAsync.rejected({ message: 'error' })
+          : createAsync.fulfilled(message),
         ...Array.from({ length: 9 }, () => createAsync.pending()),
       ]);
     }
@@ -75,9 +81,9 @@ describe('Async', () => {
 
     const promiseFn =
       (message: string): IAsyncCallback<Slice, 'one'> =>
-        (_, resolve) => {
-          resolve(message);
-        };
+      (_, resolve) => {
+        resolve(message);
+      };
 
     let dispatchTest: (message: string) => void;
 
@@ -108,7 +114,11 @@ describe('Async', () => {
     });
 
     await waitFor(() => {
-      expect(results).toEqual([createAsync.initial(''), createAsync.pending(), createAsync.fulfilled('hello')]);
+      expect(results).toEqual([
+        createAsync.initial(''),
+        createAsync.pending(),
+        createAsync.fulfilled('hello'),
+      ]);
     });
   });
 
@@ -119,18 +129,22 @@ describe('Async', () => {
 
     const promiseFn =
       (arg: string): IAsyncCallback<Slice, 'one'> =>
-        (_, resolve) => {
-          setTimeout(() => resolve(arg), 1000);
-        };
+      (_, resolve) => {
+        setTimeout(() => resolve(arg), 1000);
+      };
 
     const Context = createContext();
     const Provider = createProvider(Context);
     const slice = createSlice<Slice>(Context);
     const store = slice.createStore({ one: createAsync.initial('') });
     const results: Slice['one'][] = [];
-    store.addListener('one', (_, value) => {
-      results.push(value);
-    });
+    store.addListener(
+      'one',
+      (_, value) => {
+        results.push(value);
+      },
+      true,
+    );
     let dispatchTest: (arg: string) => void;
     let abortTest: () => void;
     const TestComponent1 = () => {
@@ -154,7 +168,11 @@ describe('Async', () => {
     });
 
     await waitFor(() => {
-      expect(results).toEqual([createAsync.initial(''), createAsync.pending(), createAsync.aborted()]);
+      expect(results).toEqual([
+        createAsync.initial(''),
+        createAsync.pending(),
+        createAsync.aborted(),
+      ]);
     });
   });
 });

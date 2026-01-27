@@ -20,13 +20,13 @@ export const createContext = () => {
 export const createProvider = (Context: React.Context<IContext>) => {
   type Props = {
     children: React.ReactNode;
-    value: IStore<{}>[];
+    value: IStore<any>[];
   };
 
   const Provider = ({ children, value }: Props) => {
     // https://react.dev/reference/react/useState#avoiding-recreating-the-initial-state
     const [context] = React.useState<IContext>(() => {
-      const map = new Map<{}, IStore<{}>>();
+      const map = new Map<{}, IStore<any>>();
       for (const store of value) {
         map.set(store.uniqId, store);
       }

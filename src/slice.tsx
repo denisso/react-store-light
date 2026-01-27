@@ -56,7 +56,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
       throw formatError['contextNotExist'](hook, key);
     }
     const context = React.useContext(Context) as IContext;
-    const store = context.get(uniqId) as IStore<T>;
+    const store = context.get(uniqId) as unknown as IStore<T>;
     if (!store) {
       throw formatError['storeNotExist'](hook, key);
     }

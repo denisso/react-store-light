@@ -229,4 +229,108 @@ describe('Tree stores', () => {
 
     expect(results).toEqual([0, 2, 4, 6, 8]);
   });
+
+  it('usage useEffect, children slices update each other', () => {
+    type Counter = { id: number; count: number };
+    type Counters = { counters: Counter[] };
+    // global counters
+    const GlobalContext = createContext();
+    const globalSlice = createSlice<Counters>(GlobalContext);
+    const counter = { id: 0, count: 0 };
+    const counters = [counter];
+    const globalStore = globalSlice.createStore({ counters });
+
+    // counter
+    const CounterContext = createContext();
+    const counterSlice = createSlice<Counter>(CounterContext);
+    const CounterProvider = createProvider(CounterContext);
+    const storeCounterReader = counterSlice.createSubStore(counters[0]);
+    const storeCounterWriter = counterSlice.createSubStore(counters[0]);
+    // for test
+    let writeCountSet: (count: number) => void;
+    let writeCountSetState: (count: number) => void;
+    let writeCountSetCount: (count: number) => void;
+    const results: number[] = [];
+
+    // counter Reader
+    const Reader = () => {
+      const [count] = counterSlice.useState('count');
+
+      React.useEffect(() => {
+        results.push(count);
+      }, [count]);
+      return null;
+    };
+
+    // counter Writer
+    const Writer = () => {
+      const store = counterSlice.useStore();
+      const [, setCount] = counterSlice.useState('count');
+      writeCountSet = (count) => {
+        store.set('count', count);
+      };
+      writeCountSetState = (count) => {
+        const state = store.getState();
+        state.count = count;
+        store.setState(state);
+      };
+      writeCountSetCount = setCount;
+      return null;
+    };
+    // global provider
+    const Provider = createProvider(GlobalContext);
+    render(
+      <>
+        <Provider value={[globalStore]}>
+          <CounterProvider value={[storeCounterReader]}>
+            <Reader />
+          </CounterProvider>
+        </Provider>
+        ,
+        <Provider value={[globalStore]}>
+          <CounterProvider value={[storeCounterWriter]}>
+            <Writer />
+          </CounterProvider>
+        </Provider>
+        ,
+      </>,
+    );
+
+    act(() => {
+      writeCountSet(2);
+    });
+
+    expect(results).toEqual([0, 2]);
+
+    act(() => {
+      writeCountSetState(4);
+    });
+
+    expect(results).toEqual([0, 2, 4]);
+
+    act(() => {
+      writeCountSetCount(6);
+    });
+
+    expect(results).toEqual([0, 2, 4, 6]);
+
+    act(() => {
+      storeCounterWriter.unLinkState();
+      writeCountSet(8);
+    });
+
+    expect(results).toEqual([0, 2, 4, 6]);
+
+    act(() => {
+      storeCounterWriter.setState(counters[0]);
+    });
+
+    expect(results).toEqual([0, 2, 4, 6]);
+
+    act(() => {
+      writeCountSet(8);
+    });
+
+    expect(results).toEqual([0, 2, 4, 6, 8]);
+  });
 });

@@ -51,6 +51,6 @@
     "vitest": "^4.0.16"
   },
   "dependencies": {
-    "observable-store-light": "^2.0.15"
+    "observable-store-light": "^2.0.19"
   }
 }
