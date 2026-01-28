@@ -4,7 +4,7 @@ import { IContext, IStore, ISubStore } from './types';
 import { formatError } from './helpers/error';
 import { useAsync as _useAsync, type IAsyncCallback } from './async';
 import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-store';
-
+import { UseStorebyContext } from './helpers/use-store-context';
 /**
  * Reducer function.
  * Mutates the store.
@@ -46,22 +46,8 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
     };
   };
 
-  // get store by Context and uniqId
-  const useStoreByContext = (
-    hook: string,
-    key: string | null,
-    Context?: React.Context<IContext> | null,
-  ) => {
-    if (!Context) {
-      throw formatError['contextNotExist'](hook, key);
-    }
-    const context = React.useContext(Context) as IContext;
-    const store = context.get(uniqId) as unknown as IStore<T>;
-    if (!store) {
-      throw formatError['storeNotExist'](hook, key);
-    }
-    return store;
-  };
+  // get store by context
+  const useStoreByContext = new UseStorebyContext<T>(uniqId).hook;
 
   type ReducerArgsFn<R> = R extends (...args: infer A) => (store: IStore<any>) => void
     ? (...args: A) => void
@@ -219,7 +205,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
             fn(...args)(store);
           }) as BindStoreReducers<R>[typeof key];
         }
-        return _reducers
+        return _reducers;
       });
       return _reducers;
     }
