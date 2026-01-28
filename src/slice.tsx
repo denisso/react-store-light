@@ -1,10 +1,10 @@
 import React from 'react';
 import { createStore as _createStore } from 'observable-store-light';
 import { IContext, IStore, ISubStore } from './types';
-import { formatError } from './helpers/error';
 import { useAsync as _useAsync, type IAsyncCallback } from './async';
 import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-store';
-import { UseStorebyContext } from './helpers/use-store-context';
+import { UseStoreContext } from './helpers/use-store-context';
+
 /**
  * Reducer function.
  * Mutates the store.
@@ -13,6 +13,9 @@ import { UseStorebyContext } from './helpers/use-store-context';
  */
 export type IReducer<T extends object> = (...args: any[]) => (store: IStore<T>) => void;
 
+/**
+ * type from record reducers
+ */
 export type IReducers<T extends object> = Record<string, IReducer<T>>;
 /**
  * Creates an isolated slice definition with Store type and reducers.
@@ -47,7 +50,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
   };
 
   // get store by context
-  const useStoreByContext = new UseStorebyContext<T>(uniqId).hook;
+  const useStoreContext = new UseStoreContext<T>(uniqId).hook;
 
   type ReducerArgsFn<R> = R extends (...args: infer A) => (store: IStore<any>) => void
     ? (...args: A) => void
@@ -157,7 +160,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
       callback: (...args: [...Args]) => IAsyncCallback<T, K>,
       _Context?: React.Context<IContext>,
     ) {
-      const store = useStoreByContext('useAsync', key as string, _Context ? _Context : Context);
+      const store = useStoreContext('useAsync', key as string, _Context ? _Context : Context);
       return _useAsync(key, callback, store);
     }
 
@@ -174,7 +177,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
       key: K,
       _Context?: React.Context<IContext>,
     ): [T[K], (args: IArgs<K>) => void] {
-      const store = useStoreByContext('useState', key as string, _Context ? _Context : Context);
+      const store = useStoreContext('useState', key as string, _Context ? _Context : Context);
       const [state, setState] = React.useState<T[K]>(store.get(key));
       const [_setState] = React.useState<ReturnType<typeof setStateProxy<K>>>(() => {
         return setStateProxy(store, key);
@@ -193,7 +196,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
      */
 
     useReducer(_Context?: React.Context<IContext>) {
-      const store = useStoreByContext('useReducer', null, _Context ? _Context : Context);
+      const store = useStoreContext('useReducer', null, _Context ? _Context : Context);
       const [_reducers] = React.useState(() => {
         const _reducers = {} as BindStoreReducers<R>;
         if (!reducers) {
@@ -216,7 +219,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
      * @param _Context - [optional] React Context
      */
     useStore(_Context?: React.Context<IContext>) {
-      const store = useStoreByContext('useStore', null, _Context ? _Context : Context);
+      const store = useStoreContext('useStore', null, _Context ? _Context : Context);
       return store;
     }
   }
