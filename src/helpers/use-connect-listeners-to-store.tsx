@@ -1,7 +1,14 @@
 import React from 'react';
 import { IStore } from '../types';
 
-export const useConnectListenerstoStore = <T extends object, K extends keyof T>(
+/**
+ * Connect listeners to store
+ * 
+ * @param setValue - React.useState - setter
+ * @param key - store key
+ * @param store - IStore<T>  
+ */
+export const useConnectListenersToStore = <T extends object, K extends keyof T>(
   setValue: (value: T[K]) => void,
   key: K,
   store: IStore<T>,

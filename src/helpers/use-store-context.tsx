@@ -6,7 +6,7 @@ export class UseStoreContext<T extends object> {
   uniqId: object;
   constructor(uniqId: object) {
     this.uniqId = uniqId;
-    this.hook = this.hook.bind(this);
+    this.getStore = this.getStore.bind(this);
   }
   /**
    * get store By Vontext
@@ -16,7 +16,7 @@ export class UseStoreContext<T extends object> {
    * @param Context - context
    * @returns IStore<T>
    */
-  hook(hook: string, key: string | null, Context?: React.Context<IContext> | null) {
+  getStore(hook: string, key: string | null, Context?: React.Context<IContext> | null) {
     if (!Context) {
       throw formatError['contextNotExist'](hook, key);
     }

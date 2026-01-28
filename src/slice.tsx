@@ -1,22 +1,10 @@
 import React from 'react';
 import { createStore as _createStore } from 'observable-store-light';
-import { IContext, IStore, ISubStore } from './types';
-import { useAsync as _useAsync, type IAsyncCallback } from './features/async';
-import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-store';
+import { IContext, IStore, ISubStore, IReducer } from './types';
+import { useConnectListenersToStore } from './helpers/use-connect-listeners-to-store';
 import { UseStoreContext } from './helpers/use-store-context';
 import { UseAsync } from './features/async/use-async';
-/**
- * Reducer function.
- * Mutates the store.
- * The first argument is always the store instance,
- * the rest are user-defined arguments.
- */
-export type IReducer<T extends object> = (...args: any[]) => (store: IStore<T>) => void;
 
-/**
- * type from record reducers
- */
-export type IReducers<T extends object> = Record<string, IReducer<T>>;
 /**
  * Creates an isolated slice definition with Store type and reducers.
  *
@@ -50,7 +38,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
   };
 
   // get store by context
-  const useStoreContext = new UseStoreContext<T>(uniqId).hook;
+  const useStoreContext = new UseStoreContext<T>(uniqId).getStore;
 
   type ReducerArgsFn<R> = R extends (...args: infer A) => (store: IStore<any>) => void
     ? (...args: A) => void
@@ -143,19 +131,8 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
       };
       return store;
     }
-    /**
-     * Subscribes a component to a single async store field by key.
-     *
-     * Returns:
-     * - dispatch: runs async callback
-     * - value: current async state
-     * - abort: break async callback and resets to {status: 'aborted', value: current; error: current;}
-     *
-     * @param key - name field in the store
-     * @param callback - async callback
-     * @param _Context - [optional] React Context
-     */
-    useAsync = new UseAsync<T>(uniqId, Context).hook
+
+    useAsync = new UseAsync<T>(uniqId, Context).hook;
 
     /**
      * Subscribes a component to a single store field by key.
@@ -176,7 +153,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
         return setStateProxy(store, key);
       });
 
-      useConnectListenerstoStore(setState, key, store);
+      useConnectListenersToStore(setState, key, store);
 
       return [state, _setState];
     }

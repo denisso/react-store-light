@@ -17,3 +17,16 @@ export type ISubStore<T extends object> = {
    */
   unLinkState: (hard?: boolean) => void;
 } & IStore<T>;
+
+/**
+ * Reducer function.
+ * Mutates the store.
+ * The first argument is always the store instance,
+ * the rest are user-defined arguments.
+ */
+export type IReducer<T extends object> = (...args: any[]) => (store: IStore<T>) => void;
+
+/**
+ * type from record reducers
+ */
+export type IReducers<T extends object> = Record<string, IReducer<T>>;
