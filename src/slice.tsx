@@ -1,9 +1,8 @@
 import React from 'react';
 import { createStore as _createStore } from 'observable-store-light';
 import { IContext, IStore, ISubStore, IReducers } from './types';
-import { useConnectListenersToStore } from './helpers/use-connect-listeners-to-store';
 import { UseStoreContext } from './helpers/use-store-context';
-import { UseAsync, UseReducer, UseState } from './hooks';
+import { UseAsync, UseReducer, UseState, UseStore } from './hooks';
 
 /**
  * Creates an isolated slice definition with Store type and reducers.
@@ -118,15 +117,7 @@ export const createSlice = <T extends object, R extends IReducers<T> = {}>(
 
     useReducer = new UseReducer<T, R>(uniqId, Context, reducers).hook;
 
-    /**
-     * Returns the store instance directly.
-     *
-     * @param _Context - [optional] React Context
-     */
-    useStore() {
-      const store = useStoreContext('useStore', null);
-      return store;
-    }
+    useStore = new UseStore<T>(uniqId, Context).hook;
   }
 
   const slice = new Slice();
