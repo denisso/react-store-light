@@ -1,6 +1,6 @@
 import React from 'react';
 import { UseStoreContext } from '../helpers/use-store-context';
-import type { IContext, IStore, IReducer, IReducers } from '../types';
+import type { IContext, IStore, IReducers } from '../types';
 
 type ReducerArgsFn<R> = R extends (...args: infer A) => (store: IStore<any>) => void
   ? (...args: A) => void
@@ -11,11 +11,9 @@ type BindStoreReducers<R> = {
 };
 
 export class UseReducer<T extends object, R extends IReducers<T>> extends UseStoreContext<T> {
-  Context: React.Context<IContext> | null;
   reducers?: R;
-  constructor(uniqId: object, Context: React.Context<IContext> | null, reducers?: R) {
-    super(uniqId);
-    this.Context = Context;
+  constructor(uniqId: object, Context: React.Context<IContext>, reducers?: R) {
+    super(uniqId, Context);
     this.reducers = reducers;
     this.hook = this.hook.bind(this);
   }
@@ -23,11 +21,10 @@ export class UseReducer<T extends object, R extends IReducers<T>> extends UseSto
    * Returns reducers already bound to the store.
    * Reducers are created once and cached.
    *
-   * @param _Context - [optional] React Context
    * @return Record reducers
    */
-  hook(Context?: React.Context<IContext>) {
-    const store = super.getStore('useReducer', null, Context ? Context : this.Context);
+  hook() {
+    const store = super.getStore('useReducer', null);
     const [reducers] = React.useState(() => {
       const reducers = {} as BindStoreReducers<R>;
       if (!this.reducers) {

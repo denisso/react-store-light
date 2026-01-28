@@ -19,7 +19,8 @@ describe('Async', () => {
     const sliceData: Slice = {
       one: createAsync.initial(''),
     };
-    const slice = createSlice<Slice>(null);
+    const Context = createContext()
+    const slice = createSlice<Slice>(Context);
 
     const store = slice.createStore(sliceData);
 

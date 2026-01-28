@@ -16,7 +16,7 @@ describe('Reducer', () => {
     let countFntest: (arg: number) => void;
 
     const Counter = () => {
-      const reducers = slice.useReducer(Context);
+      const reducers = slice.useReducer();
       countFntest = reducers.count;
       return null;
     };

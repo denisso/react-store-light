@@ -9,4 +9,4 @@ export {
   type IAsync,
   type IAsyncValue,
   type IasyncRejected,
-} from './features/async';
+} from './hooks/async';

@@ -5,11 +5,9 @@ import type { IContext } from '../../types';
 import type { IAsyncCallback } from './types';
 import { useConnectListenersToStore } from '../../helpers/use-connect-listeners-to-store';
 
-export class UseAsync<T extends object> extends UseStoreContext<T>{
-  Context:  React.Context<IContext> | null;
-  constructor(uniqId: object, Context: React.Context<IContext> | null) {
-    super(uniqId)
-    this.Context = Context
+export class UseAsync<T extends object> extends UseStoreContext<T> {
+  constructor(uniqId: object, Context: React.Context<IContext>) {
+    super(uniqId, Context);
     this.hook = this.hook.bind(this);
   }
   /**
@@ -21,19 +19,13 @@ export class UseAsync<T extends object> extends UseStoreContext<T>{
    * - abort: break async callback and resets to {status: 'aborted', value: current; error: current;}
    *
    * @param key - name field in the store
-   * @param callback - async callback
-   * @param _Context - [optional] React Context
+   * @param cb - async callback
    */
   hook<Args extends unknown[], K extends keyof T>(
     key: K,
     cb: (...args: [...Args]) => IAsyncCallback<T, K>,
-    Context?: React.Context<IContext>,
   ) {
-    const store = super.getStore(
-      'useAsynk',
-      key as string,
-      Context ? Context : this.Context,
-    );
+    const store = super.getStore('useAsynk', key as string);
     const [value, setValue] = React.useState(getAsyncValue(store, key));
 
     const [dispatch] = React.useState<(...args: [...Args]) => void>(() => {

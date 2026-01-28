@@ -1,9 +1,9 @@
 import React from 'react';
 import { createStore as _createStore } from 'observable-store-light';
-import { IContext, IStore, ISubStore, IReducer } from './types';
+import { IContext, IStore, ISubStore, IReducers } from './types';
 import { useConnectListenersToStore } from './helpers/use-connect-listeners-to-store';
 import { UseStoreContext } from './helpers/use-store-context';
-import { UseAsync, UseReducer } from './features';
+import { UseAsync, UseReducer, UseState } from './hooks';
 
 /**
  * Creates an isolated slice definition with Store type and reducers.
@@ -18,29 +18,15 @@ import { UseAsync, UseReducer } from './features';
  * @param Context - React Context or null, if the Context is null, it will need to be specified in each hook.
  * @param reducers - [optional] object with reducers, reducers are created once and cached. signature reducer object {[key:string]: (store, ...custom args) => void}
  */
-export const createSlice = <T extends object, R extends Record<string, IReducer<T>> = {}>(
-  Context: React.Context<IContext> | null,
+export const createSlice = <T extends object, R extends IReducers<T> = {}>(
+  Context: React.Context<IContext>,
   reducers?: R,
 ) => {
   // uniq id for store in context provider
   const uniqId = {};
 
-  type IArgs<K extends keyof T> = T[K] | ((prev: T[K]) => T[K]);
-
-  // proxy method for set field in the store by key
-  const setStateProxy = <K extends keyof T>(store: IStore<T>, key: K) => {
-    return (arg: IArgs<K>) => {
-      if (typeof arg === 'function') {
-        return store.set(key, (arg as (prev: T[K]) => T[K])(store.get(key)));
-      }
-      store.set(key, arg);
-    };
-  };
-
   // get store by context
-  const useStoreContext = new UseStoreContext<T>(uniqId).getStore;
-
-
+  const useStoreContext = new UseStoreContext<T>(uniqId, Context).getStore;
 
   const mapSates = new Map<T, Set<IStore<T>>>();
 
@@ -128,39 +114,17 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
 
     useAsync = new UseAsync<T>(uniqId, Context).hook;
 
-    /**
-     * Subscribes a component to a single store field by key.
-     *
-     * Returns:
-     * - analog [value, setValue] = React.useState
-     *
-     * @param key - name field in the store
-     * @param _Context - [optional] React Context
-     */
-    useState<K extends keyof T>(
-      key: K,
-      _Context?: React.Context<IContext>,
-    ): [T[K], (args: IArgs<K>) => void] {
-      const store = useStoreContext('useState', key as string, _Context ? _Context : Context);
-      const [state, setState] = React.useState<T[K]>(store.get(key));
-      const [_setState] = React.useState<ReturnType<typeof setStateProxy<K>>>(() => {
-        return setStateProxy(store, key);
-      });
+    useState = new UseState<T>(uniqId, Context).hook;
 
-      useConnectListenersToStore(setState, key, store);
-
-      return [state, _setState];
-    }
-
-    useReducer = new UseReducer<T, R>(uniqId, Context, reducers).hook
+    useReducer = new UseReducer<T, R>(uniqId, Context, reducers).hook;
 
     /**
      * Returns the store instance directly.
      *
      * @param _Context - [optional] React Context
      */
-    useStore(_Context?: React.Context<IContext>) {
-      const store = useStoreContext('useStore', null, _Context ? _Context : Context);
+    useStore() {
+      const store = useStoreContext('useStore', null);
       return store;
     }
   }

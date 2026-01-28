@@ -109,50 +109,50 @@ describe('Context and Provider', () => {
     expect(countTest).toBe(2);
   });
 
-  it('one slice with one store and multiple contexts', () => {
-    type Slice = { count: number };
-    const slice = createSlice<Slice>(null);
-    const store = slice.createStore({ count: 1 });
+  // it('one slice with one store and multiple contexts', () => {
+  //   type Slice = { count: number };
+  //   const slice = createSlice<Slice>(null);
+  //   const store = slice.createStore({ count: 1 });
 
-    const Context1 = createContext();
-    const Context2 = createContext();
+  //   const Context1 = createContext();
+  //   const Context2 = createContext();
 
-    let countTest = 0;
-    const TestComponent1 = () => {
-      const [count] = slice.useState('count', Context1);
-      React.useEffect(() => {
-        countTest = count;
-      }, [count]);
-      return null;
-    };
-    let trigger!: () => void;
+  //   let countTest = 0;
+  //   const TestComponent1 = () => {
+  //     const [count] = slice.useState('count', Context1);
+  //     React.useEffect(() => {
+  //       countTest = count;
+  //     }, [count]);
+  //     return null;
+  //   };
+  //   let trigger!: () => void;
 
-    const TestComponent2 = () => {
-      const store = slice.useStore(Context2);
-      trigger = () => {
-        // ! test it
-        store.set('count', 2);
-      };
-      return null;
-    };
-    const Provider1 = createProvider(Context1);
-    const Provider2 = createProvider(Context2);
+  //   const TestComponent2 = () => {
+  //     const store = slice.useStore(Context2);
+  //     trigger = () => {
+  //       // ! test it
+  //       store.set('count', 2);
+  //     };
+  //     return null;
+  //   };
+  //   const Provider1 = createProvider(Context1);
+  //   const Provider2 = createProvider(Context2);
 
-    render(
-      <>
-        <Provider1 value={[store]}>
-          <TestComponent1 />
-        </Provider1>
-        <Provider2 value={[store]}>
-          <TestComponent2 />
-        </Provider2>
-      </>,
-    );
+  //   render(
+  //     <>
+  //       <Provider1 value={[store]}>
+  //         <TestComponent1 />
+  //       </Provider1>
+  //       <Provider2 value={[store]}>
+  //         <TestComponent2 />
+  //       </Provider2>
+  //     </>,
+  //   );
 
-    act(() => {
-      trigger();
-    });
+  //   act(() => {
+  //     trigger();
+  //   });
 
-    expect(countTest).toBe(2);
-  });
+  //   expect(countTest).toBe(2);
+  // });
 });
