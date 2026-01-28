@@ -1,41 +1,6 @@
-import React from 'react';
-import { formatError } from './helpers/error';
-import type { IStore } from './types';
-import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-store';
-
-type DispatchStatus = 'initial' | 'pending' | 'fulfilled' | 'rejected' | 'aborted';
-
-/**
- * Discriminated union describing an async state:
- * - init: initial value
- * - pending: request in progress
- * - fulfilled: request succeeded
- * - rejected: request failed
- */
-export type IAsync<T, E = any> =
-  | {
-    status: 'initial';
-    value: T | null;
-    error: null;
-  }
-  | {
-    status: 'pending';
-    value: null;
-    error: null;
-  }
-  | { status: 'fulfilled'; value: T; error: null }
-  | { status: 'rejected'; value: null; error: E }
-  | { status: 'aborted'; value: null; error: null };
-
-/**
- * Extracts the value type from IAsync
- */
-export type IAsyncValue<T> = [T] extends [IAsync<infer Val, unknown>] ? Val : never;
-
-/**
- * Extracts the error type from IAsync
- */
-export type IasyncRejected<T> = [T] extends [IAsync<unknown, infer Err>] ? Err : never;
+import type { IAsync, IAsyncCallback, IAsyncValue, IDispatchStatus } from './types';
+import type { IStore } from '../../types';
+import { formatError } from '../../helpers/error';
 
 function asyncInitial<T>(value: T): IAsync<T, never> {
   return { status: 'initial', value, error: null };
@@ -67,24 +32,13 @@ function asyncAborted(): IAsync<never, never> {
 }
 
 export const createAsync = {
-  "initial": asyncInitial,
-  "pending": asyncPending,
-  "fulfilled": asyncFulfilled,
-  "rejected": asyncRejected,
-  "aborted": asyncAborted
-}
+  initial: asyncInitial,
+  pending: asyncPending,
+  fulfilled: asyncFulfilled,
+  rejected: asyncRejected,
+  aborted: asyncAborted,
+};
 
-/**
- * Wraps a Promise executor into a Promise that always resolves
- * with an IAsync structure instead of throwing
- */
-export interface IAsyncCallback<T extends object, K extends keyof T> {
-  (
-    store: IStore<T>,
-    resolve: (arg: IAsyncValue<T[K]> | PromiseLike<IAsyncValue<T[K]>>) => void,
-    reject: (arg: IasyncRejected<T[K]>) => void,
-  ): void;
-}
 
 /**
  * Runs an asynchronous callback associated with a specific store key
@@ -141,7 +95,7 @@ export const runAsyncCallback = async <T extends object, K extends keyof T>(
     });
 };
 
-const statusAsyncSet = new Set<DispatchStatus>([
+const statusAsyncSet = new Set<IDispatchStatus>([
   'initial',
   'pending',
   'fulfilled',
@@ -171,32 +125,10 @@ export function isAsync(item: unknown): item is IAsync<unknown, unknown> {
   );
 }
 
-function getAsyncValue<T extends object, K extends keyof T>(store: IStore<T>, key: K) {
+export function getAsyncValue<T extends object, K extends keyof T>(store: IStore<T>, key: K) {
   const value = store.get(key);
   if (!isAsync(value)) {
     throw formatError['isNotAsync'](key as string);
   }
   return value;
-}
-
-export function useAsync<T extends object, Args extends unknown[], K extends keyof T>(
-  key: K,
-  cb: (...args: [...Args]) => IAsyncCallback<T, K>,
-  store: IStore<T>,
-) {
-  const [value, setValue] = React.useState(getAsyncValue(store, key));
-  const refDispatch = React.useRef<(...args: [...Args]) => void>(null);
-  const refAbort = React.useRef<() => void>(() => {
-    store.set(key, asyncAborted() as T[K]);
-  });
-  useConnectListenerstoStore(setValue as (value: T[K]) => void, key, store);
-
-  if (!refDispatch.current) {
-    const dispatch = (...args: [...Args]): void => {
-      runAsyncCallback(store, key, cb(...args));
-    };
-    refDispatch.current = dispatch;
-  }
-
-  return { dispatch: refDispatch.current, abort: refAbort.current, value: value as T[K] };
 }

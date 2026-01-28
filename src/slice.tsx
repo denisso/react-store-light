@@ -1,10 +1,10 @@
 import React from 'react';
 import { createStore as _createStore } from 'observable-store-light';
 import { IContext, IStore, ISubStore } from './types';
-import { useAsync as _useAsync, type IAsyncCallback } from './async';
+import { useAsync as _useAsync, type IAsyncCallback } from './features/async';
 import { useConnectListenerstoStore } from './helpers/use-connect-listeners-to-store';
 import { UseStoreContext } from './helpers/use-store-context';
-
+import { UseAsync } from './features/async/use-async';
 /**
  * Reducer function.
  * Mutates the store.
@@ -155,14 +155,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
      * @param callback - async callback
      * @param _Context - [optional] React Context
      */
-    useAsync<Args extends unknown[], K extends keyof T>(
-      key: K,
-      callback: (...args: [...Args]) => IAsyncCallback<T, K>,
-      _Context?: React.Context<IContext>,
-    ) {
-      const store = useStoreContext('useAsync', key as string, _Context ? _Context : Context);
-      return _useAsync(key, callback, store);
-    }
+    useAsync = new UseAsync<T>(uniqId, Context).hook
 
     /**
      * Subscribes a component to a single store field by key.
