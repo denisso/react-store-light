@@ -3,7 +3,7 @@ import { createStore as _createStore } from 'observable-store-light';
 import { IContext, IStore, ISubStore, IReducer } from './types';
 import { useConnectListenersToStore } from './helpers/use-connect-listeners-to-store';
 import { UseStoreContext } from './helpers/use-store-context';
-import { UseAsync } from './features/async/use-async';
+import { UseAsync, UseReducer } from './features';
 
 /**
  * Creates an isolated slice definition with Store type and reducers.
@@ -40,13 +40,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
   // get store by context
   const useStoreContext = new UseStoreContext<T>(uniqId).getStore;
 
-  type ReducerArgsFn<R> = R extends (...args: infer A) => (store: IStore<any>) => void
-    ? (...args: A) => void
-    : never;
 
-  type BindStoreReducers<R> = {
-    [K in keyof R]: ReducerArgsFn<R[K]>;
-  };
 
   const mapSates = new Map<T, Set<IStore<T>>>();
 
@@ -158,30 +152,7 @@ export const createSlice = <T extends object, R extends Record<string, IReducer<
       return [state, _setState];
     }
 
-    /**
-     * Returns reducers already bound to the store.
-     * Reducers are created once and cached.
-     *
-     * @param _Context - [optional] React Context
-     */
-
-    useReducer(_Context?: React.Context<IContext>) {
-      const store = useStoreContext('useReducer', null, _Context ? _Context : Context);
-      const [_reducers] = React.useState(() => {
-        const _reducers = {} as BindStoreReducers<R>;
-        if (!reducers) {
-          return _reducers;
-        }
-        for (const key in reducers) {
-          const fn = reducers[key];
-          _reducers[key] = ((...args: Parameters<typeof fn>) => {
-            fn(...args)(store);
-          }) as BindStoreReducers<R>[typeof key];
-        }
-        return _reducers;
-      });
-      return _reducers;
-    }
+    useReducer = new UseReducer<T, R>(uniqId, Context, reducers).hook
 
     /**
      * Returns the store instance directly.

@@ -6,11 +6,10 @@ import type { IAsyncCallback } from './types';
 import { useConnectListenersToStore } from '../../helpers/use-connect-listeners-to-store';
 
 export class UseAsync<T extends object> extends UseStoreContext<T>{
-  getContext: () => React.Context<IContext> | null;
+  Context:  React.Context<IContext> | null;
   constructor(uniqId: object, Context: React.Context<IContext> | null) {
     super(uniqId)
-    this.getContext = () => Context;
-    this.getContext = this.getContext.bind(this);
+    this.Context = Context
     this.hook = this.hook.bind(this);
   }
   /**
@@ -33,7 +32,7 @@ export class UseAsync<T extends object> extends UseStoreContext<T>{
     const store = super.getStore(
       'useAsynk',
       key as string,
-      Context ? Context : this.getContext(),
+      Context ? Context : this.Context,
     );
     const [value, setValue] = React.useState(getAsyncValue(store, key));
 
