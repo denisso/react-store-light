@@ -1,10 +1,15 @@
 const messages = {
-  contextNotExist: () =>
-    `Hook must be used within a React Provider.`,
-  storeNotExist: () =>
-    `The storage does not exist in the React Provider.`,
+  contextNotExist: () => `Hook must be used within a React Provider.`,
+  storeNotExist: () => `The storage does not exist in the React Provider.`,
   storeUniqIdAlreadyExist: () => 'A store with this id already exists in the provider.',
   isNotAsync: (key: string) => `Key ${key} is not type IAsync`,
+  errorKeyMessage: (key: PropertyKey) => {
+    let strKey = `typeof ${typeof key}`;
+    if (typeof key == 'string' || typeof key == 'number') {
+      strKey = String(key);
+    }
+    return `There is no key "${strKey}" in the store`;
+  },
 };
 
 type MessageFn = (...args: any[]) => string;

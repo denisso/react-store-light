@@ -49,8 +49,5 @@
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vitest": "^4.0.16"
-  },
-  "dependencies": {
-    "observable-store-light": "^2.0.19"
   }
 }

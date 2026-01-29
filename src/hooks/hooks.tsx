@@ -3,7 +3,7 @@ import type { IReducers, IContext } from '../types';
 
 export type HookOf<T> = T extends { hook: (...args: any[]) => any } ? T['hook'] : never;
 
-export class Hooks<T extends object, R extends IReducers<T>> {
+export class Hooks<T extends object, R extends IReducers<T> = {}> {
   constructor(uniqId: object, Context: React.Context<IContext>, reducers?: R) {
     this.useAsync = new UseAsync<T>(uniqId, Context).hook;
 
@@ -19,7 +19,7 @@ export class Hooks<T extends object, R extends IReducers<T>> {
   useStore: HookOf<UseStore<T>>;
 }
 
-export const createHooks = <T extends object, R extends IReducers<T>>(
+export const createHooks = <T extends object, R extends IReducers<T> = {}>(
   uniqId: object,
   Context: React.Context<IContext>,
   reducers?: R,
