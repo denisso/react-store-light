@@ -1,8 +1,8 @@
 const messages = {
-  contextNotExist: (hook: string, key: string | null) =>
-    `Hook ${hook}${key ? ' with key ' + key : ''} must be used within a React Provider.`,
-  storeNotExist: (hook: string, key: string | null) =>
-    `Problem in hook ${hook}${key ? ' with key ' + key : ''}, the storage does not exist in the React Provider.`,
+  contextNotExist: () =>
+    `Hook must be used within a React Provider.`,
+  storeNotExist: () =>
+    `The storage does not exist in the React Provider.`,
   storeUniqIdAlreadyExist: () => 'A store with this id already exists in the provider.',
   isNotAsync: (key: string) => `Key ${key} is not type IAsync`,
 };

@@ -24,7 +24,7 @@ export class UseReducer<T extends object, R extends IReducers<T>> extends UseSto
    * @return Record reducers
    */
   hook() {
-    const store = super.getStore('useReducer', null);
+    const store = super.getStore();
     const [reducers] = React.useState(() => {
       const reducers = {} as BindStoreReducers<R>;
       if (!this.reducers) {

@@ -2,6 +2,28 @@ import React from 'react';
 import type { IContext, IStore } from '../types';
 import { formatError } from './error';
 
+/**
+ *
+ * @param uniqId
+ * @param Context
+ * @returns
+ */
+export const useGetStorefromContext = <T extends object>(
+  uniqId: object,
+  Context: React.Context<IContext>,
+  error?: false,
+) => {
+  if (!Context && error !== false) {
+    throw formatError['contextNotExist']();
+  }
+  const context = React.useContext(Context) as IContext;
+  const store = context.get(uniqId) as unknown as IStore<T>;
+  if (!store && error !== false) {
+    throw formatError['storeNotExist']();
+  }
+  return store;
+};
+
 export class UseStoreContext<T extends object> {
   uniqId: object;
   Context: React.Context<IContext>;
@@ -11,22 +33,14 @@ export class UseStoreContext<T extends object> {
     this.getStore = this.getStore.bind(this);
   }
   /**
-   * get store By Vontext
+   * get store By
+   * throw Error contextNotExist and storeNotExist
    *
-   * @param hook - name hook for formatError
-   * @param key - name key for formatError
-   * @param Context - context
+   * @param isError [optional] false turnoff error
    * @returns IStore<T>
    */
-  getStore(hook: string, key: string | null) {
-    if (!this.Context) {
-      throw formatError['contextNotExist'](hook, key);
-    }
-    const context = React.useContext(this.Context) as IContext;
-    const store = context.get(this.uniqId) as unknown as IStore<T>;
-    if (!store) {
-      throw formatError['storeNotExist'](hook, key);
-    }
+  getStore(error?: false): IStore<T> {
+    const store = useGetStorefromContext<T>(this.uniqId, this.Context, error);
     return store;
   }
 }

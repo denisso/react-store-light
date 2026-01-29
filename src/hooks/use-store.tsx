@@ -13,7 +13,7 @@ export class UseStore<T extends object> extends UseStoreContext<T> {
    * @param _Context - [optional] React Context
    */
   hook() {
-    const store = super.getStore('useStore', null);
+    const store = super.getStore();
     return store;
   }
 }

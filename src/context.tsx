@@ -24,7 +24,6 @@ export const createProvider = (Context: React.Context<IContext>) => {
   };
 
   const Provider = ({ children, value }: Props) => {
-    // https://react.dev/reference/react/useState#avoiding-recreating-the-initial-state
     const [context] = React.useState<IContext>(() => {
       const map = new Map<{}, IStore<any>>();
       for (const store of value) {

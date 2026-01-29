@@ -25,7 +25,7 @@ export class UseAsync<T extends object> extends UseStoreContext<T> {
     key: K,
     cb: (...args: [...Args]) => IAsyncCallback<T, K>,
   ) {
-    const store = super.getStore('useAsynk', key as string);
+    const store = super.getStore();
     const [value, setValue] = React.useState(getAsyncValue(store, key));
 
     const [dispatch] = React.useState<(...args: [...Args]) => void>(() => {
