@@ -1,5 +1,5 @@
 import type { IAsync, IAsyncCallback, IAsyncValue, IDispatchStatus } from './types';
-import type { IStore } from '../../types';
+import { Store } from '../../store';
 import { formatError } from '../../helpers/error';
 
 function asyncInitial<T>(value: T): IAsync<T, never> {
@@ -65,11 +65,11 @@ export const createAsync = {
  * @returns - A promise resolving to the resulting async value
  */
 export const runAsyncCallback = async <T extends object, K extends keyof T>(
-  store: IStore<T>,
+  store: Store<T>,
   key: K,
   cb: IAsyncCallback<T, K>,
 ) => {
-  const val = getAsyncValue(store, key);
+  const val = getAsyncValue<T,K>(store, key);
   if (val.status == 'pending') {
     return Promise.resolve(val);
   }
@@ -125,7 +125,7 @@ export function isAsync(item: unknown): item is IAsync<unknown, unknown> {
   );
 }
 
-export function getAsyncValue<T extends object, K extends keyof T>(store: IStore<T>, key: K) {
+export function getAsyncValue<T extends object, K extends keyof T>(store: Store<T>, key: K) {
   const value = store.get(key);
   if (!isAsync(value)) {
     throw formatError['isNotAsync'](key as string);

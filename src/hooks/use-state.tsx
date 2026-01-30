@@ -1,12 +1,13 @@
 import React from 'react';
-import type { IContext, IStore } from '../types';
+import { Store } from '../store';
+import type { IContext } from '../types';
 import { UseStoreContext } from '../helpers/use-store-context';
 import { useConnectListenersToStore } from '../helpers/use-connect-listeners-to-store';
 
 type IArgs<T extends object, K extends keyof T> = T[K] | ((prev: T[K]) => T[K]);
 
 // proxy method for set field in the store by key
-const setStateProxy = <T extends object, K extends keyof T>(store: IStore<T>, key: K) => {
+const setStateProxy = <T extends object, K extends keyof T>(store: Store<T>, key: K) => {
   return (arg: IArgs<T, K>) => {
     if (typeof arg === 'function') {
       return store.set(key, (arg as (prev: T[K]) => T[K])(store.get(key)));
@@ -16,8 +17,8 @@ const setStateProxy = <T extends object, K extends keyof T>(store: IStore<T>, ke
 };
 
 export class UseState<T extends object> extends UseStoreContext<T> {
-  constructor(uniqId: object, Context: React.Context<IContext>) {
-    super(uniqId, Context);
+  constructor(sliceId: object, Context: React.Context<IContext>) {
+    super(sliceId, Context);
     this.hook = this.hook.bind(this);
   }
   /**
@@ -32,7 +33,7 @@ export class UseState<T extends object> extends UseStoreContext<T> {
     const store = super.getStore();
     const [state, setState] = React.useState<T[K]>(store.get(key));
     const [_setState] = React.useState<ReturnType<typeof setStateProxy<T, K>>>(() => {
-      return setStateProxy(store, key);
+      return setStateProxy<T, K>(store, key);
     });
 
     useConnectListenersToStore(setState, key, store);

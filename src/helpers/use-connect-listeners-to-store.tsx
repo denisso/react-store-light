@@ -1,5 +1,5 @@
 import React from 'react';
-import { IStore } from '../types';
+import { Store } from '../store';
 
 /**
  * Connect listeners to store
@@ -11,7 +11,7 @@ import { IStore } from '../types';
 export const useConnectListenersToStore = <T extends object, K extends keyof T>(
   setValue: (value: T[K]) => void,
   key: K,
-  store: IStore<T>,
+  store: Store<T>,
 ) => {
   React.useEffect(() => {
     const listener = (_: K, value: T[K]) => {

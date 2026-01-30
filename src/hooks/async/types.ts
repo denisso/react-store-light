@@ -1,4 +1,4 @@
-import type { IStore } from "../../types";
+import { Store } from "../../store";
 
 export type IDispatchStatus = 'initial' | 'pending' | 'fulfilled' | 'rejected' | 'aborted';
 
@@ -40,7 +40,7 @@ export type IasyncRejected<T> = [T] extends [IAsync<unknown, infer Err>] ? Err :
  */
 export interface IAsyncCallback<T extends object, K extends keyof T> {
   (
-    store: IStore<T>,
+    store: Store<T>,
     resolve: (arg: IAsyncValue<T[K]> | PromiseLike<IAsyncValue<T[K]>>) => void,
     reject: (arg: IasyncRejected<T[K]>) => void,
   ): void;

@@ -1,7 +1,8 @@
-export type { IStore, IContext, ISubStore, IReducer, IReducers } from './types';
+export type { IContext, IReducer, IReducers } from './types';
+export { createStore, Store } from './store';
 export { createContext, createProvider } from './context';
 export { createSlice } from './slice';
-export { Hooks, createHooks, type HookOf } from './hooks';
+export { Hooks, createHooks, type HookOf, UseAsync, UseReducer, UseState, UseStore } from './hooks';
 export {
   createAsync,
   isAsync,

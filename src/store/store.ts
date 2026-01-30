@@ -59,6 +59,10 @@ export class Store<T extends object> {
   state: T;
 
   /**
+   * id for slice
+   */
+  sliceId: {} | null;
+  /**
    * Store constructor.
    *
    * Each property of the initial state is converted into a Subject,
@@ -67,7 +71,8 @@ export class Store<T extends object> {
    * @param state - Initial store state
    * @param isMutateState - [optional] mutate state on value updates
    */
-  constructor(state: T) {
+  constructor(state: T, sliceId: {} | null = null) {
+    this.sliceId = sliceId;
     this.values = {} as Values<T>;
     this.state = state;
     this.keys = Object.keys(state) as (keyof T)[];
@@ -168,6 +173,6 @@ export class Store<T extends object> {
  * @param state - Initial store state
  * @returns Store API with get/set and subscription methods
  */
-export const createStore = <T extends object>(state: T) => {
-  return new Store<T>(state);
+export const createStore = <T extends object>(state: T, sliceId: {} | null = null) => {
+  return new Store<T>(state, sliceId);
 };

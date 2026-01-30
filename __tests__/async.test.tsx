@@ -9,6 +9,7 @@ import {
   createAsync,
   createProvider,
   runAsyncCallback,
+  createHooks,
 } from '../src';
 
 describe('Async', () => {
@@ -77,7 +78,7 @@ describe('Async', () => {
     };
     const Context = createContext();
     const slice = createSlice<Slice>(Context);
-
+    const hooks = createHooks<Slice>(slice.sliceId, Context)
     const store = slice.createStore(sliceData);
 
     const promiseFn =
@@ -89,14 +90,14 @@ describe('Async', () => {
     let dispatchTest: (message: string) => void;
 
     const TestComponent1 = () => {
-      const { dispatch } = slice.useAsync('one', promiseFn);
+      const { dispatch } = hooks.useAsync('one', promiseFn);
       dispatchTest = dispatch;
       return null;
     };
 
     const results: Slice['one'][] = [];
     const TestComponent2 = () => {
-      const [value] = slice.useState('one');
+      const [value] = hooks.useState('one');
       React.useEffect(() => {
         results.push(value);
       }, [value]);
@@ -138,6 +139,7 @@ describe('Async', () => {
     const Provider = createProvider(Context);
     const slice = createSlice<Slice>(Context);
     const store = slice.createStore({ one: createAsync.initial('') });
+    const hooks = createHooks<Slice>(slice.sliceId, Context)
     const results: Slice['one'][] = [];
     store.addListener(
       'one',
@@ -149,7 +151,7 @@ describe('Async', () => {
     let dispatchTest: (arg: string) => void;
     let abortTest: () => void;
     const TestComponent1 = () => {
-      const { dispatch, abort } = slice.useAsync('one', promiseFn);
+      const { dispatch, abort } = hooks.useAsync('one', promiseFn);
       dispatchTest = dispatch;
       abortTest = abort;
       return null;

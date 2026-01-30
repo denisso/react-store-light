@@ -3,8 +3,8 @@ import { UseStoreContext } from '../helpers/use-store-context';
 import type { IContext } from '../types';
 
 export class UseStore<T extends object> extends UseStoreContext<T> {
-  constructor(uniqId: object, Context: React.Context<IContext>) {
-    super(uniqId, Context);
+  constructor(sliceId: object, Context: React.Context<IContext>) {
+    super(sliceId, Context);
     this.hook = this.hook.bind(this);
   }
   /**

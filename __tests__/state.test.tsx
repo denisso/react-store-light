@@ -1,20 +1,19 @@
 import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, act } from '@testing-library/react';
-import { createSlice, createContext, createProvider } from '../src';
+import { createSlice, createContext, createProvider, createHooks } from '../src';
 
 describe('useState', () => {
   it('test rerender by change state', () => {
-    type Slice = { count: number };
+    type Counter = { count: number };
     const Context = createContext();
-    const slice = createSlice<Slice>(Context);
-
+    const slice = createSlice<Counter>();
     const store = slice.createStore({ count: 0 });
-
+    const hooks = createHooks<Counter>(slice.sliceId, Context);
     let trigger!: () => void;
     let countTest = 0;
     const TestComponent = () => {
-      const [count, setCount] = slice.useState('count');
+      const [count, setCount] = hooks.useState('count');
 
       React.useEffect(() => {
         // ! test it
@@ -28,7 +27,7 @@ describe('useState', () => {
       return null;
     };
     const Provider = createProvider(Context);
-
+    
     render(
       <Provider value={[store]}>
         <TestComponent />

@@ -1,8 +1,10 @@
 const messages = {
-  contextNotExist: () => `Hook must be used within a React Provider.`,
+  contextIsEmpty: () => `Context is empty`,
+  hookMustBeInsideProvider: () => `Hook must be used within a React Provider.`,
   storeNotExist: () => `The storage does not exist in the React Provider.`,
   storeUniqIdAlreadyExist: () => 'A store with this id already exists in the provider.',
   isNotAsync: (key: string) => `Key ${key} is not type IAsync`,
+  providerSliceIdNull: () => `Store.sliceId cannot be null in Context Provider`,
   errorKeyMessage: (key: PropertyKey) => {
     let strKey = `typeof ${typeof key}`;
     if (typeof key == 'string' || typeof key == 'number') {

@@ -1,23 +1,27 @@
 import React from 'react';
-import type { IContext, IStore } from '../types';
+import { Store } from '../store';
+import type { IContext } from '../types';
 import { formatError } from './error';
 
 /**
  *
- * @param uniqId
+ * @param sliceId
  * @param Context
  * @returns
  */
 export const useGetStorefromContext = <T extends object>(
-  uniqId: object,
+  sliceId: object,
   Context: React.Context<IContext>,
   error?: false,
 ) => {
   if (!Context && error !== false) {
-    throw formatError['contextNotExist']();
+    throw formatError['contextIsEmpty']();
   }
   const context = React.useContext(Context) as IContext;
-  const store = context.get(uniqId) as unknown as IStore<T>;
+  if (!context && error !== false) {
+    throw formatError['hookMustBeInsideProvider']();
+  }
+  const store = context.get(sliceId) as unknown as Store<T>;
   if (!store && error !== false) {
     throw formatError['storeNotExist']();
   }
@@ -25,10 +29,10 @@ export const useGetStorefromContext = <T extends object>(
 };
 
 export class UseStoreContext<T extends object> {
-  uniqId: object;
+  sliceId: object;
   Context: React.Context<IContext>;
-  constructor(uniqId: object, Context: React.Context<IContext>) {
-    this.uniqId = uniqId;
+  constructor(sliceId: object, Context: React.Context<IContext>) {
+    this.sliceId = sliceId;
     this.Context = Context;
     this.getStore = this.getStore.bind(this);
   }
@@ -39,8 +43,8 @@ export class UseStoreContext<T extends object> {
    * @param isError [optional] false turnoff error
    * @returns IStore<T>
    */
-  getStore(error?: false): IStore<T> {
-    const store = useGetStorefromContext<T>(this.uniqId, this.Context, error);
+  getStore(error?: false): Store<T> {
+    const store = useGetStorefromContext<T>(this.sliceId, this.Context, error);
     return store;
   }
 }

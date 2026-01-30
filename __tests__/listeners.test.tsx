@@ -1,32 +1,30 @@
 import { describe, it, expect } from 'vitest';
 import { render, act } from '@testing-library/react';
-import { createSlice, createContext, createProvider } from '../src';
+import { createSlice, createContext, createProvider, createHooks } from '../src';
 
 describe('Listeners', () => {
   it('addListener', () => {
     type Slice = { count: number; name: string };
     const Context = createContext();
-    const slice = createSlice<Slice>(Context);
+    const slice = createSlice<Slice>();
 
     let testSlice: Slice = { count: 0, name: '' };
 
     const store = slice.createStore({ count: 0, name: 'test name' });
+    const hooks = createHooks<Slice>(slice.sliceId, Context);
     store.addListener('count', (_, value) => {
       // ! test it
       testSlice.count = value;
     });
-    store.addListener(
-      'name',
-      (_, value) => {
-        // ! test it
-        testSlice.name = value;
-      },
-    );
+    store.addListener('name', (_, value) => {
+      // ! test it
+      testSlice.name = value;
+    });
 
     let trigger!: (slice: Slice) => void;
 
     const TestComponent = () => {
-      const store = slice.useStore();
+      const store = hooks.useStore();
 
       trigger = (_slice: Slice) => {
         store.set('count', _slice.count);
@@ -58,6 +56,7 @@ describe('Listeners', () => {
     const slice = createSlice<Slice>(Context);
     let countTest = 0;
     const store = slice.createStore({ count: 0 });
+    const hooks = createHooks<Slice>(slice.sliceId, Context)
     const listener = (_: string, value: number) => {
       // ! test it
       countTest = value;
@@ -67,7 +66,7 @@ describe('Listeners', () => {
     let trigger!: (arg: number) => void;
 
     const TestComponent = () => {
-      const store = slice.useStore();
+      const store = hooks.useStore();
 
       trigger = (arg: number) => {
         store.set('count', arg);

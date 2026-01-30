@@ -10,12 +10,12 @@
 * **`createProvider` API**
 
   * Accepts an array of store instances.
-  * Internally maps stores by `uniqId`.
+  * Internally maps stores by `sliceId`.
   * Prevents accidental duplication of the same store in same Provider.
 
 * **`createSlice` API**
 
-  * Each slice generates its own `uniqId`.
+  * Each slice generates its own `sliceId`.
   * Guarantees strict isolation between stores.
 
 * **`useStore(key) v1` → `useState(Context, key)`**

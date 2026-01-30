@@ -108,7 +108,7 @@ Creates a Provider for injecting stores.
     - value — array of store instances
 
 - features:
-  - each store must have a unique uniqId
+  - each store must have a unique sliceId
   - duplicate stores will throw a runtime error
 
 ### Helpers

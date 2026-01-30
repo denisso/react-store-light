@@ -1,8 +1,9 @@
 import React from 'react';
 import { UseStoreContext } from '../helpers/use-store-context';
-import type { IContext, IStore, IReducers } from '../types';
+import { Store } from '../store';
+import type { IContext, IReducers } from '../types';
 
-type ReducerArgsFn<R> = R extends (...args: infer A) => (store: IStore<any>) => void
+type ReducerArgsFn<R> = R extends (...args: infer A) => (store: Store<any>) => void
   ? (...args: A) => void
   : never;
 
@@ -12,8 +13,8 @@ type BindStoreReducers<R> = {
 
 export class UseReducer<T extends object, R extends IReducers<T>> extends UseStoreContext<T> {
   reducers?: R;
-  constructor(uniqId: object, Context: React.Context<IContext>, reducers?: R) {
-    super(uniqId, Context);
+  constructor(sliceId: object, Context: React.Context<IContext>, reducers?: R) {
+    super(sliceId, Context);
     this.reducers = reducers;
     this.hook = this.hook.bind(this);
   }
