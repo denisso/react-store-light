@@ -7,13 +7,13 @@ import type { ISliceId } from './types';
  * - remove store from state
  * - create store with sqliceID
  */
-class Slice<T extends object> {
+export class Slice<T extends object> {
   sliceId: ISliceId = {};
   mapSates = new Map<T, Store<T>>();
   constructor() {
     this.createStore = this.createStore.bind(this);
     this.mountStore = this.mountStore.bind(this);
-    this.umountStore = this.umountStore.bind(this);
+    this.unMountStore = this.unMountStore.bind(this);
     this.updateState = this.updateState.bind(this);
   }
   /**
@@ -50,7 +50,7 @@ class Slice<T extends object> {
    * @param state T
    * @param wait false | number - false unmount immediatly 
    */
-  umountStore(state: T, wait: false | number = false) {
+  unMountStore(state: T, wait: false | number = false) {
     const store = this.mapSates.get(state);
     if (store && store.count > 0) {
       store.count--;
