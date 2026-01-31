@@ -7,7 +7,7 @@ describe('Context and Provider', () => {
   it('initialization store and usage Context', () => {
     type Slice = { count: number };
     const Context = createContext();
-    const slice = createSlice<Slice>(Context);
+    const slice = createSlice<Slice>();
     const store = slice.createStore({ count: 1 });
     const hooks = createHooks<Slice>(slice.sliceId, Context)
     let trigger!: () => number;
@@ -71,7 +71,7 @@ describe('Context and Provider', () => {
   it('one store multiple providers', () => {
     type Slice = { count: number };
     const Context = createContext();
-    const slice = createSlice<Slice>(Context);
+    const slice = createSlice<Slice>();
 
     const store = slice.createStore({ count: 1 });
     const hooks = createHooks<Slice>(slice.sliceId, Context)

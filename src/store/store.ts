@@ -62,6 +62,11 @@ export class Store<T extends object> {
    * id for slice
    */
   sliceId: {} | null;
+
+  /**
+   * counter relations state and store
+   */
+  count = 0
   /**
    * Store constructor.
    *

@@ -21,7 +21,7 @@ describe('Async', () => {
       one: createAsync.initial(''),
     };
     const Context = createContext()
-    const slice = createSlice<Slice>(Context);
+    const slice = createSlice<Slice>();
 
     const store = slice.createStore(sliceData);
 
@@ -77,7 +77,7 @@ describe('Async', () => {
       one: createAsync.initial(''),
     };
     const Context = createContext();
-    const slice = createSlice<Slice>(Context);
+    const slice = createSlice<Slice>();
     const hooks = createHooks<Slice>(slice.sliceId, Context)
     const store = slice.createStore(sliceData);
 
@@ -137,7 +137,7 @@ describe('Async', () => {
 
     const Context = createContext();
     const Provider = createProvider(Context);
-    const slice = createSlice<Slice>(Context);
+    const slice = createSlice<Slice>();
     const store = slice.createStore({ one: createAsync.initial('') });
     const hooks = createHooks<Slice>(slice.sliceId, Context)
     const results: Slice['one'][] = [];

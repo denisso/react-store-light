@@ -21,7 +21,7 @@ describe('Error', () => {
   it('The storage does not exist in the React Provider.', () => {
     type Slice = { one: string };
     const Context = createContext();
-    const slice = createSlice<Slice>(Context);
+    const slice = createSlice<Slice>();
     const hooks = createHooks<Slice>(slice.sliceId, Context);
     const Provider = createProvider(Context);
     const Test = () => {
@@ -41,7 +41,7 @@ describe('Error', () => {
   it('In the useAsync hook, only IAsync values can be used.', () => {
     type Slice = { one: string };
     const Context = createContext();
-    const slice = createSlice<Slice>("Context");
+    const slice = createSlice<Slice>();
     const store = slice.createStore({ one: '' });
     const hooks = createHooks<Slice>(slice.sliceId, Context);
     const Provider = createProvider(Context);

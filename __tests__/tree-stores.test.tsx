@@ -1,7 +1,6 @@
 import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, act } from '@testing-library/react';
-import { Store } from '../src';
 import { createSlice, createContext, createProvider, createHooks } from '../src';
 
 describe('Tree stores', () => {
@@ -10,12 +9,12 @@ describe('Tree stores', () => {
     type Counters = { counters: Counter[] };
     // global
     const GlobalContext = createContext();
-    const globalSlice = createSlice<Counters>(GlobalContext);
+    const globalSlice = createSlice<Counters>();
     const globalStore = globalSlice.createStore({ counters: [{ id: 0, count: 0 }] });
     const globalHooks = createHooks<Counters>(globalSlice.sliceId, GlobalContext);
     // counter
     const CounterContext = createContext();
-    const counterSlice = createSlice<Counter>(CounterContext);
+    const counterSlice = createSlice<Counter>();
     const CounterProvider = createProvider(CounterContext);
     const counterHooks = createHooks<Counter>(counterSlice.sliceId, CounterContext);
     // for test
@@ -67,89 +66,27 @@ describe('Tree stores', () => {
     expect(results).toEqual([0, 2]);
   });
 
-  // it('Update bottom top', () => {
-    // type Counter = { id: number; count: number };
-    // type Counters = { counters: Counter[] };
-
-    // // global
-    // const GlobalContext = createContext();
-    // const globalSlice = createSlice<Counters>(GlobalContext);
-    // const counters = [{ id: 0, count: 0 }];
-    // const globalStore = globalSlice.createStore({ counters });
-    // const globalHook = createHooks<Counters>(globalSlice.sliceId, GlobalContext);
-
-    // // counter
-    // const CounterContext = createContext();
-    // const counterSlice = createSlice<Counter>(CounterContext);
-    // const CounterProvider = createProvider(CounterContext);
-    // const counterHooks = createHooks<Counter>(counterSlice.sliceId, CounterContext);
-
-    // // for test
-    // let trigger: () => void;
-
-    // // tree
-    // const CounterState = () => {
-    //   const store = counterHooks.useStore();
-    //   // test it
-    //   trigger = () => store.set('count', 2);
-    //   return null;
-    // };
-    // const CounterRoot = ({ counter }: { counter: Counter }) => {
-    //   const [counterStore] = React.useState<Store<Counter>>(() => {
-    //     return counterSlice.createStore(counter);
-    //   });
-
-    //   React.useEffect(() => {
-    //     counterStore.setState(counter);
-    //   }, [counter, counterStore]);
-
-    //   return <CounterProvider value={[counterStore]}>{<CounterState />}</CounterProvider>;
-    // };
-
-    // const RootComponent = () => {
-    //   const [counters] = globalHook.useState('counters');
-    //   return (
-    //     <>
-    //       {counters.map((counter) => (
-    //         <CounterRoot key={counter.id} counter={counter} />
-    //       ))}
-    //     </>
-    //   );
-    // };
-    // const Provider = createProvider(GlobalContext);
-
-    // render(
-    //   <Provider value={[globalStore]}>
-    //     <RootComponent />
-    //   </Provider>,
-    // );
-
-    // act(() => {
-    //   trigger();
-    // });
-    // expect(counters).toEqual([{ id: 0, count: 2 }]);
-  // });
-
   it('Usage createStore, children slices update each other', () => {
     type Counter = { id: number; count: number };
     type Counters = { counters: Counter[] };
     // global counters
     const GlobalContext = createContext();
-    const globalSlice = createSlice<Counters>(GlobalContext);
+    const globalSlice = createSlice<Counters>();
     const counter = { id: 0, count: 0 };
     const counters = [counter];
     const globalStore = globalSlice.createStore({ counters });
 
     // counter
     const CounterContext = createContext();
-    const counterSlice = createSlice<Counter>(CounterContext);
+    const counterSlice = createSlice<Counter>();
     const CounterProvider = createProvider(CounterContext);
     const storeCounterReader = counterSlice.createStore(counters[0]);
     const storeCounterWriter = counterSlice.createStore(counters[0]);
     const counterHook = createHooks<Counter>(counterSlice.sliceId, CounterContext);
+    expect(storeCounterReader).toBe(storeCounterWriter);
 
-    counterSlice.addStore(counters[0], storeCounterReader)
-    counterSlice.addStore(counters[0], storeCounterWriter)
+    counterSlice.mountStore(storeCounterReader.getState());
+    counterSlice.mountStore(storeCounterWriter.getState());
     // for test
     let writeCountSet: (count: number) => void;
     let writeCountSetState: (count: number) => void;
@@ -245,19 +182,19 @@ describe('Tree stores', () => {
     type Counters = { counters: Counter[] };
     // global counters
     const GlobalContext = createContext();
-    const globalSlice = createSlice<Counters>(GlobalContext);
+    const globalSlice = createSlice<Counters>();
     const counter = { id: 0, count: 0 };
     const counters = [counter];
     const globalStore = globalSlice.createStore({ counters });
 
     // counter
     const CounterContext = createContext();
-    const counterSlice = createSlice<Counter>(CounterContext);
+    const counterSlice = createSlice<Counter>();
     const CounterProvider = createProvider(CounterContext);
     const storeCounterReader = counterSlice.createStore(counters[0]);
     const storeCounterWriter = counterSlice.createStore(counters[0]);
-    counterSlice.addStore(counters[0], storeCounterReader)
-    counterSlice.addStore(counters[0], storeCounterWriter)
+    counterSlice.mountStore(storeCounterReader.getState());
+    counterSlice.mountStore(storeCounterWriter.getState());
     const hooks = createHooks<Counter>(counterSlice.sliceId, CounterContext);
     // for test
     let writeCountSet: (count: number) => void;
@@ -280,9 +217,9 @@ describe('Tree stores', () => {
       const store = hooks.useStore();
       const [, setCount] = hooks.useState('count');
       writeCountSet = (count) => {
-        const state = store.getState()
-        state.count = count
-        counterSlice.updateState(state)
+        const state = store.getState();
+        state.count = count;
+        counterSlice.updateState(state);
       };
       // writeCountSetState = (count) => {
       //   const state = store.getState();
