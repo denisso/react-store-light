@@ -1,6 +1,12 @@
 import { Store, createStore } from './store';
 import type { ISliceId } from './types';
-
+/**
+ * Class Slice for available for custom extension
+ * Manage stores and state relation: 
+ * - add store to state
+ * - remove store from state
+ * - create store with sqliceID
+ */
 class Slice<T extends object> {
   sliceId: ISliceId;
   mapSates: Map<T, Set<Store<T>>>;
@@ -48,8 +54,7 @@ class Slice<T extends object> {
 }
 
 /**
- * Creates an isolated slice definition with Store type and reducers.
- *
+ * Creates an Slice instance.
  */
 export const createSlice = <T extends object>(
   sliceId: ISliceId | null = null,
