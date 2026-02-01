@@ -66,7 +66,7 @@ export class Store<T extends object> {
   /**
    * counter relations state and store
    */
-  count = 0
+  count = 0;
   /**
    * Store constructor.
    *
@@ -145,7 +145,7 @@ export class Store<T extends object> {
    * @param listener Callback invoked on value changes
    * @param autoCallListener [default: false] - Whether to call the listener immediately
    *                         with the current value
-   * @returns Unsubscribe function
+   * @returns UnSubscribe function
    */
   addListener<K extends keyof T>(
     key: K,

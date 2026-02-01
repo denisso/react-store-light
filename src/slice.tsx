@@ -18,9 +18,9 @@ export class Slice<T extends object> {
   }
   /**
    * Create Store instance or get from cache
-   * 
+   *
    * @param state T
-   * @returns 
+   * @returns
    */
   createStore(state: T) {
     let store = this.mapSates.get(state);
@@ -33,7 +33,7 @@ export class Slice<T extends object> {
 
   /**
    * Mount Store to slice (increment counter states)
-   * 
+   *
    * @param state T
    */
   mountStore(state: T) {
@@ -46,9 +46,9 @@ export class Slice<T extends object> {
 
   /**
    * UnMount Store to slice (decrement counter states)
-   * 
+   *
    * @param state T
-   * @param wait false | number - false unmount immediatly 
+   * @param wait false | number - false unmount immediatly
    */
   unMountStore(state: T, wait: false | number = false) {
     const store = this.mapSates.get(state);
@@ -67,8 +67,8 @@ export class Slice<T extends object> {
   }
 
   /**
-   * Update Store State 
-   * 
+   * Update Store State
+   *
    * @param state T
    * @returns boolean
    */
@@ -79,6 +79,15 @@ export class Slice<T extends object> {
     }
     store.setState(state);
     return true;
+  }
+
+  updateKey<K extends keyof T>(state: T, key: K, value: T[K]) {
+    state[key] = value;
+    const store = this.mapSates.get(state);
+    if (!store) {
+      return false;
+    }
+    store.values[key].notify(value as any);
   }
 }
 

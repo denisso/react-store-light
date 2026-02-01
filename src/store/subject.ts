@@ -34,7 +34,7 @@ export class Subject<T extends object, K extends keyof T> {
    * @param isAlwaysNotify - notify listiners always
    * @returns undefined
    */
-  notify(value: T[K], isAlwaysNotify: boolean) {
+  notify(value: T[K], isAlwaysNotify: boolean = false) {
 
     if (!isAlwaysNotify && this.value === value) {
       return;

@@ -215,18 +215,10 @@ describe('Tree stores', () => {
     // counter Writer
     const Writer = () => {
       const store = hooks.useStore();
-      const [, setCount] = hooks.useState('count');
       writeCountSet = (count) => {
-        const state = store.getState();
-        state.count = count;
-        counterSlice.updateState(state);
+        // counterSlice.updateKey(state, "count", count);
+        store.set('count', count);
       };
-      // writeCountSetState = (count) => {
-      //   const state = store.getState();
-      //   state.count = count;
-      //   store.setState(state);
-      // };
-      // writeCountSetCount = setCount;
       return null;
     };
 
