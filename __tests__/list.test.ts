@@ -69,5 +69,7 @@ describe('List', () => {
       const listNode = getListNodeValues(list);
       expect(listNode).toEqual(nodes);
     }
+
+    expect(list).toEqual({ head: null, tail: null });
   });
 });
