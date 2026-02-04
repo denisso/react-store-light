@@ -1,6 +1,6 @@
 import React from 'react';
 import { Store } from '../store';
-import type { IContext } from '../types';
+import type { IContext, ISliceId } from '../types';
 import { UseStoreContext } from '../helpers/use-store-context';
 import { useConnectListenersToStore } from '../helpers/use-connect-listeners-to-store';
 
@@ -17,7 +17,7 @@ const setStateProxy = <T extends object, K extends keyof T>(store: Store<T>, key
 };
 
 export class UseState<T extends object> extends UseStoreContext<T> {
-  constructor(sliceId: object, Context: React.Context<IContext>) {
+  constructor(sliceId: ISliceId, Context: React.Context<IContext>) {
     super(sliceId, Context);
     this.hook = this.hook.bind(this);
   }

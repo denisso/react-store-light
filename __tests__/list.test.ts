@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { List, ListNode } from '../src/helpers/list';
 
-class ListNodeNumber extends ListNode<number, ListNodeNumber> {
+class ListNodeNumber extends ListNode<ListNodeNumber> {
   val: number;
   constructor(val: number) {
     super();
@@ -9,7 +9,7 @@ class ListNodeNumber extends ListNode<number, ListNodeNumber> {
   }
 }
 
-const getListNodeValues = (list: List<number, ListNodeNumber>) => {
+const getListNodeValues = (list: List<ListNodeNumber>) => {
   const result: ListNodeNumber[] = [];
   let next = list.head;
   while (next) {
@@ -23,7 +23,7 @@ describe('List', () => {
   it('operations add and remove', () => {
     let count = 0;
     const len = 3;
-    const list = new List<number, ListNodeNumber>();
+    const list = new List<ListNodeNumber>();
 
     const nodes = Array.from({ length: len }, () => new ListNodeNumber(count++));
 

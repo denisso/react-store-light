@@ -1,8 +1,7 @@
 import React from 'react';
-import { Store } from './store';
-import { IContext } from './types';
-import { ISliceId } from './types';
+import { IContext, ISliceId, ISliceStore } from './types';
 import { formatError } from './helpers/error';
+import { Store } from './store';
 /**
  * Creates a Context.
  */
@@ -22,17 +21,18 @@ export const createContext = () => {
 export const createProvider = (Context: React.Context<IContext>) => {
   type Props = {
     children: React.ReactNode;
-    value: Store<any>[];
+    value: ISliceStore[];
   };
 
   const Provider = ({ children, value }: Props) => {
     const [context] = React.useState<IContext>(() => {
       const map = new Map<ISliceId, Store<any>>();
-      for (const store of value) {
-        if (store.sliceId !== null) {
+      for (let i = 0; i < value.length; i++) {
+        const store = value[i] as unknown as Store<any> & { sliceId: ISliceId };
+        if (store.sliceId || !(store instanceof Store)) {
           map.set(store.sliceId, store);
         } else {
-          throw formatError['providerSliceIdNull']();
+          throw formatError['providerSliceStoreError']();
         }
       }
 

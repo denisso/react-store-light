@@ -1,9 +1,9 @@
 import React from 'react';
 import { UseStoreContext } from '../helpers/use-store-context';
-import type { IContext } from '../types';
+import type { IContext, ISliceId } from '../types';
 
 export class UseStore<T extends object> extends UseStoreContext<T> {
-  constructor(sliceId: object, Context: React.Context<IContext>) {
+  constructor(sliceId: ISliceId, Context: React.Context<IContext>) {
     super(sliceId, Context);
     this.hook = this.hook.bind(this);
   }

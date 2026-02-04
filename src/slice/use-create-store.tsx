@@ -1,5 +1,5 @@
 import React from 'react';
-import { Slice } from '../slice';
+import { Slice } from './slice';
 
 /**
  * Hook for create store in React Component
@@ -14,9 +14,9 @@ export const useCreateStore = <T extends object>(state: T, slice: Slice<T>) => {
   });
 
   React.useEffect(() => {
-    slice.mountStore(state);
+    slice.mountStore(store, state, store.getRef());
     return () => {
-      slice.unMountStore(state, 100);
+      slice.unMountStore(store, state);
     };
   }, [state, store]);
   return store;

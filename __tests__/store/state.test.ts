@@ -4,7 +4,7 @@ import { createStore } from '../../src';
 describe('State', () => {
   it('getState', () => {
     const store = createStore({ count: 1 });
-    expect(store.getState()).toEqual({ count: 1 });
+    expect(store.getRef()).toEqual({ count: 1 });
   });
 
   it('setState', () => {
@@ -19,8 +19,8 @@ describe('State', () => {
       false,
     );
     const state2 = { count: 2 };
-    store.setState(state2);
-    expect(store.getState()).toEqual({ count: 2 });
+    store.setRef(state2);
+    expect(store.getRef()).toEqual({ count: 2 });
     expect(results).toEqual([2]);
   });
 });

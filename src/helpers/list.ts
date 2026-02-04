@@ -1,9 +1,9 @@
-export class ListNode<T, N extends ListNode<T, N>> {
+export class ListNode<N extends ListNode<N>> {
   next: N | null = null;
   prev: N | null = null;
 }
 
-export class List<T, LN extends ListNode<T, LN>> {
+export class List<LN extends ListNode<LN>> {
   head: LN | null;
   tail: LN | null;
   constructor() {

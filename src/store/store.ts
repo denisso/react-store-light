@@ -1,5 +1,6 @@
 import { Subject } from './subject';
 import { formatError } from '../helpers/error';
+import { ISliceId, IStoreID } from '../types';
 
 /**
  * Runtime check that ensures the key exists in the store object.
@@ -15,7 +16,7 @@ const checkKey = (object: object, key: PropertyKey) => {
 
 /**
  * Internal store representation:
- * each property of the state is wrapped into a Subject.
+ * each property of the ref is wrapped into a Subject.
  *
  * If T has no keys, Store<T> becomes never.
  */
@@ -38,57 +39,48 @@ export class Store<T extends object> {
   /**
    * Map of Subjects.
    *
-   * Each Subject represents a single key of the state
+   * Each Subject represents a single key of the ref
    * and notifies its listeners when the value changes.
    */
   values: Values<T>;
 
   /**
-   * Cached list of state keys.
+   * Cached list of ref keys.
    *
-   * Initialized once from the initial state:
-   * this.keys = Object.keys(state) as (keyof T)[];
+   * Initialized once from the initial ref:
+   * this.keys = Object.keys(ref) as (keyof T)[];
    */
   keys: (keyof T)[];
 
   /**
-   * Current store state.
+   * Current store ref.
    *
    * T is expected to be a plain object.
    */
-  state: T;
+  ref: T;
 
-  /**
-   * id for slice
-   */
-  sliceId: {} | null;
-
-  /**
-   * counter relations state and store
-   */
-  count = 0;
   /**
    * Store constructor.
    *
-   * Each property of the initial state is converted into a Subject,
+   * Each property of the initial ref is converted into a Subject,
    * allowing independent subscriptions per key.
    *
-   * @param state - Initial store state
-   * @param isMutateState - [optional] mutate state on value updates
+   * @param ref - Initial store ref
+   * @param isMutateState - [optional] mutate ref on value updates
    */
-  constructor(state: T, sliceId: {} | null = null) {
-    this.sliceId = sliceId;
+  constructor(ref: T) {
+
     this.values = {} as Values<T>;
-    this.state = state;
-    this.keys = Object.keys(state) as (keyof T)[];
-    // Initialize a Subject for each key in the initial state
+    this.ref = ref;
+    this.keys = Object.keys(ref) as (keyof T)[];
+    // Initialize a Subject for each key in the initial ref
     this.keys.forEach((key) => {
-      this.values[key] = new Subject<T, keyof T>(key, state[key]) as unknown as Values<T>[keyof T];
+      this.values[key] = new Subject<T, keyof T>(key, ref[key]) as unknown as Values<T>[keyof T];
     });
     this.get = this.get.bind(this);
     this.set = this.set.bind(this);
-    this.getState = this.getState.bind(this);
-    this.setState = this.setState.bind(this);
+    this.getRef = this.getRef.bind(this);
+    this.setRef = this.setRef.bind(this);
     this.addListener = this.addListener.bind(this);
     this.removeListener = this.removeListener.bind(this);
   }
@@ -117,24 +109,24 @@ export class Store<T extends object> {
   }
 
   /**
-   * return state
+   * return ref
    *
-   * @returns state
+   * @returns ref
    */
-  getState() {
-    return this.state;
+  getRef() {
+    return this.ref;
   }
 
   /**
-   * Set state
+   * Set ref
    *
-   * @param state - Initial store state
+   * @param ref - Initial store ref
    * @param isAlwaysNotify - notify listiners always
    */
-  setState(state: T, isAlwaysNotify: boolean = false) {
-    this.state = state;
+  setRef(ref: T, isAlwaysNotify: boolean = false) {
+    this.ref = ref;
     for (const key of this.keys) {
-      this.values[key].notify(this.state[key] as any, isAlwaysNotify);
+      this.values[key].notify(this.ref[key] as any, isAlwaysNotify);
     }
   }
 
@@ -172,12 +164,12 @@ export class Store<T extends object> {
 /**
  * Creates a new isolated store instance.
  *
- * Each property of the initial state is converted into a Subject,
+ * Each property of the initial ref is converted into a Subject,
  * allowing independent subscriptions per key.
  *
- * @param state - Initial store state
+ * @param ref - Initial store ref
  * @returns Store API with get/set and subscription methods
  */
-export const createStore = <T extends object>(state: T, sliceId: {} | null = null) => {
-  return new Store<T>(state, sliceId);
+export const createStore = <T extends object>(ref: T) => {
+  return new Store<T>(ref);
 };

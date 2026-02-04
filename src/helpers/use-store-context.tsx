@@ -1,6 +1,6 @@
 import React from 'react';
 import { Store } from '../store';
-import type { IContext } from '../types';
+import type { IContext, ISliceId } from '../types';
 import { formatError } from './error';
 
 /**
@@ -10,7 +10,7 @@ import { formatError } from './error';
  * @returns
  */
 export const useGetStorefromContext = <T extends object>(
-  sliceId: object,
+  sliceId: ISliceId,
   Context: React.Context<IContext>,
   error?: false,
 ) => {
@@ -29,9 +29,9 @@ export const useGetStorefromContext = <T extends object>(
 };
 
 export class UseStoreContext<T extends object> {
-  sliceId: object;
+  sliceId: ISliceId;
   Context: React.Context<IContext>;
-  constructor(sliceId: object, Context: React.Context<IContext>) {
+  constructor(sliceId: ISliceId, Context: React.Context<IContext>) {
     this.sliceId = sliceId;
     this.Context = Context;
     this.getStore = this.getStore.bind(this);

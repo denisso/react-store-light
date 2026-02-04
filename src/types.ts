@@ -20,6 +20,14 @@ export type IReducer<T extends object> = (...args: any[]) => (store: Store<T>) =
 export type IReducers<T extends object> = Record<string, IReducer<T>>;
 
 /**
- * Uniq id for slice
+ * Uniq id for Slice
  */
-export type ISliceId = {};
+export type ISliceId = symbol;
+
+/**
+ * Uniq id for Store
+ */
+export type IStoreID = symbol;
+
+// !!! need a two-dimensional model Store for more type safe
+export type ISliceStore =  { sliceId: ISliceId };
