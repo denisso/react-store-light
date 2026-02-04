@@ -1,6 +1,13 @@
 import { Subject } from './subject';
 import { formatError } from '../helpers/error';
-import { ISliceId, IStoreID } from '../types';
+import { IStoreID } from '../types';
+
+/**
+ * Branding type Store
+ */
+export interface StoreBase {
+  readonly __brand: 'Store';
+}
 
 /**
  * Runtime check that ensures the key exists in the store object.
@@ -35,7 +42,9 @@ export type Listener<T extends object, K extends keyof T> = (name: K, value: T[K
 /**
  * Observer pattern based store
  */
-export class Store<T extends object> {
+export class Store<T extends object> implements StoreBase {
+  readonly __brand = 'Store' as const;
+
   /**
    * Map of Subjects.
    *
@@ -60,6 +69,10 @@ export class Store<T extends object> {
   ref: T;
 
   /**
+   * unused but may be used ;)
+   */
+  storeId: IStoreID = Symbol();
+  /**
    * Store constructor.
    *
    * Each property of the initial ref is converted into a Subject,
@@ -69,7 +82,6 @@ export class Store<T extends object> {
    * @param isMutateState - [optional] mutate ref on value updates
    */
   constructor(ref: T) {
-
     this.values = {} as Values<T>;
     this.ref = ref;
     this.keys = Object.keys(ref) as (keyof T)[];

@@ -1,7 +1,7 @@
 import type { Listener } from './store';
 
 /**
- * Subject implements a simple observable pattern.
+ * Typed Subject implements a simple observable pattern.
  * It stores a value, allows subscriptions, and notifies observers and listeners
  * when the value changes.
  */

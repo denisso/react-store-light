@@ -1,4 +1,4 @@
-import { Store } from './store';
+import { Store, type StoreBase } from './store';
 
 /**
  * Context value type.
@@ -29,5 +29,7 @@ export type ISliceId = symbol;
  */
 export type IStoreID = symbol;
 
-// !!! need a two-dimensional model Store for more type safe
-export type ISliceStore =  { sliceId: ISliceId };
+/**
+ * Interface for Store with sliceID
+ */
+export type ISliceStore =  StoreBase & { sliceId: ISliceId };
