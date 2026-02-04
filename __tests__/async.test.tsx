@@ -1,32 +1,27 @@
-import React from 'react';
 import { describe, it, expect } from 'vitest';
-import { render, act, waitFor } from '@testing-library/react';
 import {
   createSlice,
-  createContext,
   type IAsync,
   type IAsyncCallback,
   createAsync,
-  createProvider,
   runAsyncCallback,
-  createHooks,
 } from '../src';
 
 describe('Async', () => {
   it('asynchronous operations resolve and reject with concurrence without React', async () => {
-    type Slice = {
+    type AsyncState = {
       one: IAsync<string, { message: string }>;
     };
-    const sliceData: Slice = {
+    const sliceData: AsyncState = {
       one: createAsync.initial(''),
     };
-    const Context = createContext()
-    const slice = createSlice<Slice>();
+
+    const slice = createSlice<AsyncState>();
 
     const store = slice.createStore(sliceData);
 
     // collect results of the test
-    const results: Slice['one'][] = [];
+    const results: AsyncState['one'][] = [];
 
     store.addListener(
       'one',
@@ -37,7 +32,7 @@ describe('Async', () => {
     );
 
     const callback =
-      (message: string): IAsyncCallback<Slice, 'one'> =>
+      (message: string): IAsyncCallback<AsyncState, 'one'> =>
       (_, resolve, reject) => {
         setTimeout(() => {
           if (message === 'error') {
@@ -67,115 +62,5 @@ describe('Async', () => {
       createAsync.pending(),
       createAsync.fulfilled('success'),
     ]);
-  });
-
-  it('test asynchronous operations using useAsync', async () => {
-    type Slice = {
-      one: IAsync<string, { message: string }>;
-    };
-    const sliceData: Slice = {
-      one: createAsync.initial(''),
-    };
-    const Context = createContext();
-    const slice = createSlice<Slice>();
-    const hooks = createHooks<Slice>(slice.sliceId, Context)
-    const store = slice.createStore(sliceData);
-
-    const promiseFn =
-      (message: string): IAsyncCallback<Slice, 'one'> =>
-      (_, resolve) => {
-        resolve(message);
-      };
-
-    let dispatchTest: (message: string) => void;
-
-    const TestComponent1 = () => {
-      const { dispatch } = hooks.useAsync('one', promiseFn);
-      dispatchTest = dispatch;
-      return null;
-    };
-
-    const results: Slice['one'][] = [];
-    const TestComponent2 = () => {
-      const [value] = hooks.useState('one');
-      React.useEffect(() => {
-        results.push(value);
-      }, [value]);
-      return null;
-    };
-    const Provider = createProvider(Context);
-    render(
-      <Provider value={[store]}>
-        <TestComponent1 />
-        <TestComponent2 />
-      </Provider>,
-    );
-
-    act(() => {
-      dispatchTest('hello');
-    });
-
-    await waitFor(() => {
-      expect(results).toEqual([
-        createAsync.initial(''),
-        createAsync.pending(),
-        createAsync.fulfilled('hello'),
-      ]);
-    });
-  });
-
-  it('abort operation for one store', async () => {
-    type Slice = {
-      one: IAsync<string>;
-    };
-
-    const promiseFn =
-      (arg: string): IAsyncCallback<Slice, 'one'> =>
-      (_, resolve) => {
-        setTimeout(() => resolve(arg), 1000);
-      };
-
-    const Context = createContext();
-    const Provider = createProvider(Context);
-    const slice = createSlice<Slice>();
-    const store = slice.createStore({ one: createAsync.initial('') });
-    const hooks = createHooks<Slice>(slice.sliceId, Context)
-    const results: Slice['one'][] = [];
-    store.addListener(
-      'one',
-      (_, value) => {
-        results.push(value);
-      },
-      true,
-    );
-    let dispatchTest: (arg: string) => void;
-    let abortTest: () => void;
-    const TestComponent1 = () => {
-      const { dispatch, abort } = hooks.useAsync('one', promiseFn);
-      dispatchTest = dispatch;
-      abortTest = abort;
-      return null;
-    };
-
-    render(
-      <Provider value={[store]}>
-        <TestComponent1 />
-      </Provider>,
-    );
-    act(() => {
-      dispatchTest('hello');
-    });
-
-    act(() => {
-      abortTest();
-    });
-
-    await waitFor(() => {
-      expect(results).toEqual([
-        createAsync.initial(''),
-        createAsync.pending(),
-        createAsync.aborted(),
-      ]);
-    });
   });
 });

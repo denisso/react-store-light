@@ -1,13 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createStore } from '../../src';
 
-describe('State', () => {
-  it('getState', () => {
+describe('Ref', () => {
+  it('getRef', () => {
     const store = createStore({ count: 1 });
     expect(store.getRef()).toEqual({ count: 1 });
   });
 
-  it('setState', () => {
+  it('setRef', () => {
     const state1 = { count: 1 };
     const store = createStore(state1);
     const results: number[] = [];

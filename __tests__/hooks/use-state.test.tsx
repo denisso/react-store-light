@@ -1,10 +1,10 @@
 import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, act } from '@testing-library/react';
-import { createSlice, createContext, createProvider, createHooks } from '../src';
+import { createSlice, createContext, createProvider, createHooks } from '../../src';
 
 describe('useState', () => {
-  it('test rerender by change state', () => {
+  it('test hook use State', () => {
     type Counter = { count: number };
     const Context = createContext();
     const slice = createSlice<Counter>();

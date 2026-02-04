@@ -6,9 +6,9 @@ import {
   Store,
   createProvider,
   createHooks,
-} from '../src';
+} from '../../src';
 
-describe('Reducer', () => {
+describe('hook useReducer', () => {
   it('one reducer', () => {
     type Counter = { count: number };
     const count = (count: number) => (store: Store<Counter>) => {
