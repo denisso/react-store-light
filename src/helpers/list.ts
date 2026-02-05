@@ -3,58 +3,45 @@ export class ListNode<N extends ListNode<N>> {
   prev: N | null = null;
 }
 
-export class List<LN extends ListNode<LN>> {
-  head: LN | null;
-  tail: LN | null;
-  constructor() {
-    this.head = null;
-    this.tail = null;
+export const addListNode = <N extends ListNode<N>>(node: N, head?: N | null) => {
+  node.prev = null;
+  node.next = null;
+  if (!head) {
+    return node;
   }
-  add(node: LN) {
-    node.prev = null;
-    node.next = null;
-    if (!this.tail) {
-      this.head = node;
-      this.tail = node;
-      return;
-    }
-    // add to tail
-    node.prev = this.tail;
-    this.tail.next = node;
-    this.tail = node;
+
+  node.next = head;
+  head.prev = node;
+  return node;
+};
+
+export const removeListNode = <N extends ListNode<N>>(node: N, head?: N | null) => {
+  if (!head) {
+    return null;
   }
-  remove(node: LN) {
-    if (!this.tail && !this.head) {
-      return;
+  const next = node.next;
+  const prev = node.prev;
+  node.prev = null;
+  node.next = null;
+
+  if (node === head) {
+    if (next) {
+      next.prev = null;
     }
-
-    const next = node.next;
-    const prev = node.prev;
-
-    node.prev = null;
-    node.next = null;
-
-    if (node === this.head) {
-      this.head = next;
-      if (this.head) {
-        this.head.prev = null;
-      } else {
-        this.tail = null;
-      }
-    } else if (node === this.tail) {
-      this.tail = prev;
-      if (this.tail) {
-        this.tail.next = null;
-      } else {
-        this.head = null;
-      }
-    } else {
-      if (prev) {
-        prev.next = next;
-      }
-      if (next) {
-        next.prev = prev;
-      }
+    return next;
+  }
+  if (!next) {
+    // delete  tail
+    if (prev) {
+      prev.next = null;
+    }
+  } else {
+    if (prev) {
+      prev.next = next;
+    }
+    if (next) {
+      next.prev = prev;
     }
   }
-}
+  return head;
+};

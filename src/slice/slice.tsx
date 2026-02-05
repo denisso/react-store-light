@@ -1,6 +1,6 @@
 import { Store } from '../store';
 import type { ISliceId } from '../types';
-import { List } from '../helpers/list';
+import { addListNode, removeListNode } from '../helpers/list';
 
 export class SliceStoreNode<T extends object> extends Store<T> {
   /**
@@ -24,7 +24,7 @@ export class SliceStoreNode<T extends object> extends Store<T> {
  */
 export class Slice<T extends object> {
   sliceId: ISliceId = Symbol();
-  mapRefStores = new Map<T, List<SliceStoreNode<T>>>();
+  mapRefStores = new Map<T, SliceStoreNode<T>>();
 
   constructor() {
     this.createStore = this.createStore.bind(this);
@@ -35,13 +35,13 @@ export class Slice<T extends object> {
   }
 
   /**
-   * Create Store instance or get from cache
+   * Create Store instance
    *
-   * @param state T
+   * @param ref T
    * @returns
    */
-  createStore(state: T) {
-    const store = new SliceStoreNode<T>(state, this.sliceId);
+  createStore(ref: T) {
+    const store = new SliceStoreNode<T>(ref, this.sliceId);
     return store;
   }
 
@@ -56,20 +56,12 @@ export class Slice<T extends object> {
   mountStore(store: SliceStoreNode<T>, newRef: T, prevRef: T) {
     let listStores = this.mapRefStores.get(prevRef);
 
-    if (!listStores) {
-      listStores = new List<SliceStoreNode<T>>();
-    }
-    listStores.add(store);
+    listStores = addListNode(store, listStores);
     if (newRef !== prevRef) {
       this.mapRefStores.delete(prevRef);
     }
     this.mapRefStores.set(newRef, listStores);
-
-    let nextStore = listStores.head;
-    while (nextStore) {
-      nextStore.setRef(newRef);
-      nextStore = nextStore.next;
-    }
+    store.setRef(newRef);
   }
 
   /**
@@ -79,16 +71,16 @@ export class Slice<T extends object> {
    * @param state T
    */
   unMountStore(store: SliceStoreNode<T>, ref: T) {
-    const listStores = this.mapRefStores.get(ref);
+    let listStores: SliceStoreNode<T> | null = this.mapRefStores.get(ref) ?? null;
 
     if (!listStores) {
       this.mapRefStores.delete(ref);
       return;
     }
 
-    listStores.remove(store);
+    listStores = removeListNode(store, listStores);
 
-    if (!listStores.head) {
+    if (!listStores) {
       this.mapRefStores.delete(ref);
     }
   }
@@ -100,31 +92,31 @@ export class Slice<T extends object> {
    * @returns boolean
    */
   updateState(ref: T): boolean {
-    const listStores = this.mapRefStores.get(ref);
+    let listStores: SliceStoreNode<T> | null = this.mapRefStores.get(ref) ?? null;
 
     if (!listStores) {
       return false;
     }
-    let nextStore = listStores.head;
-    while (nextStore) {
-      nextStore.setRef(ref);
-      nextStore = nextStore.next;
+
+    while (listStores) {
+      listStores.setRef(ref);
+      listStores = listStores.next;
     }
     return true;
   }
 
   updateKey<K extends keyof T>(ref: T, key: K, value: T[K]) {
     ref[key] = value;
-    const listStores = this.mapRefStores.get(ref);
+    let listStores: SliceStoreNode<T> | null = this.mapRefStores.get(ref) ?? null;
     if (!listStores) {
       return false;
     }
-    let nextStore = listStores.head;
-    while (nextStore) {
-      nextStore.values[key].notify(value as any);
-      nextStore = nextStore.next;
+
+    while (listStores) {
+      listStores.values[key].notify(value as any);
+      listStores = listStores.next;
     }
-    
+
     return true;
   }
 }

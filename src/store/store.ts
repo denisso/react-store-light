@@ -27,11 +27,9 @@ const checkKey = (object: object, key: PropertyKey) => {
  *
  * If T has no keys, Store<T> becomes never.
  */
-type Values<T extends object> = keyof T extends never
-  ? never
-  : {
-      [K in keyof T]: Subject<T, K>;
-    };
+type Values<T extends object> = {
+  [K in keyof T]: Subject<T, K>;
+};
 
 /**
  * Listener signature for store updates.

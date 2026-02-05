@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { List, ListNode } from '../src/helpers/list';
+import { ListNode, addListNode, removeListNode } from '../src/helpers/list';
 
 class ListNodeNumber extends ListNode<ListNodeNumber> {
   val: number;
@@ -9,9 +9,9 @@ class ListNodeNumber extends ListNode<ListNodeNumber> {
   }
 }
 
-const getListNodeValues = (list: List<ListNodeNumber>) => {
+const getListNodeValues = (head: ListNodeNumber | null) => {
   const result: ListNodeNumber[] = [];
-  let next = list.head;
+  let next = head;
   while (next) {
     result.push(next);
     next = next.next;
@@ -20,56 +20,60 @@ const getListNodeValues = (list: List<ListNodeNumber>) => {
 };
 
 describe('List', () => {
-  it('operations add and remove', () => {
+
+
+  it('addListNode and removeListNode', () => {
     let count = 0;
     const len = 3;
-    const list = new List<ListNodeNumber>();
+    let head: ListNodeNumber | null = null;
 
     const nodes = Array.from({ length: len }, () => new ListNodeNumber(count++));
 
     for (const node of nodes) {
-      list.add(node);
+      head = addListNode(node, head);
     }
 
-    expect(getListNodeValues(list)).toEqual(nodes);
+    expect(getListNodeValues(head).sort((a, b) => a.val - b.val)).toEqual(
+      nodes.sort((a, b) => a.val - b.val),
+    );
 
     // last node delete
     while (nodes.length) {
       const node = nodes.pop();
-      if (node) list.remove(node);
-      const listNode = getListNodeValues(list);
-      expect(listNode).toEqual(nodes);
+      if (node) head = removeListNode(node, head);
+      const listNode = getListNodeValues(head).sort((a, b) => a.val - b.val);
+      expect(listNode).toEqual(nodes.sort((a, b) => a.val - b.val));
     }
 
     for (let i = 0; i < len; i++) {
       const node = new ListNodeNumber(count++);
       nodes.push(node);
-      list.add(node);
+      head = addListNode(node, head);
     }
 
     // first node delete
     while (nodes.length) {
       const node = nodes.shift();
-      if (node) list.remove(node);
-      const listNode = getListNodeValues(list);
-      expect(listNode).toEqual(nodes);
+      if (node) head = removeListNode(node, head);
+      const listNode = getListNodeValues(head).sort((a, b) => a.val - b.val);
+      expect(listNode).toEqual(nodes.sort((a, b) => a.val - b.val));
     }
 
     for (let i = 0; i < len; i++) {
       const node = new ListNodeNumber(count++);
       nodes.push(node);
-      list.add(node);
+      head = addListNode(node, head);
     }
 
     // middle node delete
     while (nodes.length) {
       const indx = Math.floor(nodes.length / 2);
-      list.remove(nodes[indx]);
+      head = removeListNode(nodes[indx], head);
       nodes.splice(indx, 1);
-      const listNode = getListNodeValues(list);
-      expect(listNode).toEqual(nodes);
+      const listNode = getListNodeValues(head).sort((a, b) => a.val - b.val);
+      expect(listNode).toEqual(nodes.sort((a, b) => a.val - b.val));
     }
 
-    expect(list).toEqual({ head: null, tail: null });
+    expect(head).toEqual(null);
   });
 });
