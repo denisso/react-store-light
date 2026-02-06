@@ -139,7 +139,12 @@ export class Store<T extends object> implements StoreBase {
       this.values[key].notify(this.ref[key] as any, isAlwaysNotify);
     }
   }
-
+  /**
+   * i go watch scrims with my friends 
+   */
+  deepCopt(){
+    // not implemented yet =)
+  }
   /**
    * Subscribes a listener to changes of a specific key.
    *
