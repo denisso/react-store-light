@@ -6,7 +6,7 @@ describe('Types', () => {
   it('Object with wrong keys', () => {
     const o = createStore<[]>([]);
     expect(() => {
-      o.get('at');
-    }).toThrow(formatError['errorKeyMessage']('at'));
+      o.get("concat");
+    }).toThrow(formatError['errorKeyMessage']('concat'));
   });
 });

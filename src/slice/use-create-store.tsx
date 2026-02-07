@@ -6,7 +6,7 @@ import { Slice } from './slice';
  * 
  * @param state T
  * @param slice Slice<T>
- * @returns Store<T>
+ * @returns SliceStoreNode<T>
  */
 export const useCreateStore = <T extends object>(state: T, slice: Slice<T>) => {
   const [store] = React.useState(() => {

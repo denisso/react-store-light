@@ -9,6 +9,11 @@ export interface StoreBase {
   readonly __brand: 'Store';
 }
 
+export type SetOptions = Partial<{
+  runsCount: number;
+  isAlwaysNotify: boolean
+}> | null
+
 /**
  * Runtime check that ensures the key exists in the store object.
  * Even though TypeScript restricts keys at compile time,
@@ -35,7 +40,11 @@ type Values<T extends object> = {
  * Listener signature for store updates.
  * Receives the key name and the new value.
  */
-export type Listener<T extends object, K extends keyof T> = (name: K, value: T[K]) => void;
+export type Listener<T extends object, K extends keyof T> = (
+  name: K,
+  value: T[K],
+  countCalls: number,
+) => void;
 
 /**
  * Observer pattern based store
@@ -111,11 +120,11 @@ export class Store<T extends object> implements StoreBase {
    *
    * @param key - K - key
    * @param value - T[K] - value
-   * @param isAlwaysNotify - notify listiners always
+   * @param options.isAlwaysNotify - notify listiners always
    */
-  set<K extends keyof T>(key: K, value: T[K], isAlwaysNotify: boolean = false) {
+  set<K extends keyof T>(key: K, value: T[K], options: SetOptions = null) {
     checkKey(this.values, key);
-    (this.values[key] as unknown as Subject<T, K>).notify(value, isAlwaysNotify);
+    (this.values[key] as unknown as Subject<T, K>).notify(value, options);
   }
 
   /**
@@ -133,18 +142,13 @@ export class Store<T extends object> implements StoreBase {
    * @param ref - Initial store ref
    * @param isAlwaysNotify - notify listiners always
    */
-  setRef(ref: T, isAlwaysNotify: boolean = false) {
+  setRef(ref: T, options: SetOptions = null) {
     this.ref = ref;
     for (const key of this.keys) {
-      this.values[key].notify(this.ref[key] as any, isAlwaysNotify);
+      this.values[key].notify(this.ref[key] as any, options);
     }
   }
-  /**
-   * i go watch scrims with my friends 
-   */
-  deepCopt(){
-    // not implemented yet =)
-  }
+
   /**
    * Subscribes a listener to changes of a specific key.
    *

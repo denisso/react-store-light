@@ -8,7 +8,7 @@ describe('Store', () => {
 
     addListener('count', listener, true);
 
-    expect(listener).toHaveBeenCalledWith('count', 1);
+    expect(listener).toHaveBeenCalledWith('count', 1, 0);
   });
 
   it('get and set', () => {

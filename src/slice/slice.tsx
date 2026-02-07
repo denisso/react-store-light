@@ -1,6 +1,7 @@
 import { Store } from '../store';
 import type { ISliceId } from '../types';
 import { addListNode, removeListNode } from '../helpers/list';
+import { Listener } from '../store';
 
 export class SliceStoreNode<T extends object> extends Store<T> {
   /**
@@ -9,6 +10,7 @@ export class SliceStoreNode<T extends object> extends Store<T> {
   next: SliceStoreNode<T> | null = null;
   prev: SliceStoreNode<T> | null = null;
   sliceId: ISliceId;
+  listeners = {} as Record<keyof T, Listener<T, keyof T>>;
   constructor(ref: T, sliceId: symbol) {
     super(ref);
     this.sliceId = sliceId;
@@ -62,6 +64,23 @@ export class Slice<T extends object> {
     }
     this.mapRefStores.set(newRef, listStores);
     store.setRef(newRef);
+    for (const key of store.keys) {
+      let listener: Listener<T, keyof T> = store.listeners[key];
+      if (!listener) {
+        listener = (_: keyof T, value: T[keyof T], runsCount) => {
+          if (runsCount > 1) return;
+          let next: SliceStoreNode<T> | null = listStores;
+          while (next) {
+            if (next !== store) {
+              store.set(key, value, { runsCount: runsCount + 1 });
+            }
+            next = next.next;
+          }
+        };
+        store.listeners[key] = listener;
+      }
+      store.addListener(key, listener);
+    }
   }
 
   /**
@@ -73,6 +92,11 @@ export class Slice<T extends object> {
   unMountStore(store: SliceStoreNode<T>, ref: T) {
     let listStores: SliceStoreNode<T> | null = this.mapRefStores.get(ref) ?? null;
 
+    for (const key of store.keys) {
+      if (store.listeners[key]) {
+        store.removeListener(key, store.listeners[key]);
+      }
+    }
     if (!listStores) {
       this.mapRefStores.delete(ref);
       return;
@@ -86,7 +110,7 @@ export class Slice<T extends object> {
   }
 
   /**
-   * Update Store State
+   * Manual update Store Ref
    *
    * @param ref T
    * @returns boolean
@@ -105,6 +129,13 @@ export class Slice<T extends object> {
     return true;
   }
 
+  /**
+   * Manual update Store Ref by Key
+   * @param ref
+   * @param key
+   * @param value
+   * @returns
+   */
   updateKey<K extends keyof T>(ref: T, key: K, value: T[K]) {
     ref[key] = value;
     let listStores: SliceStoreNode<T> | null = this.mapRefStores.get(ref) ?? null;

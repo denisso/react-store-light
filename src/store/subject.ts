@@ -1,4 +1,4 @@
-import type { Listener } from './store';
+import type { Listener, SetOptions } from './store';
 
 /**
  * Typed Subject implements a simple observable pattern.
@@ -7,7 +7,7 @@ import type { Listener } from './store';
  */
 export class Subject<T extends object, K extends keyof T> {
   // Listeners will called when the value is changed
-  private listeners: Set<Listener<T,K>>;
+  private listeners: Set<Listener<T, K>>;
   // name for value in store
   private name: K;
   public value: T[K];
@@ -17,14 +17,14 @@ export class Subject<T extends object, K extends keyof T> {
     this.value = value;
   }
 
-  addListener(listener: Listener<T,K>, autoCallListener: boolean = true) {
+  addListener(listener: Listener<T, K>, autoCallListener: boolean = true) {
     this.listeners.add(listener);
     if (autoCallListener) {
-      listener(this.name, this.value);
+      listener(this.name, this.value, 0);
     }
   }
 
-  removeListener(listener: Listener<T,K>) {
+  removeListener(listener: Listener<T, K>) {
     this.listeners.delete(listener);
   }
 
@@ -34,8 +34,9 @@ export class Subject<T extends object, K extends keyof T> {
    * @param isAlwaysNotify - notify listiners always
    * @returns undefined
    */
-  notify(value: T[K], isAlwaysNotify: boolean = false) {
-
+  notify(value: T[K], options: SetOptions = null) {
+    const isAlwaysNotify = options?.isAlwaysNotify;
+    const runsCount = options?.runsCount ?? 0;
     if (!isAlwaysNotify && this.value === value) {
       return;
     }
@@ -43,7 +44,7 @@ export class Subject<T extends object, K extends keyof T> {
     this.value = value;
 
     this.listeners.forEach((listener) => {
-      listener(this.name, this.value);
+      listener(this.name, this.value, runsCount);
     });
   }
 }
