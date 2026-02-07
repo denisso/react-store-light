@@ -56,10 +56,15 @@ export class Slice<T extends object> {
    * @param prevRef T
    */
   mountStore(store: SliceStoreNode<T>, newRef: T, prevRef: T) {
-    let listStores = this.mapRefStores.get(prevRef);
+    let listStores: SliceStoreNode<T> | null = null;
+    if (this.mapRefStores.has(prevRef)) {
+      listStores = this.mapRefStores.get(prevRef) ?? null;
+    } else {
+      listStores = this.mapRefStores.get(newRef) ?? null;
+    }
 
     listStores = addListNode(store, listStores);
-    if (newRef !== prevRef) {
+    if (newRef !== prevRef && this.mapRefStores.has(prevRef)) {
       this.mapRefStores.delete(prevRef);
     }
     this.mapRefStores.set(newRef, listStores);
@@ -69,10 +74,10 @@ export class Slice<T extends object> {
       if (!listener) {
         listener = (_: keyof T, value: T[keyof T], runsCount) => {
           if (runsCount > 1) return;
-          let next: SliceStoreNode<T> | null = listStores;
+          let next: SliceStoreNode<T> | null = this.mapRefStores.get(store.getRef()) ?? null;
           while (next) {
             if (next !== store) {
-              store.set(key, value, { runsCount: runsCount + 1 });
+              next.set(key, value, { runsCount: runsCount + 1 });
             }
             next = next.next;
           }
@@ -96,10 +101,6 @@ export class Slice<T extends object> {
       if (store.listeners[key]) {
         store.removeListener(key, store.listeners[key]);
       }
-    }
-    if (!listStores) {
-      this.mapRefStores.delete(ref);
-      return;
     }
 
     listStores = removeListNode(store, listStores);

@@ -16,7 +16,7 @@ export const useCreateStore = <T extends object>(state: T, slice: Slice<T>) => {
   React.useEffect(() => {
     slice.mountStore(store, state, store.getRef());
     return () => {
-      slice.unMountStore(store, state);
+      slice.unMountStore(store, store.getRef());
     };
   }, [state, store]);
   return store;
