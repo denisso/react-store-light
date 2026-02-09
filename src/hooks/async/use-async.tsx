@@ -4,6 +4,18 @@ import type { IAsyncCallback } from './types';
 import { Store } from '../../store';
 import { useConnectListenersToStore } from '../../helpers/use-connect-listeners-to-store';
 
+/**
+ * Subscribes a component to a single async store field by key.
+ *
+ * Returns:
+ * - dispatch: runs async callback
+ * - value: current async state
+ * - abort: break async callback and resets to {status: 'aborted', value: current; error: current;}
+ *
+ * @param store - Store<T>
+ * @param key - name field in the store
+ * @param cb - async callback
+ */
 export const useAsync = <T extends object, Args extends unknown[], K extends keyof T>(
   store: Store<T>,
   key: K,

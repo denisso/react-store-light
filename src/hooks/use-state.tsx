@@ -18,7 +18,8 @@ const setStateProxy = <T extends object, K extends keyof T>(store: Store<T>, key
    *
    * Returns:
    * - analog [value, setValue] = React.useState
-   * @param store
+   * 
+   * @param store - Store<T>
    * @param key - name field in the store
    */
 export const useState = <T extends object, K extends keyof T>(

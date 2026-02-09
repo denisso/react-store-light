@@ -21,7 +21,14 @@ type ReducerArgsFn<R> = R extends (...args: infer A) => (store: Store<any>) => v
 type BindStoreReducers<R> = {
   [K in keyof R]: ReducerArgsFn<R[K]>;
 };
-
+  /**
+   * Returns reducers already bound to the store.
+   * Reducers are created once and cached.
+   *
+   * @param store - Store<T>
+   * @param argReducers - reducers
+   * @return Record reducers
+   */
 export const useReducer = <T extends object, R extends IReducers<T>>(
   store: Store<T>,
   argReducers: R,
