@@ -1,7 +1,18 @@
 import React from 'react';
-import { UseStoreContext } from '../helpers/use-store-context';
 import { Store } from '../store';
-import type { IContext, IReducers, ISliceId } from '../types';
+
+/**
+ * Reducer function.
+ * Mutates the store.
+ * The first argument is always the store instance,
+ * the rest are user-defined arguments.
+ */
+export type IReducer<T extends object> = (...args: any[]) => (store: Store<T>) => void;
+
+/**
+ * Type from record reducers
+ */
+export type IReducers<T extends object> = Record<string, IReducer<T>>;
 
 type ReducerArgsFn<R> = R extends (...args: infer A) => (store: Store<any>) => void
   ? (...args: A) => void
@@ -11,34 +22,22 @@ type BindStoreReducers<R> = {
   [K in keyof R]: ReducerArgsFn<R[K]>;
 };
 
-export class UseReducer<T extends object, R extends IReducers<T>> extends UseStoreContext<T> {
-  reducers?: R;
-  constructor(sliceId: ISliceId, Context: React.Context<IContext>, reducers?: R) {
-    super(sliceId, Context);
-    this.reducers = reducers;
-    this.hook = this.hook.bind(this);
-  }
-  /**
-   * Returns reducers already bound to the store.
-   * Reducers are created once and cached.
-   *
-   * @return Record reducers
-   */
-  hook() {
-    const store = super.getStore();
-    const [reducers] = React.useState(() => {
-      const reducers = {} as BindStoreReducers<R>;
-      if (!this.reducers) {
-        return reducers;
-      }
-      for (const key in this.reducers) {
-        const fn = this.reducers[key];
-        reducers[key] = ((...args: Parameters<typeof fn>) => {
-          fn(...args)(store);
-        }) as BindStoreReducers<R>[typeof key];
-      }
-      return reducers;
-    });
-    return reducers;
-  }
-}
+export const useReducer = <T extends object, R extends IReducers<T>>(
+  store: Store<T>,
+  argReducers: R,
+) => {
+  const [reducersState] = React.useState(() => {
+    const reducersDict = {} as BindStoreReducers<R>;
+    if (!argReducers) {
+      return reducersDict;
+    }
+    for (const key in argReducers) {
+      const fn = argReducers[key];
+      reducersDict[key] = ((...args: Parameters<typeof fn>) => {
+        fn(...args)(store);
+      }) as BindStoreReducers<R>[typeof key];
+    }
+    return reducersDict;
+  });
+  return reducersState;
+};

@@ -1,19 +1,24 @@
 import React from 'react';
-import { UseStoreContext } from '../helpers/use-store-context';
 import type { IContext, ISliceId } from '../types';
+import { formatError } from '../helpers/error';
+import { Store } from '../store';
 
-export class UseStore<T extends object> extends UseStoreContext<T> {
-  constructor(sliceId: ISliceId, Context: React.Context<IContext>) {
-    super(sliceId, Context);
-    this.hook = this.hook.bind(this);
-  }
-  /**
-   * Returns the store instance directly.
-   *
-   * @param _Context - [optional] React Context
-   */
-  hook() {
-    const store = super.getStore();
+export const createStoreHook = <T extends object>(
+  Context: React.Context<IContext>,
+  sliceId: ISliceId,
+) => {
+  return () => {
+    if (!Context) {
+      throw formatError['contextIsEmpty']();
+    }
+    const context = React.useContext(Context) as IContext;
+    if (!context) {
+      throw formatError['hookMustBeInsideProvider']();
+    }
+    const store = context.get(sliceId) as unknown as Store<T>;
+    if (!store) {
+      throw formatError['storeNotExist']();
+    }
     return store;
-  }
-}
+  };
+};

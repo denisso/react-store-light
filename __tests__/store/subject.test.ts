@@ -15,7 +15,7 @@ describe('Subject', () => {
     expect(value).toBe(1);
     expect(name).toBe('value');
 
-    subj.notify(2, false);
+    subj.notify(2);
 
     expect(value).toBe(2);
   });

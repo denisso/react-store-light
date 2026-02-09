@@ -1,5 +1,4 @@
-export { UseAsync } from "./async/use-async";
-export { UseReducer } from "./use-reducer";
-export { UseState } from "./use-state";
-export { UseStore } from "./use-store";
-export { createHooks, Hooks, type HookOf } from "./hooks";
+export { useAsync } from "./async/use-async";
+export { useReducer, type IReducer, type IReducers } from './use-reducer';
+export { useState } from './use-state';
+export { createStoreHook } from './use-store';

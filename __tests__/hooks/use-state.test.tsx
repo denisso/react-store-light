@@ -1,19 +1,16 @@
 import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, act } from '@testing-library/react';
-import { createSlice, createContext, createProvider, createHooks } from '../../src';
+import Light from '../../src';
 
 describe('useState', () => {
   it('test hook use State', () => {
     type Counter = { count: number };
-    const Context = createContext();
-    const slice = createSlice<Counter>();
-    const store = slice.createStore({ count: 0 });
-    const hooks = createHooks<Counter>(slice.sliceId, Context);
+    const store = Light.createStore<Counter>({ count: 0 });
     let trigger!: () => void;
     let countTest = 0;
     const TestComponent = () => {
-      const [count, setCount] = hooks.useState('count');
+      const [count, setCount] = Light.useState(store, 'count');
 
       React.useEffect(() => {
         // ! test it
@@ -26,13 +23,8 @@ describe('useState', () => {
 
       return null;
     };
-    const Provider = createProvider(Context);
-    
-    render(
-      <Provider value={[store]}>
-        <TestComponent />
-      </Provider>,
-    );
+
+    render(<TestComponent />);
     expect(countTest).toBe(0);
 
     act(() => {

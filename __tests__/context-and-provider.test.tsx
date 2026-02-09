@@ -1,25 +1,26 @@
 import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, act } from '@testing-library/react';
-import { createSlice, createContext, createProvider, createHooks } from '../src';
+import Light from '../src';
 
 describe('Context and Provider', () => {
   it('initialization store and usage Context', () => {
     type Slice = { count: number };
-    const Context = createContext();
-    const slice = createSlice<Slice>();
+    const Context = Light.createContext();
+    const slice = Light.createSlice<Slice>();
     const store = slice.createStore({ count: 1 });
-    const hooks = createHooks<Slice>(slice.sliceId, Context)
+    const useStore = Light.createStoreHook<Slice>(Context, slice.sliceId);
     let trigger!: () => number;
     const TestComponent = () => {
-      const store = hooks.useStore();
+      const store = useStore();
+
       trigger = () => {
         // ! test it
         return store.get('count');
       };
       return null;
     };
-    const Provider = createProvider(Context);
+    const Provider = Light.createProvider(Context);
     render(
       <Provider value={[store]}>
         <TestComponent />
@@ -29,24 +30,24 @@ describe('Context and Provider', () => {
   });
 
   it('Multiple stores one provider', () => {
-    const Context = createContext();
+    const Context = Light.createContext();
     type Slice1 = { count: number };
     type Slice2 = { name: string };
-    const slice1 = createSlice<Slice1>();
-    const slice2 = createSlice<Slice2>();
+    const slice1 = Light.createSlice<Slice1>();
+    const slice2 = Light.createSlice<Slice2>();
 
     const data1 = { count: 1 };
-    const data2 = { name: "test" };
+    const data2 = { name: 'test' };
     const store1 = slice1.createStore(data1);
     const store2 = slice2.createStore(data2);
-    const hooks1 = createHooks<Slice1>(slice1.sliceId, Context)
-    const hooks2 = createHooks<Slice2>(slice2.sliceId, Context)
+    const useStore1 = Light.createStoreHook<Slice1>(Context, slice1.sliceId);
+    const useStore2 = Light.createStoreHook<Slice2>(Context, slice2.sliceId);
     let trigger!: () => void;
     let countTest1 = 0;
-    let countTest2 = "";
+    let countTest2 = '';
     const TestComponent = () => {
-      const store1 = hooks1.useStore();
-      const store2 = hooks2.useStore();
+      const store1 = useStore1();
+      const store2 = useStore2();
       trigger = () => {
         // ! test it
         countTest1 = store1.get('count');
@@ -54,7 +55,7 @@ describe('Context and Provider', () => {
       };
       return null;
     };
-    const Provider = createProvider(Context);
+    const Provider = Light.createProvider(Context);
     render(
       <Provider value={[store1, store2]}>
         <TestComponent />
@@ -69,16 +70,17 @@ describe('Context and Provider', () => {
   });
 
   it('one store multiple providers', () => {
-    type Slice = { count: number };
-    const Context = createContext();
-    const slice = createSlice<Slice>();
+    type Counter = { count: number };
+    const Context = Light.createContext();
+    const slice = Light.createSlice<Counter>();
 
     const store = slice.createStore({ count: 1 });
-    const hooks = createHooks<Slice>(slice.sliceId, Context)
+    const useStore = Light.createStoreHook<Counter>(Context, slice.sliceId);
     let countTest = 0;
 
     const TestComponent1 = () => {
-      const [count] = hooks.useState('count');
+      const store = useStore()
+      const [count] = Light.useState(store, 'count');
       React.useEffect(() => {
         countTest = count;
       }, [count]);
@@ -87,7 +89,7 @@ describe('Context and Provider', () => {
     let trigger!: () => void;
 
     const TestComponent2 = () => {
-      const store = hooks.useStore();
+      const store = useStore();
       trigger = () => {
         // ! test it
         store.set('count', 2);
@@ -95,7 +97,7 @@ describe('Context and Provider', () => {
       return null;
     };
 
-    const Provider = createProvider(Context);
+    const Provider = Light.createProvider(Context);
     render(
       <>
         <Provider value={[store]}>

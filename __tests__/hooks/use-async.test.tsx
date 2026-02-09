@@ -1,31 +1,21 @@
 import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, act, waitFor } from '@testing-library/react';
-import {
-  createSlice,
-  createContext,
-  type IAsync,
-  type IAsyncCallback,
-  createAsync,
-  createProvider,
-  createHooks,
-} from '../../src';
+import Light from '../../src';
 
 describe('hook useAsync', () => {
   it('test asynchronous operations using useAsync', async () => {
-    type Slice = {
-      one: IAsync<string, { message: string }>;
+    type DataTypeA = {
+      one: Light.IAsync<string, { message: string }>;
     };
-    const sliceData: Slice = {
-      one: createAsync.initial(''),
+    const sliceData: DataTypeA = {
+      one: Light.createAsync.initial(''),
     };
-    const Context = createContext();
-    const slice = createSlice<Slice>();
-    const hooks = createHooks<Slice>(slice.sliceId, Context);
-    const store = slice.createStore(sliceData);
+
+    const store = Light.createStore<DataTypeA>(sliceData);
 
     const promiseFn =
-      (message: string): IAsyncCallback<Slice, 'one'> =>
+      (message: string): Light.IAsyncCallback<DataTypeA, 'one'> =>
       (_, resolve) => {
         resolve(message);
       };
@@ -33,25 +23,25 @@ describe('hook useAsync', () => {
     let dispatchTest: (message: string) => void;
 
     const TestComponent1 = () => {
-      const { dispatch } = hooks.useAsync('one', promiseFn);
+      const { dispatch } = Light.useAsync(store, 'one', promiseFn);
       dispatchTest = dispatch;
       return null;
     };
 
-    const results: Slice['one'][] = [];
+    const results: DataTypeA['one'][] = [];
     const TestComponent2 = () => {
-      const [value] = hooks.useState('one');
+      const [value] = Light.useState(store, 'one');
       React.useEffect(() => {
         results.push(value);
       }, [value]);
       return null;
     };
-    const Provider = createProvider(Context);
+
     render(
-      <Provider value={[store]}>
+      <>
         <TestComponent1 />
         <TestComponent2 />
-      </Provider>,
+      </>,
     );
 
     act(() => {
@@ -60,30 +50,27 @@ describe('hook useAsync', () => {
 
     await waitFor(() => {
       expect(results).toEqual([
-        createAsync.initial(''),
-        createAsync.pending(),
-        createAsync.fulfilled('hello'),
+        Light.createAsync.initial(''),
+        Light.createAsync.pending(),
+        Light.createAsync.fulfilled('hello'),
       ]);
     });
   });
 
   it('abort operation for one store', async () => {
-    type Slice = {
-      one: IAsync<string>;
+    type DataTypeA = {
+      one: Light.IAsync<string>;
     };
 
     const promiseFn =
-      (arg: string): IAsyncCallback<Slice, 'one'> =>
+      (arg: string): Light.IAsyncCallback<DataTypeA, 'one'> =>
       (_, resolve) => {
         setTimeout(() => resolve(arg), 1000);
       };
 
-    const Context = createContext();
-    const Provider = createProvider(Context);
-    const slice = createSlice<Slice>();
-    const store = slice.createStore({ one: createAsync.initial('') });
-    const hooks = createHooks<Slice>(slice.sliceId, Context);
-    const results: Slice['one'][] = [];
+    const store = Light.createStore<DataTypeA>({ one: Light.createAsync.initial('') });
+
+    const results: DataTypeA['one'][] = [];
     store.addListener(
       'one',
       (_, value) => {
@@ -94,17 +81,13 @@ describe('hook useAsync', () => {
     let dispatchTest: (arg: string) => void;
     let abortTest: () => void;
     const TestComponent1 = () => {
-      const { dispatch, abort } = hooks.useAsync('one', promiseFn);
+      const { dispatch, abort } = Light.useAsync(store, 'one', promiseFn);
       dispatchTest = dispatch;
       abortTest = abort;
       return null;
     };
 
-    render(
-      <Provider value={[store]}>
-        <TestComponent1 />
-      </Provider>,
-    );
+    render(<TestComponent1 />);
     act(() => {
       dispatchTest('hello');
     });
@@ -115,9 +98,9 @@ describe('hook useAsync', () => {
 
     await waitFor(() => {
       expect(results).toEqual([
-        createAsync.initial(''),
-        createAsync.pending(),
-        createAsync.aborted(),
+        Light.createAsync.initial(''),
+        Light.createAsync.pending(),
+        Light.createAsync.aborted(),
       ]);
     });
   });
