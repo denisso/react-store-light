@@ -4,7 +4,6 @@ const messages = {
   storeNotExist: () => `The storage does not exist in the React Provider.`,
   storeUniqIdAlreadyExist: () => 'A store with this id already exists in the provider.',
   isNotAsync: (key: string) => `Key ${key} is not type IAsync`,
-  providerSliceStoreError: () => `Store.sliceId cannot be null or store not instance of Store in Context Provider`,
   errorKeyMessage: (key: PropertyKey) => {
     let strKey = `typeof ${typeof key}`;
     if (typeof key == 'string' || typeof key == 'number') {

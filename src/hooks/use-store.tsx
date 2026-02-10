@@ -1,11 +1,11 @@
 import React from 'react';
-import type { IContext, ISliceId } from '../types';
+import type { IContext, IStoreId } from '../types';
 import { formatError } from '../helpers/error';
 import { Store } from '../store';
 
 export const createStoreHook = <T extends object>(
   Context: React.Context<IContext>,
-  sliceId: ISliceId,
+  storeId: IStoreId,
 ) => {
   return () => {
     if (!Context) {
@@ -15,7 +15,7 @@ export const createStoreHook = <T extends object>(
     if (!context) {
       throw formatError['hookMustBeInsideProvider']();
     }
-    const store = context.get(sliceId) as unknown as Store<T>;
+    const store = context.get(storeId) as unknown as Store<T>;
     if (!store) {
       throw formatError['storeNotExist']();
     }

@@ -1,7 +1,7 @@
 import React from 'react';
-import { IContext, ISliceId, ISliceStore } from './types';
+import { IContext, IStoreId } from './types';
 import { formatError } from './helpers/error';
-import { Store } from './store';
+import { Store, type StoreBase } from './store';
 /**
  * Creates a Context.
  */
@@ -21,21 +21,16 @@ export const createContext = () => {
 export const createProvider = (Context: React.Context<IContext>) => {
   type Props = {
     children: React.ReactNode;
-    value: ISliceStore[];
+    value: Record<symbol, StoreBase>;
   };
 
   const Provider = ({ children, value }: Props) => {
     const [context] = React.useState<IContext>(() => {
-      const map = new Map<ISliceId, Store<any>>();
-      for (let i = 0; i < value.length; i++) {
-        const store = value[i] as unknown as Store<any> & { sliceId: ISliceId };
-        if (store.sliceId || !(store instanceof Store)) {
-          map.set(store.sliceId, store);
-        } else {
-          throw formatError['providerSliceStoreError']();
-        }
+      const map = new Map<IStoreId, Store<any>>();
+      const storeIds = Object.getOwnPropertySymbols(value);
+      for (const id of storeIds) {
+        map.set(id, value[id] as unknown as Store<any>);
       }
-
       return map;
     });
 

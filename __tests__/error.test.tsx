@@ -7,8 +7,7 @@ describe('Error', () => {
   it('Hook must be used within a React Provider.', () => {
     type Data = { one: string };
     const Context = Light.createContext();
-    const slice = Light.createSlice<Data>();
-    const useStore = Light.createStoreHook<Data>(Context, slice.sliceId);
+    const useStore = Light.createStoreHook<Data>(Context, Symbol());
     const Test = () => {
       // throw error need Context
       useStore();
@@ -21,8 +20,7 @@ describe('Error', () => {
   it('The storage does not exist in the React Provider.', () => {
     type Data = { one: string };
     const Context = Light.createContext();
-    const slice = Light.createSlice<Data>();
-    const useStore = Light.createStoreHook<Data>(Context, slice.sliceId);
+    const useStore = Light.createStoreHook<Data>(Context, Symbol());
     const Provider = Light.createProvider(Context);
     const Test = () => {
       useStore();

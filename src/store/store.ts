@@ -1,6 +1,5 @@
 import { Subject } from './subject';
 import { formatError } from '../helpers/error';
-import { IStoreID } from '../types';
 
 /**
  * Branding type Store
@@ -28,7 +27,7 @@ const checkKey = (object: object, key: PropertyKey) => {
 
 /**
  * Internal store representation:
- * each property of the ref is wrapped into a Subject.
+ * each property of the state is wrapped into a Subject.
  *
  * If T has no keys, Store<T> becomes never.
  */
@@ -56,16 +55,16 @@ export class Store<T extends object> implements StoreBase {
   /**
    * Map of Subjects.
    *
-   * Each Subject represents a single key of the ref
+   * Each Subject represents a single key of the state
    * and notifies its listeners when the value changes.
    */
   values: Values<T>;
 
   /**
-   * Cached list of ref keys.
+   * Cached list of state keys.
    *
-   * Initialized once from the initial ref:
-   * this.keys = Object.keys(ref) as (keyof T)[];
+   * Initialized once from the initial state:
+   * this.keys = Object.keys(state) as (keyof T)[];
    */
   keys: (keyof T)[];
 
@@ -77,25 +76,21 @@ export class Store<T extends object> implements StoreBase {
   state: T;
 
   /**
-   * unused but may be used ;)
-   */
-  storeId: IStoreID = Symbol();
-  /**
    * Store constructor.
    *
-   * Each property of the initial ref is converted into a Subject,
+   * Each property of the initial state is converted into a Subject,
    * allowing independent subscriptions per key.
    *
-   * @param ref - Initial store ref
-   * @param isMutateState - [optional] mutate ref on value updates
+   * @param state - Initial store state
+   * @param isMutateState - [optional] mutate state on value updates
    */
-  constructor(ref: T) {
+  constructor(state: T) {
     this.values = {} as Values<T>;
-    this.state = Object.assign({}, ref);
-    this.keys = Object.keys(ref) as (keyof T)[];
-    // Initialize a Subject for each key in the initial ref
+    this.state = state;
+    this.keys = Object.keys(state) as (keyof T)[];
+    // Initialize a Subject for each key in the initial state
     this.keys.forEach((key) => {
-      this.values[key] = new Subject<T, keyof T>(key, ref[key]) as unknown as Values<T>[keyof T];
+      this.values[key] = new Subject<T, keyof T>(key, state[key]) as unknown as Values<T>[keyof T];
     });
     this.get = this.get.bind(this);
     this.set = this.set.bind(this);
@@ -132,7 +127,7 @@ export class Store<T extends object> implements StoreBase {
   /**
    * Return state
    *
-   * @returns ref
+   * @returns state
    */
   getState() {
     return this.state;
@@ -156,7 +151,7 @@ export class Store<T extends object> implements StoreBase {
   /**
    * Set state
    *
-   * @param state - Initial store ref
+   * @param state - Initial store state
    * @param isAlwaysNotify - notify listiners always [default: false]
    */
   setState(state: T, options: SetOptions = null) {
@@ -200,12 +195,12 @@ export class Store<T extends object> implements StoreBase {
 /**
  * Creates a new isolated store instance.
  *
- * Each property of the initial ref is converted into a Subject,
+ * Each property of the initial state is converted into a Subject,
  * allowing independent subscriptions per key.
  *
- * @param ref - Initial store ref
+ * @param state - Initial store state
  * @returns Store API with get/set and subscription methods
  */
-export const createStore = <T extends object>(ref: T) => {
-  return new Store<T>(ref);
+export const createStore = <T extends object>(state: T) => {
+  return new Store<T>(state);
 };

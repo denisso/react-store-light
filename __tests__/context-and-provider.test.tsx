@@ -5,11 +5,11 @@ import Light from '../src';
 
 describe('Context and Provider', () => {
   it('initialization store and usage Context', () => {
-    type Slice = { count: number };
+    type Data = { count: number };
     const Context = Light.createContext();
-    const slice = Light.createSlice<Slice>();
-    const store = slice.createStore({ count: 1 });
-    const useStore = Light.createStoreHook<Slice>(Context, slice.sliceId);
+    const store = Light.createStore({ count: 1 });
+    const storeId = Symbol();
+    const useStore = Light.createStoreHook<Data>(Context, storeId);
     let trigger!: () => number;
     const TestComponent = () => {
       const store = useStore();
@@ -22,7 +22,7 @@ describe('Context and Provider', () => {
     };
     const Provider = Light.createProvider(Context);
     render(
-      <Provider value={[store]}>
+      <Provider value={{ [storeId]: store }}>
         <TestComponent />
       </Provider>,
     );
@@ -33,15 +33,15 @@ describe('Context and Provider', () => {
     const Context = Light.createContext();
     type Slice1 = { count: number };
     type Slice2 = { name: string };
-    const slice1 = Light.createSlice<Slice1>();
-    const slice2 = Light.createSlice<Slice2>();
 
     const data1 = { count: 1 };
     const data2 = { name: 'test' };
-    const store1 = slice1.createStore(data1);
-    const store2 = slice2.createStore(data2);
-    const useStore1 = Light.createStoreHook<Slice1>(Context, slice1.sliceId);
-    const useStore2 = Light.createStoreHook<Slice2>(Context, slice2.sliceId);
+    const store1 = Light.createStore(data1);
+    const store2 = Light.createStore(data2);
+    const storeId1 = Symbol();
+    const storeId2 = Symbol();
+    const useStore1 = Light.createStoreHook<Slice1>(Context, storeId1);
+    const useStore2 = Light.createStoreHook<Slice2>(Context, storeId2);
     let trigger!: () => void;
     let countTest1 = 0;
     let countTest2 = '';
@@ -57,7 +57,7 @@ describe('Context and Provider', () => {
     };
     const Provider = Light.createProvider(Context);
     render(
-      <Provider value={[store1, store2]}>
+      <Provider value={{ [storeId1]: store1, [storeId2]: store2 }}>
         <TestComponent />
       </Provider>,
     );
@@ -72,14 +72,14 @@ describe('Context and Provider', () => {
   it('one store multiple providers', () => {
     type Counter = { count: number };
     const Context = Light.createContext();
-    const slice = Light.createSlice<Counter>();
 
-    const store = slice.createStore({ count: 1 });
-    const useStore = Light.createStoreHook<Counter>(Context, slice.sliceId);
+    const store = Light.createStore({ count: 1 });
+    const storeId = Symbol();
+    const useStore = Light.createStoreHook<Counter>(Context, storeId);
     let countTest = 0;
 
     const TestComponent1 = () => {
-      const store = useStore()
+      const store = useStore();
       const [count] = Light.useState(store, 'count');
       React.useEffect(() => {
         countTest = count;
@@ -100,10 +100,10 @@ describe('Context and Provider', () => {
     const Provider = Light.createProvider(Context);
     render(
       <>
-        <Provider value={[store]}>
+        <Provider value={{ [storeId]: store }}>
           <TestComponent1 />
         </Provider>
-        <Provider value={[store]}>
+        <Provider value={{ [storeId]: store }}>
           <TestComponent2 />
         </Provider>
       </>,

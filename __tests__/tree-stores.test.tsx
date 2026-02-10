@@ -9,14 +9,15 @@ describe('Tree stores', () => {
     type Counters = { counters: Counter[] };
     // global
     const GlobalContext = Light.createContext();
-    const globalSlice = Light.createSlice<Counters>();
-    const globalStore = globalSlice.createStore({ counters: [{ id: 0, count: 0 }] });
+    const globalStoreId = Symbol();
+    const globalStore = Light.createStore<Counters>({ counters: [{ id: 0, count: 0 }] });
 
     // counter
     const CounterContext = Light.createContext();
-    const counterSlice = Light.createSlice<Counter>();
+    const counterHub = Light.createHub<Counter>();
     const CounterProvider = Light.createProvider(CounterContext);
-    const useCounterStore = Light.createStoreHook<Counter>(CounterContext, counterSlice.sliceId);
+    const counterStoreId = Symbol();
+    const useCounterStore = Light.createStoreHook<Counter>(CounterContext, counterStoreId);
     // for test
     const results: Counter['count'][] = [];
 
@@ -30,9 +31,13 @@ describe('Tree stores', () => {
       return null;
     };
     const CounterChild = ({ counter }: { counter: Counter }) => {
-      const counterStore = Light.useCreateStore(counter, counterSlice);
+      const counterStore = Light.useCreateHubStore(counter, counterHub);
 
-      return <CounterProvider value={[counterStore]}>{<CounterState />}</CounterProvider>;
+      return (
+        <CounterProvider value={{ [counterStoreId]: counterStore }}>
+          {<CounterState />}
+        </CounterProvider>
+      );
     };
 
     const RootComponent = () => {
@@ -48,7 +53,7 @@ describe('Tree stores', () => {
 
     const Provider = Light.createProvider(GlobalContext);
     render(
-      <Provider value={[globalStore]}>
+      <Provider value={{ [globalStoreId]: globalStore }}>
         <RootComponent />
       </Provider>,
     );
@@ -66,9 +71,10 @@ describe('Tree stores', () => {
 
     // counter
     const CounterContext = Light.createContext();
-    const counterSlice = Light.createSlice<Counter>();
+    const counterHub = Light.createHub<Counter>();
     const CounterProvider = Light.createProvider(CounterContext);
-    const useCounterStore = Light.createStoreHook<Counter>(CounterContext, counterSlice.sliceId);
+    const counterStoreId = Symbol();
+    const useCounterStore = Light.createStoreHook<Counter>(CounterContext, counterStoreId);
 
     // for test
     let writeCountSet: (count: number) => void;
@@ -90,21 +96,25 @@ describe('Tree stores', () => {
       const counterStore = useCounterStore();
 
       writeCountSet = (count) => {
-        const state = counterStore.getRef();
+        const state = counterStore.getState();
         state.count = count;
-        counterSlice.updateState(state);
+        counterHub.updateState(state);
       };
       return null;
     };
     const CounterReader = () => {
-      const counterStore = Light.useCreateStore(counter, counterSlice);
+      const counterStore = Light.useCreateHubStore(counter, counterHub);
 
-      return <CounterProvider value={[counterStore]}>{<Reader />}</CounterProvider>;
+      return (
+        <CounterProvider value={{ [counterStoreId]: counterStore }}>{<Reader />}</CounterProvider>
+      );
     };
     const CounterWriter = () => {
-      const counterStore = Light.useCreateStore(counter, counterSlice);
+      const counterStore = Light.useCreateHubStore(counter, counterHub);
 
-      return <CounterProvider value={[counterStore]}>{<Writer />}</CounterProvider>;
+      return (
+        <CounterProvider value={{ [counterStoreId]: counterStore }}>{<Writer />}</CounterProvider>
+      );
     };
 
     render(

@@ -1,24 +1,17 @@
 import { describe, it, expect } from 'vitest';
-import {
-  createSlice,
-  type IAsync,
-  type IAsyncCallback,
-  createAsync,
-  runAsyncCallback,
-} from '../src';
+import Light from '../src';
 
 describe('Async', () => {
   it('asynchronous operations resolve and reject with concurrence without React', async () => {
     type AsyncState = {
-      one: IAsync<string, { message: string }>;
+      one: Light.IAsync<string, { message: string }>;
     };
     const sliceData: AsyncState = {
-      one: createAsync.initial(''),
+      one: Light.createAsync.initial(''),
     };
 
-    const slice = createSlice<AsyncState>();
 
-    const store = slice.createStore(sliceData);
+    const store = Light.createStore<AsyncState>(sliceData);
 
     // collect results of the test
     const results: AsyncState['one'][] = [];
@@ -32,7 +25,7 @@ describe('Async', () => {
     );
 
     const callback =
-      (message: string): IAsyncCallback<AsyncState, 'one'> =>
+      (message: string): Light.IAsyncCallback<AsyncState, 'one'> =>
       (_, resolve, reject) => {
         setTimeout(() => {
           if (message === 'error') {
@@ -45,22 +38,22 @@ describe('Async', () => {
     for (const message of ['error', 'success']) {
       // Only 1 out of 10 should work.
       const res = await Promise.all(
-        Array.from({ length: 10 }, () => runAsyncCallback(store, 'one', callback(message))),
+        Array.from({ length: 10 }, () => Light.runAsyncCallback(store, 'one', callback(message))),
       );
       expect(res).toEqual([
         message == 'error'
-          ? createAsync.rejected({ message: 'error' })
-          : createAsync.fulfilled(message),
-        ...Array.from({ length: 9 }, () => createAsync.pending()),
+          ? Light.createAsync.rejected({ message: 'error' })
+          : Light.createAsync.fulfilled(message),
+        ...Array.from({ length: 9 }, () => Light.createAsync.pending()),
       ]);
     }
 
     expect(results).toEqual([
-      createAsync.initial(''),
-      createAsync.pending(),
-      createAsync.rejected({ message: 'error' }),
-      createAsync.pending(),
-      createAsync.fulfilled('success'),
+      Light.createAsync.initial(''),
+      Light.createAsync.pending(),
+      Light.createAsync.rejected({ message: 'error' }),
+      Light.createAsync.pending(),
+      Light.createAsync.fulfilled('success'),
     ]);
   });
 });
