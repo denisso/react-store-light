@@ -31,11 +31,12 @@ export class Subject<T extends object, K extends keyof T> {
   /**
    * Update the value and notify subscribers.
    * @param value - new value
-   * @param isAlwaysNotify - notify listiners always
+   * @param isAlwaysNotify - notify listiners always [default: false]
+   * @param runsCount - number of runs[default: 0]
    * @returns undefined
    */
   notify(value: T[K], options: SetOptions = null) {
-    const isAlwaysNotify = options?.isAlwaysNotify;
+    const isAlwaysNotify = options?.isAlwaysNotify ?? false;
     const runsCount = options?.runsCount ?? 0;
     if (!isAlwaysNotify && this.value === value) {
       return;

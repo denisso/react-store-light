@@ -11,8 +11,8 @@ export interface StoreBase {
 
 export type SetOptions = Partial<{
   runsCount: number;
-  isAlwaysNotify: boolean
-}> | null
+  isAlwaysNotify: boolean;
+}> | null;
 
 /**
  * Runtime check that ensures the key exists in the store object.
@@ -43,7 +43,8 @@ type Values<T extends object> = {
 export type Listener<T extends object, K extends keyof T> = (
   name: K,
   value: T[K],
-  countCalls: number,
+  // counter for runs this callback
+  runsCounter: number,
 ) => void;
 
 /**
@@ -69,11 +70,11 @@ export class Store<T extends object> implements StoreBase {
   keys: (keyof T)[];
 
   /**
-   * Current store ref.
+   * Current store state.
    *
    * T is expected to be a plain object.
    */
-  ref: T;
+  state: T;
 
   /**
    * unused but may be used ;)
@@ -90,7 +91,7 @@ export class Store<T extends object> implements StoreBase {
    */
   constructor(ref: T) {
     this.values = {} as Values<T>;
-    this.ref = ref;
+    this.state = Object.assign({}, ref);
     this.keys = Object.keys(ref) as (keyof T)[];
     // Initialize a Subject for each key in the initial ref
     this.keys.forEach((key) => {
@@ -98,8 +99,8 @@ export class Store<T extends object> implements StoreBase {
     });
     this.get = this.get.bind(this);
     this.set = this.set.bind(this);
-    this.getRef = this.getRef.bind(this);
-    this.setRef = this.setRef.bind(this);
+    this.getState = this.getState.bind(this);
+    this.setState = this.setState.bind(this);
     this.addListener = this.addListener.bind(this);
     this.removeListener = this.removeListener.bind(this);
   }
@@ -120,7 +121,8 @@ export class Store<T extends object> implements StoreBase {
    *
    * @param key - K - key
    * @param value - T[K] - value
-   * @param options.isAlwaysNotify - notify listiners always
+   * @param options.isAlwaysNotify - notify listiners always 
+   * @param options.runsCount - number of runs [default: false]
    */
   set<K extends keyof T>(key: K, value: T[K], options: SetOptions = null) {
     checkKey(this.values, key);
@@ -128,24 +130,39 @@ export class Store<T extends object> implements StoreBase {
   }
 
   /**
-   * return ref
+   * Return state
    *
    * @returns ref
    */
-  getRef() {
-    return this.ref;
+  getState() {
+    return this.state;
   }
 
   /**
-   * Set ref
-   *
-   * @param ref - Initial store ref
-   * @param isAlwaysNotify - notify listiners always
+   * Make deep copy
+   * 
+   * @param isRewriteSelf - is rewrite this.state [default: false]
    */
-  setRef(ref: T, options: SetOptions = null) {
-    this.ref = ref;
+  makeDeepCopy(isRewriteSelf = false) {
+    const state = structuredClone(this.state);
+
+    if (isRewriteSelf) {
+      this.state = state;
+      this.setState(state);
+    }
+
+    return this.state;
+  }
+  /**
+   * Set state
+   *
+   * @param state - Initial store ref
+   * @param isAlwaysNotify - notify listiners always [default: false]
+   */
+  setState(state: T, options: SetOptions = null) {
+    this.state = state;
     for (const key of this.keys) {
-      this.values[key].notify(this.ref[key] as any, options);
+      this.values[key].notify(this.state[key] as any, options);
     }
   }
 
@@ -154,8 +171,8 @@ export class Store<T extends object> implements StoreBase {
    *
    * @param key Store key to subscribe to
    * @param listener Callback invoked on value changes
-   * @param autoCallListener [default: false] - Whether to call the listener immediately
-   *                         with the current value
+   * @param isAutoCallListener - Whether to call the listener immediately
+   *                         with the current value [default: false]
    * @returns UnSubscribe function
    */
   addListener<K extends keyof T>(
