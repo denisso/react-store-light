@@ -3,7 +3,7 @@ import type { IContext, IStoreId } from '../types';
 import { formatError } from '../helpers/error';
 import { Store } from '../store';
 
-export const createStoreHook = <T extends object>(
+export const createStoreHook = <T extends object, S extends Store<T> = Store<T>>(
   Context: React.Context<IContext>,
   storeId: IStoreId,
 ) => {
@@ -15,7 +15,7 @@ export const createStoreHook = <T extends object>(
     if (!context) {
       throw formatError['hookMustBeInsideProvider']();
     }
-    const store = context.get(storeId) as unknown as Store<T>;
+    const store = context.get(storeId) as unknown as S;
     if (!store) {
       throw formatError['storeNotExist']();
     }
