@@ -1,7 +1,7 @@
 import { Store, Listener } from '../store';
 import { addListNode, removeListNode } from '../helpers/list';
 
-const setReasonUpdate = Symbol();
+const _REASONUPDATE_ = "REASONUPDATE";
 
 export class HubStore<T extends object> extends Store<T> {
   next: HubStore<T> | null = null;
@@ -53,14 +53,14 @@ export class Hub<T extends object> {
     }
     this.mapRefStores.set(newRef, listStores);
 
-    store.setState(newRef, { reason: setReasonUpdate });
+    store.setState(newRef, { reason: _REASONUPDATE_ });
     for (const key of store.keys) {
       let listener: Listener<T, keyof T> = store.listeners[key];
       if (!listener) {
         listener = (_: keyof T, value: T[keyof T], options) => {
           const runsCounter = options?.runsCounter ?? 0;
           const reason = options?.reason;
-          if (runsCounter > 1 || reason === setReasonUpdate) return;
+          if (runsCounter > 1 || reason === _REASONUPDATE_) return;
           let next: HubStore<T> | null = this.mapRefStores.get(store.ref) ?? null;
           while (next) {
             if (next !== store) {

@@ -1,6 +1,6 @@
 export { createStore, Store } from './store';
 export { createContext, createProvider } from './context';
-export { createHub, Hub, useCreateHubStore, HubStore } from './hub';
+export { createHub, Hub, useCreateHubStore, HubStore, createGetById } from './hub';
 export {
   createStoreHook,
   useState,

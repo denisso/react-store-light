@@ -1,7 +1,6 @@
 import React from 'react';
-import { IContext, IStoreId } from './types';
-import { formatError } from './helpers/error';
-import { Store, type StoreBase } from './store';
+import { IContext, IContextValueId } from './types';
+
 /**
  * Creates a Context.
  */
@@ -21,15 +20,15 @@ export const createContext = () => {
 export const createProvider = (Context: React.Context<IContext>) => {
   type Props = {
     children: React.ReactNode;
-    value: Record<symbol, StoreBase>;
+    value: Record<symbol, {}>;
   };
 
   const Provider = ({ children, value }: Props) => {
     const [context] = React.useState<IContext>(() => {
-      const map = new Map<IStoreId, Store<any>>();
+      const map = new Map<IContextValueId, {}>();
       const storeIds = Object.getOwnPropertySymbols(value);
       for (const id of storeIds) {
-        map.set(id, value[id] as unknown as Store<any>);
+        map.set(id, value[id]);
       }
       return map;
     });

@@ -18,22 +18,21 @@ describe('Error', () => {
   });
 
   it('The storage does not exist in the React Provider.', () => {
-    type Data = { one: string };
     const Context = Light.createContext();
-    const useStore = Light.createStoreHook<Data>(Context, Symbol());
+    const useFoo = Light.createGetById(Context, Symbol());
     const Provider = Light.createProvider(Context);
     const Test = () => {
-      useStore();
+      useFoo();
       return null;
     };
     expect(() =>
       render(
         // stroe must be added to the provider
-        <Provider value={[]}>
+        <Provider value={{[Symbol()]: {}}}>
           <Test />
         </Provider>,
       ),
-    ).toThrow(formatError['storeNotExist']());
+    ).toThrow(formatError['valueIDNotExist'](Symbol()));
   });
 
   it('In the useAsync hook, only IAsync values can be used.', () => {

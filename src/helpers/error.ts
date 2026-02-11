@@ -1,7 +1,8 @@
+import type { IContextValueId } from "../types";
 const messages = {
   contextIsEmpty: () => `Context is empty`,
   hookMustBeInsideProvider: () => `Hook must be used within a React Provider.`,
-  storeNotExist: () => `The storage does not exist in the React Provider.`,
+  valueIDNotExist: (id: IContextValueId) => `The value with such ${id.toString()} does not exist in the Context.`,
   storeUniqIdAlreadyExist: () => 'A store with this id already exists in the provider.',
   isNotAsync: (key: string) => `Key ${key} is not type IAsync`,
   errorKeyMessage: (key: PropertyKey) => {

@@ -36,15 +36,14 @@ export class Subject<T extends object, K extends keyof T> {
    * @returns undefined
    */
   notify(value: T[K], options?: SetOptions) {
-
     if (options && !options.isAlwaysNotify && this.value === value) {
       return;
     }
 
     this.value = value;
-
+    const _options = options ? structuredClone(options) : options;
     this.listeners.forEach((listener) => {
-      listener(this.name, this.value, options);
+      listener(this.name, this.value, _options);
     });
   }
 }

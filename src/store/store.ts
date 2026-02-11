@@ -10,7 +10,7 @@ export interface StoreBase {
 
 export type SetOptions = Partial<{
   runsCounter: number;
-  reason: symbol;
+  reason: string;
   visited: Set<Function>;
   isAlwaysNotify: boolean;
 }>;
@@ -137,7 +137,21 @@ export class Store<T extends object> implements StoreBase {
     return this.state;
   }
 
+
   /**
+   * Set state
+   *
+   * @param state - Initial store state
+   * @param isAlwaysNotify - notify listiners always [default: false]
+   */
+  setState(state: T, options?: SetOptions) {
+    this.state = state;
+    for (const key of this.keys) {
+      this.values[key].notify(this.state[key] as any, options);
+    }
+  }
+
+    /**
    * Make deep copy
    *
    * @param isRewriteSelf - is rewrite this.state [default: false]
@@ -151,18 +165,6 @@ export class Store<T extends object> implements StoreBase {
     }
 
     return this.state;
-  }
-  /**
-   * Set state
-   *
-   * @param state - Initial store state
-   * @param isAlwaysNotify - notify listiners always [default: false]
-   */
-  setState(state: T, options?: SetOptions) {
-    this.state = state;
-    for (const key of this.keys) {
-      this.values[key].notify(this.state[key] as any, options);
-    }
   }
 
   /**
