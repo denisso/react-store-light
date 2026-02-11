@@ -1,7 +1,7 @@
 import { Store, Listener } from '../store';
 import { addListNode, removeListNode } from '../helpers/list';
 
-const _REASONUPDATE_ = "REASONUPDATE";
+const _REASONUPDATE_ = Symbol();
 
 export class HubStore<T extends object> extends Store<T> {
   next: HubStore<T> | null = null;

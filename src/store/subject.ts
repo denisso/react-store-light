@@ -41,7 +41,14 @@ export class Subject<T extends object, K extends keyof T> {
     }
 
     this.value = value;
-    const _options = options ? structuredClone(options) : options;
+    let _options: SetOptions | undefined;
+    //  options ? structuredClone(options) : options;
+    if (options) {
+      _options = {};
+      if (options.hasOwnProperty('reason')) _options.reason = options.reason;
+      if (options.hasOwnProperty('runsCounter')) _options.runsCounter = options.runsCounter;
+      if (options.visited instanceof Set) _options.visited = new Set(options.visited);
+    }
     this.listeners.forEach((listener) => {
       listener(this.name, this.value, _options);
     });

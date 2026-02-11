@@ -10,7 +10,7 @@ export interface StoreBase {
 
 export type SetOptions = Partial<{
   runsCounter: number;
-  reason: string;
+  reason: symbol;
   visited: Set<Function>;
   isAlwaysNotify: boolean;
 }>;
