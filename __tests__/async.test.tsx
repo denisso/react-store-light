@@ -10,7 +10,6 @@ describe('Async', () => {
       one: Light.createAsync.initial(''),
     };
 
-
     const store = Light.createStore<AsyncState>(sliceData);
 
     // collect results of the test
@@ -21,7 +20,7 @@ describe('Async', () => {
       (_, value) => {
         results.push(value);
       },
-      true,
+      { isAutoCallListener: true },
     );
 
     const callback =

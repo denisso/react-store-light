@@ -76,7 +76,7 @@ describe('hook useAsync', () => {
       (_, value) => {
         results.push(value);
       },
-      true,
+      {"isAutoCallListener": true},
     );
     let dispatchTest: (arg: string) => void;
     let abortTest: () => void;

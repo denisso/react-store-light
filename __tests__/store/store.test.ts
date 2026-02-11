@@ -6,9 +6,9 @@ describe('Store', () => {
     const { addListener } = createStore({ count: 1 });
     const listener = vi.fn<(name: string, value: number) => void>();
 
-    addListener('count', listener, true);
+    addListener('count', listener, { isAutoCallListener: true });
 
-    expect(listener).toHaveBeenCalledWith('count', 1, 0);
+    expect(listener).toHaveBeenCalledWith('count', 1, { isAutoCallListener: true });
   });
 
   it('get and set', () => {

@@ -1,4 +1,4 @@
-import type { Listener, SetOptions } from './store';
+import type { Listener, ListenerOptions, SetOptions } from './store';
 
 /**
  * Typed Subject implements a simple observable pattern.
@@ -17,10 +17,10 @@ export class Subject<T extends object, K extends keyof T> {
     this.value = value;
   }
 
-  addListener(listener: Listener<T, K>, autoCallListener: boolean = true) {
+  addListener(listener: Listener<T, K>, options?: ListenerOptions) {
     this.listeners.add(listener);
-    if (autoCallListener) {
-      listener(this.name, this.value, 0);
+    if (options && options.isAutoCallListener) {
+      listener(this.name, this.value, options);
     }
   }
 
@@ -32,20 +32,19 @@ export class Subject<T extends object, K extends keyof T> {
    * Update the value and notify subscribers.
    * @param value - new value
    * @param isAlwaysNotify - notify listiners always [default: false]
-   * @param runsCount - number of runs[default: 0]
+   * @param options - SetOptions
    * @returns undefined
    */
-  notify(value: T[K], options: SetOptions = null) {
-    const isAlwaysNotify = options?.isAlwaysNotify ?? false;
-    const runsCount = options?.runsCount ?? 0;
-    if (!isAlwaysNotify && this.value === value) {
+  notify(value: T[K], options?: SetOptions) {
+
+    if (options && !options.isAlwaysNotify && this.value === value) {
       return;
     }
 
     this.value = value;
 
     this.listeners.forEach((listener) => {
-      listener(this.name, this.value, runsCount);
+      listener(this.name, this.value, options);
     });
   }
 }
