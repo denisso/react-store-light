@@ -6,13 +6,13 @@ import Light from '../src';
 describe('Context and Provider', () => {
   it('initialization store and usage Context', () => {
     type Data = { count: number };
-    const Context = Light.createContext();
+
     const store = Light.createStore({ count: 1 });
-    const storeId = Symbol();
-    const useStore = Light.createStoreHook<Data>(Context, storeId);
+    const storeId = Light.createContextValueId<Light.Store<Data>>();
+
     let trigger!: () => number;
     const TestComponent = () => {
-      const store = useStore();
+      const store = Light.useStore(storeId);
 
       trigger = () => {
         // ! test it
@@ -20,34 +20,32 @@ describe('Context and Provider', () => {
       };
       return null;
     };
-    const Provider = Light.createProvider(Context);
+
     render(
-      <Provider value={{ [storeId]: store }}>
+      <Light.Provider value={{ [storeId]: store }}>
         <TestComponent />
-      </Provider>,
+      </Light.Provider>,
     );
     expect(trigger()).toBe(1);
   });
 
   it('Multiple stores one provider', () => {
-    const Context = Light.createContext();
-    type Slice1 = { count: number };
-    type Slice2 = { name: string };
+    type Data1 = { count: number };
+    type Data2 = { name: string };
 
     const data1 = { count: 1 };
     const data2 = { name: 'test' };
     const store1 = Light.createStore(data1);
     const store2 = Light.createStore(data2);
-    const storeId1 = Symbol();
-    const storeId2 = Symbol();
-    const useStore1 = Light.createStoreHook<Slice1>(Context, storeId1);
-    const useStore2 = Light.createStoreHook<Slice2>(Context, storeId2);
+    const storeId1 = Light.createContextValueId<Light.Store<Data1>>();
+    const storeId2 = Light.createContextValueId<Light.Store<Data2>>();
+
     let trigger!: () => void;
     let countTest1 = 0;
     let countTest2 = '';
     const TestComponent = () => {
-      const store1 = useStore1();
-      const store2 = useStore2();
+      const store1 = Light.useStore(storeId1);
+      const store2 = Light.useStore(storeId2);
       trigger = () => {
         // ! test it
         countTest1 = store1.get('count');
@@ -55,11 +53,11 @@ describe('Context and Provider', () => {
       };
       return null;
     };
-    const Provider = Light.createProvider(Context);
+
     render(
-      <Provider value={{ [storeId1]: store1, [storeId2]: store2 }}>
+      <Light.Provider value={{ [storeId1]: store1, [storeId2]: store2 }}>
         <TestComponent />
-      </Provider>,
+      </Light.Provider>,
     );
 
     act(() => {
@@ -71,16 +69,14 @@ describe('Context and Provider', () => {
 
   it('one store multiple providers', () => {
     type Counter = { count: number };
-    const Context = Light.createContext();
 
     const store = Light.createStore({ count: 1 });
-    const storeId = Symbol();
-    const useStore = Light.createStoreHook<Counter>(Context, storeId);
+    const storeId = Light.createContextValueId<Light.Store<Counter>>();
+
     let countTest = 0;
 
     const TestComponent1 = () => {
-      const store = useStore();
-      const [count] = Light.useState(store, 'count');
+      const [count] = Light.useState(storeId, 'count');
       React.useEffect(() => {
         countTest = count;
       }, [count]);
@@ -89,7 +85,7 @@ describe('Context and Provider', () => {
     let trigger!: () => void;
 
     const TestComponent2 = () => {
-      const store = useStore();
+      const store = Light.useStore(storeId);
       trigger = () => {
         // ! test it
         store.set('count', 2);
@@ -97,15 +93,14 @@ describe('Context and Provider', () => {
       return null;
     };
 
-    const Provider = Light.createProvider(Context);
     render(
       <>
-        <Provider value={{ [storeId]: store }}>
+        <Light.Provider value={{ [storeId]: store }}>
           <TestComponent1 />
-        </Provider>
-        <Provider value={{ [storeId]: store }}>
+        </Light.Provider>
+        <Light.Provider value={{ [storeId]: store }}>
           <TestComponent2 />
-        </Provider>
+        </Light.Provider>
       </>,
     );
 

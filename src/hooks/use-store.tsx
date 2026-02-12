@@ -1,11 +1,10 @@
-import React from 'react';
-import type { IContext, IContextValueId } from '../types';
+import type { IContextValueId } from '../types';
 import { Store } from '../store';
-import { createGetById } from '../hub/use-get-by-id';
+import { useById } from '../hub/use-get-by-id';
 
-export const createStoreHook = <T extends object, S extends Store<T> = Store<T>>(
-  Context: React.Context<IContext>,
-  storeId: IContextValueId,
-) => {
-  return createGetById<S>(Context, storeId) as unknown as () => S;
-};
+export function useStore<T extends object, S extends Store<T> = Store<T>>(
+  contextValueId: IContextValueId<Store<T>>,
+): S {
+  return useById<Store<T>>(contextValueId) as S;
+}
+

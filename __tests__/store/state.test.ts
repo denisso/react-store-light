@@ -11,13 +11,9 @@ describe('Ref', () => {
     const state1 = { count: 1 };
     const store = createStore(state1);
     const results: number[] = [];
-    store.addListener(
-      'count',
-      (_, value) => {
-        results.push(value);
-      },
-      false,
-    );
+    store.addListener('count', (_, value) => {
+      results.push(value);
+    });
     const state2 = { count: 2 };
     store.setState(state2);
     expect(store.getState()).toEqual({ count: 2 });

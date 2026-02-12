@@ -1,6 +1,8 @@
 import React from 'react';
 import { Store } from '../store';
 import { useConnectListenersToStore } from '../helpers/use-connect-listeners-to-store';
+import { useStore } from './use-store';
+import type { IContextValueId } from '../types';
 
 type IArgs<T extends object, K extends keyof T> = T[K] | ((prev: T[K]) => T[K]);
 
@@ -13,26 +15,39 @@ const setStateProxy = <T extends object, K extends keyof T>(store: Store<T>, key
     store.set(key, arg);
   };
 };
-  /**
-   * Subscribes a component to a single store field by key.
-   *
-   * Returns:
-   * - analog [value, setValue] = React.useState
-   * 
-   * @param store - Store<T>
-   * @param key - name field in the store
-   */
-export const useState = <T extends object, K extends keyof T>(
+
+export function useState<T extends object, K extends keyof T>(
+  contextValueId: IContextValueId<Store<T>>,
+  key: K,
+): [T[K], (args: IArgs<T, K>) => void];
+
+export function useState<T extends object, K extends keyof T>(
   store: Store<T>,
   key: K,
-): [T[K], (args: IArgs<T, K>) => void] => {
+): [T[K], (args: IArgs<T, K>) => void];
+
+/**
+ * Subscribes a component to a single store field by key.
+ *
+ * Returns:
+ * - analog [value, setValue] = React.useState
+ *
+ * @param store - Store<T> | IContextValueId<Store<T>>
+ * @param key - name field in the store
+ */
+export function useState<T extends object, K extends keyof T>(
+  storeOrId: Store<T> | IContextValueId<Store<T>>,
+  key: K,
+): [T[K], (args: IArgs<T, K>) => void] {
+  const store = typeof storeOrId === 'symbol' ? useStore(storeOrId) : storeOrId;
+
   const [state, setState] = React.useState<T[K]>(store.get(key));
-  const [_setState] = React.useState<ReturnType<typeof setStateProxy<T, K>>>(() => {
-    return setStateProxy<T, K>(store, key);
-  });
+
+  const [_setState] = React.useState<ReturnType<typeof setStateProxy<T, K>>>(() =>
+    setStateProxy<T, K>(store, key),
+  );
 
   useConnectListenersToStore(setState, key, store);
 
   return [state, _setState];
-};
-
+}

@@ -5,12 +5,9 @@ import { formatError } from '../src/helpers/error';
 
 describe('Error', () => {
   it('Hook must be used within a React Provider.', () => {
-    type Data = { one: string };
-    const Context = Light.createContext();
-    const useStore = Light.createStoreHook<Data>(Context, Symbol());
     const Test = () => {
       // throw error need Context
-      useStore();
+      Light.useStore(Symbol());
       return null;
     };
 
@@ -18,21 +15,18 @@ describe('Error', () => {
   });
 
   it('The storage does not exist in the React Provider.', () => {
-    const Context = Light.createContext();
-    const useFoo = Light.createGetById(Context, Symbol());
-    const Provider = Light.createProvider(Context);
     const Test = () => {
-      useFoo();
+      Light.useStore(Symbol());
       return null;
     };
     expect(() =>
       render(
         // stroe must be added to the provider
-        <Provider value={{[Symbol()]: {}}}>
+        <Light.Provider value={{ [Symbol()]: {} }}>
           <Test />
-        </Provider>,
+        </Light.Provider>,
       ),
-    ).toThrow(formatError['valueIDNotExist'](Symbol()));
+    ).toThrow(formatError['valueIdNotExist']());
   });
 
   it('In the useAsync hook, only IAsync values can be used.', () => {

@@ -1,12 +1,11 @@
-import { Store } from './store';
-
 /**
  * Context value type.
  * key store unique `sliceId`, value store
  */
-export type IContext = Map<IContextValueId, {}>;
+export type IContext = Record<IContextValueId<{}>, {}>;
 
 /**
  * Uniq id for Store
  */
-export type IContextValueId = symbol;
+
+export type IContextValueId<T extends object> = symbol & { readonly __type?: T };

@@ -1,23 +1,16 @@
 import React from 'react';
 import type { IContext, IContextValueId } from '../types';
 import { formatError } from '../helpers/error';
+import { Context } from '../context';
 
-export const createGetById = <T extends any>(
-  Context: React.Context<IContext>,
-  constextValueId: IContextValueId,
-) => {
-  return () => {
-    if (!Context) {
-      throw formatError['contextIsEmpty']();
-    }
-    const context = React.useContext(Context) as IContext;
-    if (!context) {
-      throw formatError['hookMustBeInsideProvider']();
-    }
-    const value = context.get(constextValueId) as unknown as T;
-    if (!value) {
-      throw formatError['valueIDNotExist'](constextValueId);
-    }
-    return value as T;
-  };
+export const useById = <T extends object>(constextValueId: IContextValueId<T>) => {
+  const context = React.useContext(Context) as IContext;
+  if (!context) {
+    throw formatError['hookMustBeInsideProvider']();
+  }
+  const value = context[constextValueId] as unknown as T;
+  if (!value) {
+    throw formatError['valueIdNotExist']();
+  }
+  return value as T;
 };

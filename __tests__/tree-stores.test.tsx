@@ -9,23 +9,19 @@ describe('Tree stores', () => {
     type Counter = { id: number; count: number };
     type Counters = { counters: Counter[] };
     // global
-    const GlobalContext = Light.createContext();
-    const globalStoreId = Symbol();
+    const globalStoreId = Light.createContextValueId<Light.Store<Counters>>();
     const globalStore = Light.createStore<Counters>({ counters: [{ id: 0, count: 0 }] });
 
     // counter
-    const CounterContext = Light.createContext();
     const counterHub = Light.createHub<Counter>();
-    const CounterProvider = Light.createProvider(CounterContext);
-    const counterStoreId = Symbol();
-    const useCounterStore = Light.createStoreHook<Counter>(CounterContext, counterStoreId);
+    const counterStoreId = Light.createContextValueId<Light.Store<Counter>>();
+
     // for test
     const results: Counter['count'][] = [];
 
     // tree
     const CounterState = () => {
-      const counterStore = useCounterStore();
-      const [count] = Light.useState(counterStore, 'count');
+      const [count] = Light.useState(counterStoreId, 'count');
       React.useEffect(() => {
         results.push(count);
       }, [count]);
@@ -35,14 +31,14 @@ describe('Tree stores', () => {
       const counterStore = Light.useCreateHubStore(counter, counterHub);
 
       return (
-        <CounterProvider value={{ [counterStoreId]: counterStore }}>
+        <Light.Provider value={{ [counterStoreId]: counterStore }}>
           {<CounterState />}
-        </CounterProvider>
+        </Light.Provider>
       );
     };
 
     const RootComponent = () => {
-      const [counters] = Light.useState(globalStore, 'counters');
+      const [counters] = Light.useState(globalStoreId, 'counters');
       return (
         <>
           {counters.map((counter) => (
@@ -52,11 +48,10 @@ describe('Tree stores', () => {
       );
     };
 
-    const Provider = Light.createProvider(GlobalContext);
     render(
-      <Provider value={{ [globalStoreId]: globalStore }}>
+      <Light.Provider value={{ [globalStoreId]: globalStore }}>
         <RootComponent />
-      </Provider>,
+      </Light.Provider>,
     );
 
     act(() => {
@@ -71,11 +66,8 @@ describe('Tree stores', () => {
     const counter: Counter = { id: 0, count: 0 };
 
     // counter
-    const CounterContext = Light.createContext();
     const counterHub = Light.createHub<Counter>();
-    const CounterProvider = Light.createProvider(CounterContext);
-    const counterStoreId = Symbol();
-    const useCounterStore = Light.createStoreHook<Counter>(CounterContext, counterStoreId);
+    const counterStoreId = Light.createContextValueId<Light.Store<Counter>>();
 
     // for test
     let writeCountSet: (count: number) => void;
@@ -83,8 +75,7 @@ describe('Tree stores', () => {
 
     // counter Reader
     const Reader = () => {
-      const couterStore = useCounterStore();
-      const [count] = Light.useState(couterStore, 'count');
+      const [count] = Light.useState(counterStoreId, 'count');
 
       React.useEffect(() => {
         results.push(count);
@@ -94,7 +85,7 @@ describe('Tree stores', () => {
 
     // counter Writer
     const Writer = () => {
-      const counterStore = useCounterStore();
+      const counterStore = Light.useStore(counterStoreId);
 
       writeCountSet = (count) => {
         const state = counterStore.getState();
@@ -107,14 +98,14 @@ describe('Tree stores', () => {
       const counterStore = Light.useCreateHubStore(counter, counterHub);
 
       return (
-        <CounterProvider value={{ [counterStoreId]: counterStore }}>{<Reader />}</CounterProvider>
+        <Light.Provider value={{ [counterStoreId]: counterStore }}>{<Reader />}</Light.Provider>
       );
     };
     const CounterWriter = () => {
       const counterStore = Light.useCreateHubStore(counter, counterHub);
 
       return (
-        <CounterProvider value={{ [counterStoreId]: counterStore }}>{<Writer />}</CounterProvider>
+        <Light.Provider value={{ [counterStoreId]: counterStore }}>{<Writer />}</Light.Provider>
       );
     };
 
@@ -175,29 +166,24 @@ describe('Tree stores', () => {
     const hub = Light.createHub<TreeNode>();
 
     type Props = { node: TreeNode };
-    const Context = Light.createContext();
-    const Provider = Light.createProvider(Context);
-    const storeId = Symbol();
-    const useStore = Light.createStoreHook<TreeNode>(Context, storeId);
+    const storeId = Light.createContextValueId<Light.Store<TreeNode>>();
 
     let testResults: { id: string; value: number }[] = [];
 
     function Value() {
-      const store = useStore();
-      const [id] = Light.useState(store, 'id');
-      const [value] = Light.useState(store, 'value');
+      const [id] = Light.useState(storeId, 'id');
+      const [value, setValue] = Light.useState(storeId, 'value');
       React.useEffect(() => {
         testResults.push({ id, value });
       }, [id, value]);
       const handlerClick = () => {
-        store.set('value', store.get('value') + 1);
+        setValue((prev) => prev + 1);
       };
       return <button onClick={handlerClick}>{id}</button>;
     }
 
     function Children() {
-      const store = useStore();
-      const [nodes] = Light.useState(store, 'nodes');
+      const [nodes] = Light.useState(storeId, 'nodes');
       return (
         <>
           {nodes.map((node) => (
@@ -211,9 +197,9 @@ describe('Tree stores', () => {
     function Parent({ node }: Props) {
       const store = Light.useCreateHubStore(node, hub);
       return (
-        <Provider value={{ [storeId]: store }}>
+        <Light.Provider value={{ [storeId]: store }}>
           <Children />
-        </Provider>
+        </Light.Provider>
       );
     }
     render(<Parent node={root} />);

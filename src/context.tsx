@@ -1,13 +1,15 @@
 import React from 'react';
-import { IContext, IContextValueId } from './types';
+import type { IContext, IContextValueId } from './types';
+
+export function createContextValueId<T extends object>(): IContextValueId<T> {
+  return Symbol() as IContextValueId<T>;
+}
 
 /**
  * Creates a Context.
  */
-export const createContext = () => {
-  const Context = React.createContext<IContext>(null as unknown as IContext);
-  return Context;
-};
+
+export const Context = React.createContext<IContext>(null as unknown as IContext);
 
 /**
  * Creates a Provider
@@ -17,23 +19,21 @@ export const createContext = () => {
  *
  *  @param Context React Context
  */
-export const createProvider = (Context: React.Context<IContext>) => {
-  type Props = {
-    children: React.ReactNode;
-    value: Record<symbol, {}>;
-  };
 
-  const Provider = ({ children, value }: Props) => {
-    const [context] = React.useState<IContext>(() => {
-      const map = new Map<IContextValueId, {}>();
-      const storeIds = Object.getOwnPropertySymbols(value);
-      for (const id of storeIds) {
-        map.set(id, value[id]);
-      }
-      return map;
-    });
+type Props = {
+  children: React.ReactNode;
+  value: Record<symbol, {}>;
+};
 
-    return <Context.Provider value={context}>{children}</Context.Provider>;
-  };
-  return Provider;
+export const Provider = ({ children, value }: Props) => {
+  const [context] = React.useState<IContext>(() => {
+    const _context: IContext = {};
+    const storeIds = Object.getOwnPropertySymbols(value);
+    for (const id of storeIds) {
+      _context[id] = value[id];
+    }
+    return _context;
+  });
+
+  return <Context.Provider value={context}>{children}</Context.Provider>;
 };
