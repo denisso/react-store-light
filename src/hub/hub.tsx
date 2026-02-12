@@ -97,7 +97,7 @@ export class Hub<T extends object> {
   }
 
   /**
-   * Manual update Store Ref
+   * Manual update Store state
    *
    * @param ref T
    * @returns boolean
@@ -124,7 +124,7 @@ export class Hub<T extends object> {
    * @returns
    */
   updateKey<K extends keyof T>(ref: T, key: K, value: T[K]) {
-    ref[key] = value;
+
     let listStores: HubStore<T> | null = this.mapRefStores.get(ref) ?? null;
     if (!listStores) {
       return false;
@@ -134,7 +134,7 @@ export class Hub<T extends object> {
       listStores.values[key].notify(value as any);
       listStores = listStores.next;
     }
-
+    ref[key] = value;
     return true;
   }
 }
