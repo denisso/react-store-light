@@ -7,5 +7,6 @@ export default defineConfig({
     include: ['__tests__/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     reporters: ['verbose'],
     environment: 'jsdom',
+    setupFiles: './src/setupTests.ts',
   },
 });
