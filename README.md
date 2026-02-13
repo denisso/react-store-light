@@ -1,15 +1,8 @@
-> ⚠️ Version 2.x introduces breaking changes compared to 1.x  
-> See CHANGELOG.md for details.
-
-for v1x see READMEv1.md
-
 # react-store-light
 
 A **minimal reactive state manager** for React projects where you want simple shared state without
 overhead. This library provides a slice-based multiple store, context-driven state management API
 with built-in async support.
-
-based on [observable-store-light](https://github.com/denisso/observable-store-light)
 
 ---
 
@@ -60,7 +53,7 @@ instantiated multiple times.
     - returns:
       - store - store with api type IStore<T>
 
-  - useState (key, [Context]) subscribes a component to a single store field by key.
+  - useState (providerValueId, key, [Context]) subscribes a component to a single store field by key.
     - returns:
       - analog [value, setValue] = React.useState
     - features:
@@ -76,14 +69,10 @@ instantiated multiple times.
       - async function callback signature like Promise callback
         - (...custom args) => (store, resolve, reject) => void | Promise<void>
 
-  - useStore ([Context]) - returns the store for imperative access.
+  - useStore (providerValueId) - returns the store for imperative access.
     - returns:
       - store - store with api
 
-  - useReducer([Context]) - returns registered reducers 
-    - returns:
-      - reducer is a function that describes a deterministic state transition. Reducers may mutate the store via its API instead of returning a new state. function reducer signature is:
-        - (...custom args) => (store) => void
 
 ### createContext ()
 

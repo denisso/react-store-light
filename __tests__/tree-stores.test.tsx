@@ -5,7 +5,7 @@ import { render, act, screen, waitFor } from '@testing-library/react';
 import Light from '../src';
 
 describe('Tree stores', () => {
-  it('Update top bottom', () => {
+  it('Update from top to  bottom', () => {
     type Counter = { id: number; count: number };
     type Counters = { counters: Counter[] };
     // global
