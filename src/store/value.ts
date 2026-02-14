@@ -1,11 +1,11 @@
 import type { Listener, ListenerOptions, SetOptions } from './store';
 
 /**
- * Typed Subject implements a simple observable pattern.
+ * Typed Value implements a simple observable pattern.
  * It stores a value, allows subscriptions, and notifies observers and listeners
  * when the value changes.
  */
-export class Subject<T extends object, K extends keyof T> {
+export class Value<T extends object, K extends keyof T> {
   // Listeners will called when the value is changed
   private listeners: Set<Listener<T, K>>;
   // name for value in store
@@ -36,17 +36,16 @@ export class Subject<T extends object, K extends keyof T> {
    * @returns undefined
    */
   notify(value: T[K], options?: SetOptions) {
-    if (options && !options.isAlwaysNotify && this.value === value) {
+    if (!options?.isAlwaysNotify && this.value === value) {
       return;
     }
 
     this.value = value;
     let _options: SetOptions | undefined;
-    //  options ? structuredClone(options) : options;
+
     if (options) {
       _options = {};
       if (options.hasOwnProperty('reason')) _options.reason = options.reason;
-      if (options.hasOwnProperty('runsCounter')) _options.runsCounter = options.runsCounter;
       if (options.visited instanceof Set) _options.visited = new Set(options.visited);
     }
     this.listeners.forEach((listener) => {

@@ -1,4 +1,4 @@
-import { Subject } from './subject';
+import { Value } from './value';
 import { formatError } from '../helpers/error';
 
 /**
@@ -9,7 +9,6 @@ export interface StoreBase {
 }
 
 export type SetOptions = Partial<{
-  runsCounter: number;
   reason: symbol;
   visited: Set<Function>;
   isAlwaysNotify: boolean;
@@ -29,15 +28,15 @@ const checkKey = (object: object, key: PropertyKey) => {
 
 /**
  * Internal store representation:
- * each property of the state is wrapped into a Subject.
+ * each property of the state is wrapped into a Value.
  *
  * If T has no keys, Store<T> becomes never.
  */
 type Values<T extends object> = {
-  [K in keyof T]: Subject<T, K>;
+  [K in keyof T]: Value<T, K>;
 };
 
-export type ListenerOptions = Pick<NonNullable<SetOptions>, 'runsCounter' | 'reason' | 'visited'> & {
+export type ListenerOptions = Pick<NonNullable<SetOptions>, 'reason' | 'visited'> & {
   isAutoCallListener: boolean;
 };
 /**
@@ -57,9 +56,9 @@ export class Store<T extends object> implements StoreBase {
   readonly __brand = 'Store' as const;
 
   /**
-   * Map of Subjects.
+   * Map of Values.
    *
-   * Each Subject represents a single key of the state
+   * Each Value represents a single key of the state
    * and notifies its listeners when the value changes.
    */
   values: Values<T>;
@@ -82,7 +81,7 @@ export class Store<T extends object> implements StoreBase {
   /**
    * Store constructor.
    *
-   * Each property of the initial state is converted into a Subject,
+   * Each property of the initial state is converted into a Value,
    * allowing independent subscriptions per key.
    *
    * @param state - Initial store state
@@ -92,9 +91,9 @@ export class Store<T extends object> implements StoreBase {
     this.values = {} as Values<T>;
     this.state = state;
     this.keys = Object.keys(state) as (keyof T)[];
-    // Initialize a Subject for each key in the initial state
+    // Initialize a Value for each key in the initial state
     this.keys.forEach((key) => {
-      this.values[key] = new Subject<T, keyof T>(key, state[key]) as unknown as Values<T>[keyof T];
+      this.values[key] = new Value<T, keyof T>(key, state[key]) as unknown as Values<T>[keyof T];
     });
     this.get = this.get.bind(this);
     this.set = this.set.bind(this);
@@ -103,6 +102,7 @@ export class Store<T extends object> implements StoreBase {
     this.addListener = this.addListener.bind(this);
     this.removeListener = this.removeListener.bind(this);
   }
+
   /**
    * Returns the current value for a given key.
    *
@@ -125,7 +125,7 @@ export class Store<T extends object> implements StoreBase {
    */
   set<K extends keyof T>(key: K, value: T[K], options?: SetOptions) {
     checkKey(this.values, key);
-    (this.values[key] as unknown as Subject<T, K>).notify(value, options);
+    (this.values[key] as unknown as Value<T, K>).notify(value, options);
   }
 
   /**
@@ -136,7 +136,6 @@ export class Store<T extends object> implements StoreBase {
   getState() {
     return this.state;
   }
-
 
   /**
    * Set state
@@ -151,7 +150,7 @@ export class Store<T extends object> implements StoreBase {
     }
   }
 
-    /**
+  /**
    * Make deep copy
    *
    * @param isRewriteSelf - is rewrite this.state [default: false]
@@ -179,7 +178,7 @@ export class Store<T extends object> implements StoreBase {
   addListener<K extends keyof T>(key: K, listener: Listener<T, K>, options?: ListenerOptions) {
     checkKey(this.values, key);
 
-    (this.values[key] as unknown as Subject<T, K>).addListener(listener, options);
+    (this.values[key] as unknown as Value<T, K>).addListener(listener, options);
     return () => this.removeListener(key, listener);
   }
 
@@ -191,14 +190,14 @@ export class Store<T extends object> implements StoreBase {
    */
   removeListener<K extends keyof T>(key: K, listener: Listener<T, K>) {
     checkKey(this.values, key);
-    (this.values[key] as unknown as Subject<T, K>).removeListener(listener);
+    (this.values[key] as unknown as Value<T, K>).removeListener(listener);
   }
 }
 
 /**
  * Creates a new isolated store instance.
  *
- * Each property of the initial state is converted into a Subject,
+ * Each property of the initial state is converted into a Value,
  * allowing independent subscriptions per key.
  *
  * @param state - Initial store state

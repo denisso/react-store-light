@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { Subject } from '../../src/store/subject';
+import { Value } from '../../src/store/value';
 
-describe('Subject', () => {
+describe('Value', () => {
   it('notifies subscribers', () => {
-    const subj = new Subject<{ value: number }, 'value'>('value', 1);
+    const subj = new Value<{ value: number }, 'value'>('value', 1);
     let value = 0;
     let name = '';
 

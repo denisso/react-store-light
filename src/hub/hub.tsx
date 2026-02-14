@@ -1,7 +1,7 @@
 import { Store, Listener } from '../store';
 import { addListNode, removeListNode } from '../helpers/list';
 
-const _REASONUPDATE_ = Symbol();
+const _REASON_NEW_STATE_UPDATE_ = Symbol();
 
 export class HubStore<T extends object> extends Store<T> {
   next: HubStore<T> | null = null;
@@ -40,6 +40,7 @@ export class Hub<T extends object> {
    */
   mountStore(store: HubStore<T>, newRef: T) {
     const prevRef = store.ref;
+    store.ref = newRef;
     let listStores: HubStore<T> | null = null;
     if (this.mapRefStores.has(prevRef)) {
       listStores = this.mapRefStores.get(prevRef) ?? null;
@@ -53,18 +54,18 @@ export class Hub<T extends object> {
     }
     this.mapRefStores.set(newRef, listStores);
 
-    store.setState(newRef, { reason: _REASONUPDATE_ });
+    store.setState(newRef, { reason: _REASON_NEW_STATE_UPDATE_ });
     for (const key of store.keys) {
       let listener: Listener<T, keyof T> = store.listeners[key];
       if (!listener) {
-        listener = (_: keyof T, value: T[keyof T], options) => {
-          const runsCounter = options?.runsCounter ?? 0;
+        listener = (key: keyof T, value: T[keyof T], options) => {
           const reason = options?.reason;
-          if (runsCounter > 1 || reason === _REASONUPDATE_) return;
+          newRef[key] = value;
+          if (reason === _REASON_NEW_STATE_UPDATE_) return;
           let next: HubStore<T> | null = this.mapRefStores.get(store.ref) ?? null;
           while (next) {
             if (next !== store) {
-              next.set(key, value, { runsCounter: runsCounter + 1 });
+              next.set(key, value);
             }
             next = next.next;
           }
@@ -93,6 +94,8 @@ export class Hub<T extends object> {
 
     if (!listStores) {
       this.mapRefStores.delete(store.ref);
+    } else {
+      this.mapRefStores.set(store.ref, listStores);
     }
   }
 
@@ -124,7 +127,6 @@ export class Hub<T extends object> {
    * @returns
    */
   updateKey<K extends keyof T>(ref: T, key: K, value: T[K]) {
-
     let listStores: HubStore<T> | null = this.mapRefStores.get(ref) ?? null;
     if (!listStores) {
       return false;

@@ -5,12 +5,12 @@ import { render, act, screen, waitFor } from '@testing-library/react';
 import Light from '../src';
 
 describe('Tree stores', () => {
-  it('Update from top to  bottom', () => {
+  it('Update from top to bottom', () => {
     type Counter = { id: number; count: number };
     type Counters = { counters: Counter[] };
-    // global
-    const globalStoreId = Light.createContextValueId<Light.Store<Counters>>();
-    const globalStore = Light.createStore<Counters>({ counters: [{ id: 0, count: 0 }] });
+    // root
+    const rootStoreId = Light.createContextValueId<Light.Store<Counters>>();
+    const rootStore = Light.createStore<Counters>({ counters: [{ id: 0, count: 0 }] });
 
     // counter
     const counterHub = Light.createHub<Counter>();
@@ -38,7 +38,7 @@ describe('Tree stores', () => {
     };
 
     const RootComponent = () => {
-      const [counters] = Light.useState(globalStoreId, 'counters');
+      const [counters] = Light.useState(rootStoreId, 'counters');
       return (
         <>
           {counters.map((counter) => (
@@ -49,28 +49,30 @@ describe('Tree stores', () => {
     };
 
     render(
-      <Light.Provider value={{ [globalStoreId]: globalStore }}>
+      <Light.Provider value={{ [rootStoreId]: rootStore }}>
         <RootComponent />
       </Light.Provider>,
     );
 
     act(() => {
       // test it
-      globalStore.set('counters', [{ id: 0, count: 2 }]);
+      rootStore.set('counters', [{ id: 0, count: 2 }]);
     });
     expect(results).toEqual([0, 2]);
   });
 
-  it('Usage HubStore for connect Writer and Reader', () => {
+  it('Usage HubStore for connect Writer and Reader with ref, mount and remount', () => {
     type Counter = { id: number; count: number };
-    const counter: Counter = { id: 0, count: 0 };
 
     // counter
     const counterHub = Light.createHub<Counter>();
     const counterStoreId = Light.createContextValueId<Light.Store<Counter>>();
 
     // for test
-    let writeCountSet: (count: number) => void;
+    let setCountFromWriter: (count: number) => void = () => {
+      throw Error('setCountFromWriter not assigned');
+    };
+
     const results: number[] = [];
 
     // counter Reader
@@ -87,21 +89,21 @@ describe('Tree stores', () => {
     const Writer = () => {
       const counterStore = Light.useStore(counterStoreId);
 
-      writeCountSet = (count) => {
-        const state = counterStore.getState();
-        state.count = count;
-        counterHub.updateState(state);
+      setCountFromWriter = (count) => {
+        counterStore.set('count', count);
       };
       return null;
     };
-    const CounterReader = () => {
+
+    type Props = { counter: Counter };
+    const ReaderProvider = ({ counter }: Props) => {
       const counterStore = Light.useCreateHubStore(counter, counterHub);
 
       return (
         <Light.Provider value={{ [counterStoreId]: counterStore }}>{<Reader />}</Light.Provider>
       );
     };
-    const CounterWriter = () => {
+    const WriterProvider = ({ counter }: Props) => {
       const counterStore = Light.useCreateHubStore(counter, counterHub);
 
       return (
@@ -109,21 +111,45 @@ describe('Tree stores', () => {
       );
     };
 
-    render(
-      <>
-        <CounterReader />
-        <CounterWriter />
-      </>,
-    );
+    let setCounterFromRoot: (counter: Counter) => void = () => {
+      throw Error('setCounterTest not assigned');
+    };
+
+    let counterTest = { id: 0, count: 0 };
+    const CounterWrapper = () => {
+      const [counter, setCounter] = React.useState<Counter>(counterTest);
+      setCounterFromRoot = setCounter;
+      return (
+        <>
+          <ReaderProvider counter={counter} />
+          <WriterProvider counter={counter} />
+        </>
+      );
+    };
+
+    render(<CounterWrapper />);
 
     act(() => {
-      writeCountSet(2);
+      setCountFromWriter(2);
     });
 
     expect(results).toEqual([0, 2]);
+
+    expect(counterTest).toEqual({ id: 0, count: 2 });
+
+    act(() => {
+      setCounterFromRoot({ id: 0, count: 1 });
+    });
+
+    expect(results).toEqual([0, 2, 1]);
+
+    act(() => {
+      setCountFromWriter(2);
+    });
+    expect(results).toEqual([0, 2, 1, 2]);
   });
 
-  it('build store tree and update state each store usage Hub.update', async () => {
+  it('Build store tree and update state each store usage Hub.update', async () => {
     type TreeNode = { id: string; value: number; nodes: TreeNode[] };
 
     type Tree = Record<string, { value: number; nodes?: string[] }>;
