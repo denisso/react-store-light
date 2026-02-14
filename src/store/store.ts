@@ -61,7 +61,7 @@ export class Store<T extends object> implements StoreBase {
    * Each Value represents a single key of the state
    * and notifies its listeners when the value changes.
    */
-  values: Values<T>;
+  private __values: Values<T>;
 
   /**
    * Cached list of state keys.
@@ -76,7 +76,7 @@ export class Store<T extends object> implements StoreBase {
    *
    * T is expected to be a plain object.
    */
-  private state: T;
+  private __state: T;
 
   /**
    * Store constructor.
@@ -88,12 +88,12 @@ export class Store<T extends object> implements StoreBase {
    * @param keys - [optional] (keyof T)[]
    */
   constructor(state: T, keys?: (keyof T)[]) {
-    this.values = {} as Values<T>;
-    this.state = state;
+    this.__values = {} as Values<T>;
+    this.__state = state;
     this.keys = keys ? keys : (Object.keys(state) as (keyof T)[]);
     // Initialize a Value for each key in the initial state
     this.keys.forEach((key) => {
-      this.values[key] = new Value<T, keyof T>(key, state[key]) as unknown as Values<T>[keyof T];
+      this.__values[key] = new Value<T, keyof T>(key, state[key]) as unknown as Values<T>[keyof T];
     });
     this.get = this.get.bind(this);
     this.set = this.set.bind(this);
@@ -110,8 +110,8 @@ export class Store<T extends object> implements StoreBase {
    * @returns T[K] - value
    */
   get<K extends keyof T>(key: K) {
-    checkKey(this.values, key);
-    return this.values[key].value as T[K];
+    checkKey(this.__values, key);
+    return this.__values[key].value as T[K];
   }
 
   /**
@@ -124,8 +124,8 @@ export class Store<T extends object> implements StoreBase {
    * @param options.runsCount - number of runs [default: false]
    */
   set<K extends keyof T>(key: K, value: T[K], options?: SetOptions) {
-    checkKey(this.values, key);
-    (this.values[key] as unknown as Value<T, K>).notify(value, options);
+    checkKey(this.__values, key);
+    (this.__values[key] as unknown as Value<T, K>).notify(value, options);
   }
 
   /**
@@ -134,7 +134,7 @@ export class Store<T extends object> implements StoreBase {
    * @returns state
    */
   getState() {
-    return this.state;
+    return this.__state;
   }
 
   /**
@@ -144,9 +144,9 @@ export class Store<T extends object> implements StoreBase {
    * @param isAlwaysNotify - notify listiners always [default: false]
    */
   setState(state: T, options?: SetOptions) {
-    this.state = state;
+    this.__state = state;
     for (const key of this.keys) {
-      this.values[key].notify(this.state[key] as any, options);
+      this.__values[key].notify(this.__state[key] as any, options);
     }
   }
 
@@ -156,14 +156,14 @@ export class Store<T extends object> implements StoreBase {
    * @param isRewriteSelf - is rewrite this.state [default: false]
    */
   makeDeepCopy(isRewriteSelf = false) {
-    const state = structuredClone(this.state);
+    const state = structuredClone(this.__state);
 
     if (isRewriteSelf) {
-      this.state = state;
+      this.__state = state;
       this.setState(state);
     }
 
-    return this.state;
+    return this.__state;
   }
 
   /**
@@ -176,9 +176,9 @@ export class Store<T extends object> implements StoreBase {
    * @returns UnSubscribe function
    */
   addListener<K extends keyof T>(key: K, listener: Listener<T, K>, options?: ListenerOptions) {
-    checkKey(this.values, key);
+    checkKey(this.__values, key);
 
-    (this.values[key] as unknown as Value<T, K>).addListener(listener, options);
+    (this.__values[key] as unknown as Value<T, K>).addListener(listener, options);
     return () => this.removeListener(key, listener);
   }
 
@@ -189,8 +189,8 @@ export class Store<T extends object> implements StoreBase {
    * @param listener Callback invoked on value changes
    */
   removeListener<K extends keyof T>(key: K, listener: Listener<T, K>) {
-    checkKey(this.values, key);
-    (this.values[key] as unknown as Value<T, K>).removeListener(listener);
+    checkKey(this.__values, key);
+    (this.__values[key] as unknown as Value<T, K>).removeListener(listener);
   }
 }
 

@@ -10,26 +10,27 @@ export class HubStore<T extends object> extends Store<T> {
   __next: HubStore<T> | null = null;
   __prev: HubStore<T> | null = null;
   __ref: T;
-  __head: HubStore<T>;
   constructor(ref: T, keys?: (keyof T)[]) {
     const _keys = keys ? keys : (Object.keys(ref) as (keyof T)[]);
     super(ref, _keys);
     const __self = this;
-    this.__head = this;
     for (const key of _keys) {
       const listener: Listener<T, keyof T> = (key: keyof T, value: T[keyof T], options) => {
         const reason = options?.reason;
         __self.__ref[key] = value;
         if (reason === _REASON_NEW_STATE_UPDATE_) return;
-        let next: HubStore<T> | null = __self.__head;
+        let next: HubStore<T> | null = __self.__next;
         while (next) {
-          if (next !== __self) {
-            next.set(key, value);
-          }
+          next.set(key, value);
           next = next.__next;
         }
+        let prev: HubStore<T> | null = __self.__prev;
+        while (prev) {
+          prev.set(key, value);
+          prev = prev.__prev;
+        }
       };
-      this.addListener(key, listener)
+      this.addListener(key, listener);
     }
 
     this.__ref = ref;
@@ -63,21 +64,20 @@ export class Hub<T extends object> {
   mountStore(store: HubStore<T>, newRef: T) {
     const prevRef = store.__ref;
     store.__ref = newRef;
-    let listStores: HubStore<T> | null = null;
+    let head: HubStore<T> | null = null;
     if (this.mapRefStores.has(prevRef)) {
-      listStores = this.mapRefStores.get(prevRef) ?? null;
+      head = this.mapRefStores.get(prevRef) ?? null;
     } else {
-      listStores = this.mapRefStores.get(store.__ref) ?? null;
+      head = this.mapRefStores.get(store.__ref) ?? null;
     }
 
-    listStores = addListNode(store, listStores);
+    head = addListNode(store, head);
     if (store.__ref !== prevRef && this.mapRefStores.has(prevRef)) {
       this.mapRefStores.delete(prevRef);
     }
-    this.mapRefStores.set(store.__ref, listStores);
+    this.mapRefStores.set(store.__ref, head);
 
     store.setState(store.__ref, { reason: _REASON_NEW_STATE_UPDATE_ });
-
   }
 
   /**
@@ -131,7 +131,7 @@ export class Hub<T extends object> {
     }
 
     while (listStores) {
-      listStores.values[key].notify(value as any);
+      listStores.set(key, value);
       listStores = listStores.__next;
     }
     ref[key] = value;
