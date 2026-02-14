@@ -73,7 +73,7 @@ describe('Tree stores', () => {
       throw Error('setCountFromWriter not assigned');
     };
 
-    const results: number[] = [];
+    let results: number[] = [];
 
     // counter Reader
     const Reader = () => {
@@ -115,9 +115,10 @@ describe('Tree stores', () => {
       throw Error('setCounterTest not assigned');
     };
 
-    let counterTest = { id: 0, count: 0 };
+    let copyState = { id: 0, count: 0 };
+    let currentState = { ...copyState };
     const CounterWrapper = () => {
-      const [counter, setCounter] = React.useState<Counter>(counterTest);
+      const [counter, setCounter] = React.useState<Counter>(currentState);
       setCounterFromRoot = setCounter;
       return (
         <>
@@ -128,25 +129,33 @@ describe('Tree stores', () => {
     };
 
     render(<CounterWrapper />);
-
+    results = [];
     act(() => {
-      setCountFromWriter(2);
+      setCountFromWriter((copyState.count += 2));
     });
 
-    expect(results).toEqual([0, 2]);
+    expect(results).toEqual([currentState.count]);
+    expect(results.length).toBe(1);
+    expect(copyState.count).toEqual(currentState.count);
 
-    expect(counterTest).toEqual({ id: 0, count: 2 });
+    copyState.count += 2;
+    currentState = structuredClone(copyState);
 
+    results = [];
     act(() => {
-      setCounterFromRoot({ id: 0, count: 1 });
+      setCounterFromRoot(currentState);
     });
 
-    expect(results).toEqual([0, 2, 1]);
-
+    expect(results).toEqual([currentState.count]);
+    expect(results.length).toBe(1);
+    
+    results = [];
     act(() => {
-      setCountFromWriter(2);
+      setCountFromWriter((copyState.count += 2));
     });
-    expect(results).toEqual([0, 2, 1, 2]);
+    expect(results).toEqual([currentState.count]);
+    expect(results.length).toBe(1);
+    expect(copyState.count).toEqual(currentState.count);
   });
 
   it('Build store tree and update state each store usage Hub.update', async () => {

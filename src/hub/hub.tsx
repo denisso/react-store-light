@@ -45,22 +45,22 @@ export class Hub<T extends object> {
     if (this.mapRefStores.has(prevRef)) {
       listStores = this.mapRefStores.get(prevRef) ?? null;
     } else {
-      listStores = this.mapRefStores.get(newRef) ?? null;
+      listStores = this.mapRefStores.get(store.ref) ?? null;
     }
 
     listStores = addListNode(store, listStores);
-    if (newRef !== store.ref && this.mapRefStores.has(prevRef)) {
+    if (store.ref !== prevRef && this.mapRefStores.has(prevRef)) {
       this.mapRefStores.delete(prevRef);
     }
-    this.mapRefStores.set(newRef, listStores);
+    this.mapRefStores.set(store.ref, listStores);
 
-    store.setState(newRef, { reason: _REASON_NEW_STATE_UPDATE_ });
+    store.setState(store.ref, { reason: _REASON_NEW_STATE_UPDATE_ });
     for (const key of store.keys) {
       let listener: Listener<T, keyof T> = store.listeners[key];
       if (!listener) {
         listener = (key: keyof T, value: T[keyof T], options) => {
           const reason = options?.reason;
-          newRef[key] = value;
+          store.ref[key] = value;
           if (reason === _REASON_NEW_STATE_UPDATE_) return;
           let next: HubStore<T> | null = this.mapRefStores.get(store.ref) ?? null;
           while (next) {
