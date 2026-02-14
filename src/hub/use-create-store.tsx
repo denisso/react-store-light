@@ -15,7 +15,7 @@ export const useCreateHubStore = <T extends object, S extends HubStore<T>>(
   ref: T,
   hub: Hub<T>,
   CustomHubStore?: HubStoreCtor<T, S>,
-) => {
+): S => {
   const [store] = React.useState(() => {
     if (CustomHubStore) {
       return new CustomHubStore(ref);
@@ -29,5 +29,5 @@ export const useCreateHubStore = <T extends object, S extends HubStore<T>>(
       hub.unMountStore(store);
     };
   }, [ref, store]);
-  return store;
+  return store as S;
 };

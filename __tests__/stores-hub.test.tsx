@@ -2,7 +2,7 @@ import React from 'react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect } from 'vitest';
 import { render, act, screen, waitFor } from '@testing-library/react';
-import Light from '../src';
+import Light, { HubStore } from '../src';
 
 describe('Tree stores', () => {
   it('Update from top to bottom', () => {
@@ -148,7 +148,7 @@ describe('Tree stores', () => {
 
     expect(results).toEqual([currentState.count]);
     expect(results.length).toBe(1);
-    
+
     results = [];
     act(() => {
       setCountFromWriter((copyState.count += 2));
@@ -276,5 +276,47 @@ describe('Tree stores', () => {
     };
 
     dfs(root);
+  });
+
+  it('Custom Hub Store', () => {
+    type Counter = { count: number };
+    class CustomHubStore extends HubStore<Counter> {
+      getSustomState() {
+        return super.getState();
+      }
+    }
+
+    const counterStoreId = Light.createContextValueId<CustomHubStore>();
+    const hub = Light.createHub<Counter>();
+
+    const testResults: Counter[] = [];
+    const StoreCounterComp = () => {
+      const custoStore = Light.useStore(counterStoreId);
+      testResults.push(custoStore.getSustomState());
+      return null;
+    };
+    type Props = { counter: Counter };
+    const CounterProvicer = ({ counter }: Props) => {
+      const storeCounter = Light.useCreateHubStore(counter, hub, CustomHubStore);
+      return (
+        <Light.Provider value={{ [counterStoreId]: storeCounter }}>
+          <StoreCounterComp />
+        </Light.Provider>
+      );
+    };
+    let countersArr: Counter[] = Array.from({ length: 3 }, (_, i) => ({ count: i }));
+    const CountersComp = () => {
+      const [counters] = React.useState(countersArr);
+      return (
+        <>
+          {counters.map((counter) => (
+            <CounterProvicer counter={counter} />
+          ))}
+        </>
+      );
+    };
+    render(<CountersComp />);
+
+    expect(countersArr).toEqual(testResults);
   });
 });
