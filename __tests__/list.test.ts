@@ -20,8 +20,6 @@ const getListNodeValues = (head: ListNodeNumber | null) => {
 };
 
 describe('List', () => {
-
-
   it('addListNode and removeListNode', () => {
     let count = 0;
     const len = 3;
@@ -65,6 +63,7 @@ describe('List', () => {
       head = addListNode(node, head);
     }
 
+    const nodesCopy = [...nodes]
     // middle node delete
     while (nodes.length) {
       const indx = Math.floor(nodes.length / 2);
@@ -76,6 +75,9 @@ describe('List', () => {
 
     expect(head).toEqual(null);
 
-    
+    for (const node of nodesCopy) {
+      expect(node.__next).toEqual(null);
+      expect(node.__prev).toEqual(null);
+    }
   });
 });
