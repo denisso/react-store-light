@@ -76,7 +76,7 @@ export class Store<T extends object> implements StoreBase {
    *
    * T is expected to be a plain object.
    */
-  state: T;
+  private state: T;
 
   /**
    * Store constructor.
@@ -85,12 +85,12 @@ export class Store<T extends object> implements StoreBase {
    * allowing independent subscriptions per key.
    *
    * @param state - Initial store state
-   * @param isMutateState - [optional] mutate state on value updates
+   * @param keys - [optional] (keyof T)[]
    */
-  constructor(state: T) {
+  constructor(state: T, keys?: (keyof T)[]) {
     this.values = {} as Values<T>;
     this.state = state;
-    this.keys = Object.keys(state) as (keyof T)[];
+    this.keys = keys ? keys : (Object.keys(state) as (keyof T)[]);
     // Initialize a Value for each key in the initial state
     this.keys.forEach((key) => {
       this.values[key] = new Value<T, keyof T>(key, state[key]) as unknown as Values<T>[keyof T];

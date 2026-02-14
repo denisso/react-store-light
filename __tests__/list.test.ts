@@ -11,10 +11,10 @@ class ListNodeNumber extends ListNode<ListNodeNumber> {
 
 const getListNodeValues = (head: ListNodeNumber | null) => {
   const result: ListNodeNumber[] = [];
-  let next = head;
-  while (next) {
-    result.push(next);
-    next = next.next;
+  let __next = head;
+  while (__next) {
+    result.push(__next);
+    __next = __next.__next;
   }
   return result;
 };

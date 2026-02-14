@@ -1,17 +1,17 @@
 export class ListNode<N extends ListNode<N>> {
-  next: N | null = null;
-  prev: N | null = null;
+  __next: N | null = null;
+  __prev: N | null = null;
 }
 
 export const addListNode = <N extends ListNode<N>>(node: N, head?: N | null) => {
-  node.prev = null;
-  node.next = null;
+  node.__prev = null;
+  node.__next = null;
   if (!head) {
     return node;
   }
 
-  node.next = head;
-  head.prev = node;
+  node.__next = head;
+  head.__prev = node;
   return node;
 };
 
@@ -19,28 +19,28 @@ export const removeListNode = <N extends ListNode<N>>(node: N, head?: N | null) 
   if (!head) {
     return null;
   }
-  const next = node.next;
-  const prev = node.prev;
-  node.prev = null;
-  node.next = null;
+  const __next = node.__next;
+  const __prev = node.__prev;
+  node.__prev = null;
+  node.__next = null;
 
   if (node === head) {
-    if (next) {
-      next.prev = null;
+    if (__next) {
+      __next.__prev = null;
     }
-    return next;
+    return __next;
   }
-  if (!next) {
+  if (!__next) {
     // delete  tail
-    if (prev) {
-      prev.next = null;
+    if (__prev) {
+      __prev.__next = null;
     }
   } else {
-    if (prev) {
-      prev.next = next;
+    if (__prev) {
+      __prev.__next = __next;
     }
-    if (next) {
-      next.prev = prev;
+    if (__next) {
+      __next.__prev = __prev;
     }
   }
   return head;
