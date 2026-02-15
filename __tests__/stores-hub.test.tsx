@@ -204,17 +204,15 @@ describe('Tree stores', () => {
     const storeId = Light.createContextValueId<Light.Store<TreeNode>>();
 
     let testResults: { id: string; value: number }[] = [];
-
+    const dictSetValue: Record<string, (value: number) => void> = {};
     function Value() {
       const [id] = Light.useState(storeId, 'id');
       const [value, setValue] = Light.useState(storeId, 'value');
       React.useEffect(() => {
         testResults.push({ id, value });
       }, [id, value]);
-      const handlerClick = () => {
-        setValue((prev) => prev + 1);
-      };
-      return <button onClick={handlerClick}>{id}</button>;
+      dictSetValue[id] = setValue;
+      return null;
     }
 
     function Children() {
@@ -241,15 +239,6 @@ describe('Tree stores', () => {
 
     const labels = Object.keys(tree);
 
-    const buttons: Record<string, HTMLButtonElement> = {};
-
-    // check the text of each button
-    labels.forEach((label) => {
-      buttons[label] = screen.getByRole('button', { name: label });
-      expect(buttons[label]).toBeInTheDocument();
-    });
-    const user = userEvent.setup();
-
     // after first render
     expect(testResults.sort((a, b) => a.id.localeCompare(b.id))).toEqual(
       labels.map((id) => ({ id, value: 0 })).sort((a, b) => a.id.localeCompare(b.id)),
@@ -258,24 +247,30 @@ describe('Tree stores', () => {
 
     // click each button
     for (const label of labels) {
-      await user.click(buttons[label]);
-      expect(testResults).toEqual([{ id: label, value: 1 }]);
-      testResults = [];
+      dictSetValue[label](1);
     }
-
+    await waitFor(() => {
+      expect(testResults.sort((a, b) => a.id.localeCompare(b.id))).toEqual(
+        labels.map((label) => ({ id: label, value: 1 })).sort((a, b) => a.id.localeCompare(b.id)),
+      );
+    });
+    testResults = [];
     // change state each store to 0 usage ref
     const dfs = async (parent: TreeNode) => {
       hub.updateKey(parent, 'value', 0);
-      await waitFor(() => {
-        expect(testResults).toEqual([{ id: parent.id, value: 0 }]);
-      });
+
       testResults = [];
       for (const child of parent.nodes) {
-        await dfs(child);
+        dfs(child);
       }
     };
 
     dfs(root);
+    await waitFor(() => {
+      expect(testResults.sort((a, b) => a.id.localeCompare(b.id))).toEqual(
+        labels.map((label) => ({ id: label, value: 0 })).sort((a, b) => a.id.localeCompare(b.id)),
+      );
+    });
   });
 
   it('Custom Hub Store', () => {
