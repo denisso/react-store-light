@@ -10,8 +10,6 @@ export interface StoreBase {
 
 export type SetOptions = Partial<{
   reason: symbol;
-  visited: Set<Function>;
-  isAlwaysNotify: boolean;
 }>;
 
 /**
@@ -36,7 +34,7 @@ type Values<T extends object> = {
   [K in keyof T]: Value<T, K>;
 };
 
-export type ListenerOptions = Pick<NonNullable<SetOptions>, 'reason' | 'visited'> & {
+export type ListenerOptions = Pick<NonNullable<SetOptions>, 'reason' > & {
   isAutoCallListener: boolean;
 };
 /**
@@ -120,8 +118,7 @@ export class Store<T extends object> implements StoreBase {
    *
    * @param key - K - key
    * @param value - T[K] - value
-   * @param options.isAlwaysNotify - notify listiners always
-   * @param options.runsCount - number of runs [default: false]
+   * @param options - SetOptions
    */
   set<K extends keyof T>(key: K, value: T[K], options?: SetOptions) {
     checkKey(this.__values, key);

@@ -31,12 +31,11 @@ export class Value<T extends object, K extends keyof T> {
   /**
    * Update the value and notify subscribers.
    * @param value - new value
-   * @param isAlwaysNotify - notify listiners always [default: false]
    * @param options - SetOptions
    * @returns undefined
    */
   notify(value: T[K], options?: SetOptions) {
-    if (!options?.isAlwaysNotify && this.value === value) {
+    if (this.value === value) {
       return;
     }
 
@@ -46,7 +45,6 @@ export class Value<T extends object, K extends keyof T> {
     if (options) {
       _options = {};
       if (options.hasOwnProperty('reason')) _options.reason = options.reason;
-      if (options.visited instanceof Set) _options.visited = new Set(options.visited);
     }
     this.listeners.forEach((listener) => {
       listener(this.name, this.value, _options);

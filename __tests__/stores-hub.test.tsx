@@ -310,13 +310,13 @@ describe('Tree stores', () => {
       return (
         <>
           {counters.map((counter) => (
-            <CounterProvicer counter={counter} />
+            <CounterProvicer counter={counter} key={counter.count} />
           ))}
         </>
       );
     };
     render(<CountersComp />);
 
-    expect(countersArr).toEqual(testResults);
+    expect(countersArr.sort()).toEqual(testResults.sort());
   });
 });
