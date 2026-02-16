@@ -1,0 +1,1 @@
+export { Store2, getStateValue } from "./store";
