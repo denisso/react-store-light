@@ -1,30 +1,34 @@
-import type { Listener, ListenerOptions, SetOptions } from './store';
+import type { ListenerOptions, SetOptions } from '../store/store';
 
 /**
  * Typed Value implements a simple observable pattern.
  * It stores a value, allows subscriptions, and notifies observers and listeners
  * when the value changes.
  */
-export class Value<T extends object, K extends keyof T> {
-  // Listeners will called when the value is changed
-  private listeners: Set<Listener<T, K>>;
-  // name for value in store
-  private name: K;
-  public value: T[K];
-  constructor(name: K, value: T[K]) {
-    this.name = name;
-    this.listeners = new Set();
+export class Value {
+  path: string[];
+  children: object[];
+  parent: object | null;
+  key: string;
+  value: any;
+  listeners: Set<Function>;
+  constructor(path: string[], value: any) {
+    this.path = path;
+    this.key = path.pop() as string;
     this.value = value;
+    this.parent = null;
+    this.children = [];
+    this.listeners = new Set();
   }
 
-  addListener(listener: Listener<T, K>, options?: ListenerOptions) {
+  addListener(listener: Function, options?: ListenerOptions) {
     this.listeners.add(listener);
     if (options && options.isAutoCallListener) {
-      listener(this.name, this.value, options);
+      listener(this.key, this.value, options);
     }
   }
 
-  removeListener(listener: Listener<T, K>) {
+  removeListener(listener: Function) {
     this.listeners.delete(listener);
   }
 
@@ -34,7 +38,7 @@ export class Value<T extends object, K extends keyof T> {
    * @param options - SetOptions
    * @returns undefined
    */
-  notify(value: T[K], options?: SetOptions) {
+  notify(value: any, options?: SetOptions) {
     if (this.value === value) {
       return;
     }
@@ -47,7 +51,7 @@ export class Value<T extends object, K extends keyof T> {
       if (options.hasOwnProperty('reason')) _options.reason = options.reason;
     }
     this.listeners.forEach((listener) => {
-      listener(this.name, this.value, _options);
+      listener(this.key, this.value, _options);
     });
   }
 }

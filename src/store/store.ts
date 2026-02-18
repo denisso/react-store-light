@@ -1,5 +1,35 @@
 import { Value } from './value';
-import { formatError } from '../helpers/error';
+
+type DeepGetter<T> = (<K extends keyof T>(key: K) => DeepGetter<T[K]>) &
+  (() => { value: T; path: string[] });
+
+export const getStateValue = <T>(obj: T, currentPath: string[] = []): DeepGetter<T> => {
+  const fn = ((key?: PropertyKey) => {
+    if (key === undefined) {
+      return {
+        value: obj,
+        path: currentPath,
+      };
+    }
+
+    return getStateValue((obj as any)[key], [...currentPath, String(key)]);
+  }) as DeepGetter<T>;
+
+  return fn;
+};
+
+type PrepValues<S> = {
+  [K in keyof S]: {
+    path: string[];
+    value: S[K];
+  };
+};
+
+type TreeNode = {
+  parent?: TreeNode;
+  children?: Record<string, TreeNode>;
+  values?: Record<string, Value>;
+};
 
 /**
  * Branding type Store
@@ -12,29 +42,7 @@ export type SetOptions = Partial<{
   reason: symbol;
 }>;
 
-/**
- * Runtime check that ensures the key exists in the store object.
- * Even though TypeScript restricts keys at compile time,
- * this protects against invalid access at runtime.
- */
-const checkKey = (object: object, key: PropertyKey) => {
-  if (object.hasOwnProperty(key)) {
-    return;
-  }
-  throw formatError['errorKeyMessage'](key);
-};
-
-/**
- * Internal store representation:
- * each property of the state is wrapped into a Value.
- *
- * If T has no keys, Store<T> becomes never.
- */
-type Values<T extends object> = {
-  [K in keyof T]: Value<T, K>;
-};
-
-export type ListenerOptions = Pick<NonNullable<SetOptions>, 'reason' > & {
+export type ListenerOptions = Pick<NonNullable<SetOptions>, 'reason'> & {
   isAutoCallListener: boolean;
 };
 /**
@@ -47,71 +55,67 @@ export type Listener<T extends object, K extends keyof T> = (
   options?: Omit<ListenerOptions, 'isAutoCallListener'>,
 ) => void;
 
-/**
- * Observer pattern based store
- */
-export class Store<T extends object> implements StoreBase {
-  readonly __brand = 'Store' as const;
-
-  /**
-   * Map of Values.
-   *
-   * Each Value represents a single key of the state
-   * and notifies its listeners when the value changes.
-   */
-  private __values: Values<T>;
-
+export class Store<T extends object, S extends object = T> {
   /**
    * Cached list of state keys.
    *
    * Initialized once from the initial state:
-   * this.keys = Object.keys(state) as (keyof T)[];
+   * this.__keys = Object.keys(state) as (keyof T)[];
    */
-  keys: (keyof T)[];
+  __keys: (keyof S)[];
 
-  /**
-   * Current store state.
-   *
-   * T is expected to be a plain object.
-   */
-  private __state: T;
+  __object: T;
 
-  /**
-   * Store constructor.
-   *
-   * Each property of the initial state is converted into a Value,
-   * allowing independent subscriptions per key.
-   *
-   * @param state - Initial store state
-   * @param keys - [optional] (keyof T)[]
-   */
-  constructor(state: T, keys?: (keyof T)[]) {
-    this.__values = {} as Values<T>;
-    this.__state = state;
-    this.keys = keys ? keys : (Object.keys(state) as (keyof T)[]);
-    // Initialize a Value for each key in the initial state
-    this.keys.forEach((key) => {
-      this.__values[key] = new Value<T, keyof T>(key, state[key]) as unknown as Values<T>[keyof T];
-    });
-    this.get = this.get.bind(this);
-    this.set = this.set.bind(this);
-    this.getState = this.getState.bind(this);
-    this.setState = this.setState.bind(this);
-    this.addListener = this.addListener.bind(this);
-    this.removeListener = this.removeListener.bind(this);
+  __tree: TreeNode;
+
+  __values: Record<keyof S, Value>;
+
+  constructor(object: T, values?: PrepValues<S>) {
+    this.__object = object;
+    this.__keys = (values ? Object.keys(values) : Object.keys(object)) as (keyof S)[];
+    let _values = values;
+    if (!_values) {
+      _values = {} as PrepValues<S>;
+      for (const key of this.__keys) {
+        _values[key] = getStateValue<any>(object)(key)();
+      }
+    }
+    this.__tree = {};
+    this.__values = {} as Record<keyof S, Value>;
+    this.initValues(_values);
   }
 
+  private initValues(values: PrepValues<S>) {
+    for (const key of this.__keys) {
+      let parent = this.__tree;
+      for (let i = 0; i < values[key].path.length - 1; i++) {
+        if (!parent.children) {
+          parent.children = {};
+        }
+        let child = parent.children[values[key].path[i]];
+        if (!child) {
+          child = { parent };
+        }
+        parent.children[values[key].path[i]] = child;
+        parent = child;
+      }
+      if (!parent.values) {
+        parent.values = {};
+      }
+      this.__values[key] = new Value(values[key].path, values[key].value);
+      parent.values[key as string] = this.__values[key];
+    }
+    return;
+  }
   /**
    * Returns the current value for a given key.
    *
    * @param key K - key
    * @returns T[K] - value
    */
-  get<K extends keyof T>(key: K) {
-    checkKey(this.__values, key);
-    return this.__values[key].value as T[K];
+  get<K extends keyof S>(key: K) {
+    return this.__values[key].value as S[K];
   }
-
   /**
    * Updates the value for a given key
    * and notifies all registered listeners.
@@ -120,9 +124,8 @@ export class Store<T extends object> implements StoreBase {
    * @param value - T[K] - value
    * @param options - SetOptions
    */
-  set<K extends keyof T>(key: K, value: T[K], options?: SetOptions) {
-    checkKey(this.__values, key);
-    (this.__values[key] as unknown as Value<T, K>).notify(value, options);
+  set<K extends keyof S>(key: K, value: S[K], options?: SetOptions) {
+    this.__values[key].notify(value, options);
   }
 
   /**
@@ -130,8 +133,15 @@ export class Store<T extends object> implements StoreBase {
    *
    * @returns state
    */
-  getState() {
-    return this.__state;
+  getState(isDeepCopy = true) {
+    const state = {} as S;
+    for (const key of this.__keys) {
+      state[key] = this.__values[key].value;
+    }
+    if (isDeepCopy) {
+      return structuredClone(state);
+    }
+    return state;
   }
 
   /**
@@ -140,27 +150,10 @@ export class Store<T extends object> implements StoreBase {
    * @param state - Initial store state
    * @param isAlwaysNotify - notify listiners always [default: false]
    */
-  setState(state: T, options?: SetOptions) {
-    this.__state = state;
-    for (const key of this.keys) {
-      this.__values[key].notify(this.__state[key] as any, options);
+  setState(state: S, options?: SetOptions) {
+    for (const key of this.__keys) {
+      this.__values[key].notify(state[key], options);
     }
-  }
-
-  /**
-   * Make deep copy
-   *
-   * @param isRewriteSelf - is rewrite this.state [default: false]
-   */
-  makeDeepCopy(isRewriteSelf = false) {
-    const state = structuredClone(this.__state);
-
-    if (isRewriteSelf) {
-      this.__state = state;
-      this.setState(state);
-    }
-
-    return this.__state;
   }
 
   /**
@@ -172,10 +165,8 @@ export class Store<T extends object> implements StoreBase {
    *                         with the current value [default: false]
    * @returns UnSubscribe function
    */
-  addListener<K extends keyof T>(key: K, listener: Listener<T, K>, options?: ListenerOptions) {
-    checkKey(this.__values, key);
-
-    (this.__values[key] as unknown as Value<T, K>).addListener(listener, options);
+  addListener<K extends keyof S>(key: K, listener: Listener<S, K>, options?: ListenerOptions) {
+    this.__values[key].addListener(listener, options);
     return () => this.removeListener(key, listener);
   }
 
@@ -185,9 +176,8 @@ export class Store<T extends object> implements StoreBase {
    * @param key Store key to subscribe to
    * @param listener Callback invoked on value changes
    */
-  removeListener<K extends keyof T>(key: K, listener: Listener<T, K>) {
-    checkKey(this.__values, key);
-    (this.__values[key] as unknown as Value<T, K>).removeListener(listener);
+  removeListener<K extends keyof S>(key: K, listener: Listener<S, K>) {
+    this.__values[key].removeListener(listener);
   }
 }
 
@@ -200,6 +190,9 @@ export class Store<T extends object> implements StoreBase {
  * @param state - Initial store state
  * @returns Store API with get/set and subscription methods
  */
-export const createStore = <T extends object>(state: T) => {
-  return new Store<T>(state);
+export const createStore = <T extends object, S extends object = T>(
+  object: T,
+  values?: PrepValues<S>,
+) => {
+  return new Store<T, S>(object, values);
 };
