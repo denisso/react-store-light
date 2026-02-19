@@ -25,7 +25,7 @@ type PrepValues<S> = {
   };
 };
 
-type TreeNode = {
+export type TreeNode = {
   parent?: TreeNode;
   children?: Record<string, TreeNode>;
   values?: Record<string, Value>;
@@ -64,30 +64,27 @@ export class Store<T extends object, S extends object = T> {
    */
   __keys: (keyof S)[];
 
+  __treeHead: TreeNode = {};
+
+  __values: Record<keyof S, Value> = {} as Record<keyof S, Value>;
+
   __object: T;
-
-  __tree: TreeNode;
-
-  __values: Record<keyof S, Value>;
 
   constructor(object: T, values?: PrepValues<S>) {
     this.__object = object;
     this.__keys = (values ? Object.keys(values) : Object.keys(object)) as (keyof S)[];
-    let _values = values;
-    if (!_values) {
-      _values = {} as PrepValues<S>;
+    if (!values) {
+      values = {} as PrepValues<S>;
       for (const key of this.__keys) {
-        _values[key] = getStateValue<any>(object)(key)();
+        values[key] = getStateValue<any>(object)(key)();
       }
     }
-    this.__tree = {};
-    this.__values = {} as Record<keyof S, Value>;
-    this.initValues(_values);
+    this.init(values);
   }
 
-  private initValues(values: PrepValues<S>) {
+  private init(values: PrepValues<S>) {
     for (const key of this.__keys) {
-      let parent = this.__tree;
+      let parent = this.__treeHead;
       for (let i = 0; i < values[key].path.length - 1; i++) {
         if (!parent.children) {
           parent.children = {};
@@ -102,10 +99,27 @@ export class Store<T extends object, S extends object = T> {
       if (!parent.values) {
         parent.values = {};
       }
-      this.__values[key] = new Value(values[key].path, values[key].value);
+      this.__values[key] = new Value(parent, values[key].value, key as string, values[key].path);
       parent.values[key as string] = this.__values[key];
     }
     return;
+  }
+
+  getObject(isDeepCopy = true) {
+    if (isDeepCopy) {
+      return structuredClone(this.__object);
+    }
+    return this.__object;
+  }
+  setObject(object: T) {
+    for (const key of this.__keys) {
+      let value: any = object;
+      for (let i = 0; i < this.__values[key].path.length; i++) {
+        value = value[this.__values[key].path[i]];
+      }
+      this.set(key, value);
+    }
+    this.__object = object;
   }
   /**
    * Returns the current value for a given key.
@@ -113,8 +127,12 @@ export class Store<T extends object, S extends object = T> {
    * @param key K - key
    * @returns T[K] - value
    */
-  get<K extends keyof S>(key: K) {
-    return this.__values[key].value as S[K];
+  get<K extends keyof S>(key: K, isDeepCopy = true) {
+    let value = this.__values[key].value as S[K];
+    if (value instanceof Object && isDeepCopy) {
+      return structuredClone(value);
+    }
+    return value;
   }
   /**
    * Updates the value for a given key

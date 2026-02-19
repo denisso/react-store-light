@@ -1,4 +1,4 @@
-import type { ListenerOptions, SetOptions } from '../store/store';
+import type { ListenerOptions, SetOptions, TreeNode } from './store';
 
 /**
  * Typed Value implements a simple observable pattern.
@@ -6,19 +6,17 @@ import type { ListenerOptions, SetOptions } from '../store/store';
  * when the value changes.
  */
 export class Value {
-  path: string[];
-  children: object[];
-  parent: object | null;
   key: string;
   value: any;
   listeners: Set<Function>;
-  constructor(path: string[], value: any) {
-    this.path = path;
-    this.key = path.pop() as string;
+  node: TreeNode;
+  path: string[];
+  constructor(node: TreeNode, value: any, key: string, path: string[]) {
+    this.node = node;
+    this.key = key;
     this.value = value;
-    this.parent = null;
-    this.children = [];
     this.listeners = new Set();
+    this.path = path;
   }
 
   addListener(listener: Function, options?: ListenerOptions) {
