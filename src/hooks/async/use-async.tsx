@@ -14,7 +14,7 @@ export function useAsync<T extends object, Args extends unknown[], K extends key
   dispatch: (...args: Args) => void;
   abort: () => void;
   value: T[K];
-}
+};
 
 export function useAsync<T extends object, Args extends unknown[], K extends keyof T>(
   store: Store<T>,
@@ -24,7 +24,7 @@ export function useAsync<T extends object, Args extends unknown[], K extends key
   dispatch: (...args: Args) => void;
   abort: () => void;
   value: T[K];
-}
+};
 
 /**
  * Subscribes a component to a single async store field by key.
@@ -47,8 +47,7 @@ export function useAsync<T extends object, Args extends unknown[], K extends key
   abort: () => void;
   value: T[K];
 } {
-   const store = typeof storeOrId === 'symbol' ? useStore(storeOrId) : storeOrId;
-  const [value, setValue] = React.useState(getAsyncValue<T, K>(store, key));
+  const store = typeof storeOrId === 'symbol' ? useStore(storeOrId) : storeOrId;
 
   const [dispatch] = React.useState<(...args: [...Args]) => void>(() => {
     return (...args: [...Args]): void => {
@@ -61,7 +60,7 @@ export function useAsync<T extends object, Args extends unknown[], K extends key
     };
   });
 
-  useConnectListenersToStore(setValue as (value: T[K]) => void, key, store);
+  const [value] = useConnectListenersToStore(store, key as string);
 
   return { dispatch, abort, value: value as T[K] };
 }

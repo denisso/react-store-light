@@ -3,23 +3,22 @@ import { Store } from '../store';
 
 /**
  * Connect listeners to store
- * 
+ *
  * @param setValue - React.useState - setter
  * @param key - store key
- * @param store - IStore<T>  
+ * @param store - IStore<T>
  */
-export const useConnectListenersToStore = <T extends object, K extends keyof T>(
-  setValue: (value: T[K]) => void,
-  key: K,
-  store: Store<T>,
-) => {
+export const useConnectListenersToStore = (store: Store<any>, key: string) => {
+  const setState = () => {
+    setResult([store.get(key)]);
+  };
+  const [result, setResult] = React.useState([store.get(key)]);
+
   React.useEffect(() => {
-    const listener = (_: K, value: T[K]) => {
-      setValue(value);
-    };
-    store.addListener(key, listener);
+    store.addListener(key, setState);
     return () => {
-      store.removeListener(key, listener);
+      store.removeListener(key, setState);
     };
-  }, [setValue, key, store]);
+  }, [setState, key, store]);
+  return result;
 };

@@ -7,24 +7,27 @@ import type { IContextValueId } from '../types';
 type IArgs<T extends object, K extends keyof T> = T[K] | ((prev: T[K]) => T[K]);
 
 // proxy method for set field in the store by key
-const setStateProxy = <T extends object, K extends keyof T>(store: Store<T>, key: K) => {
-  return (arg: IArgs<T, K>) => {
+const setStateProxy = <T extends object, S extends object, K extends keyof S>(
+  store: Store<T, S>,
+  key: K,
+) => {
+  return (arg: IArgs<S, K>) => {
     if (typeof arg === 'function') {
-      return store.set(key, (arg as (prev: T[K]) => T[K])(store.get(key)));
+      return store.set(key, (arg as (prev: S[K]) => S[K])(store.get(key)));
     }
     store.set(key, arg);
   };
 };
 
-export function useState<T extends object, K extends keyof T>(
-  contextValueId: IContextValueId<Store<T>>,
+export function useState<T extends object, S extends object, K extends keyof S>(
+  contextValueId: IContextValueId<Store<T, S>>,
   key: K,
-): [T[K], (args: IArgs<T, K>) => void];
+): [S[K], (args: IArgs<S, K>) => void];
 
-export function useState<T extends object, K extends keyof T>(
-  store: Store<T>,
+export function useState<T extends object, S extends object, K extends keyof S>(
+  store: Store<T, S>,
   key: K,
-): [T[K], (args: IArgs<T, K>) => void];
+): [S[K], (args: IArgs<S, K>) => void];
 
 /**
  * Subscribes a component to a single store field by key.
@@ -35,19 +38,17 @@ export function useState<T extends object, K extends keyof T>(
  * @param store - Store<T> | IContextValueId<Store<T>>
  * @param key - name field in the store
  */
-export function useState<T extends object, K extends keyof T>(
-  storeOrId: Store<T> | IContextValueId<Store<T>>,
+export function useState<T extends object, S extends object, K extends keyof S>(
+  storeOrId: Store<T, S> | IContextValueId<Store<T, S>>,
   key: K,
-): [T[K], (args: IArgs<T, K>) => void] {
+): [S[K], (args: IArgs<S, K>) => void] {
   const store = typeof storeOrId === 'symbol' ? useStore(storeOrId) : storeOrId;
 
-  const [state, setState] = React.useState<T[K]>(store.get(key));
-
-  const [_setState] = React.useState<ReturnType<typeof setStateProxy<T, K>>>(() =>
-    setStateProxy<T, K>(store, key),
+  const [_setState] = React.useState<ReturnType<typeof setStateProxy<T, S, K>>>(() =>
+    setStateProxy<T, S, K>(store, key),
   );
 
-  useConnectListenersToStore(setState, key, store);
+  const [state] = useConnectListenersToStore(store, key as string);
 
   return [state, _setState];
 }
