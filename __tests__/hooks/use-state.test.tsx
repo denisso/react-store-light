@@ -18,7 +18,8 @@ describe('useState', () => {
       }, [count]);
 
       trigger = () => {
-        setCount(2);
+        // ! test it
+        setCount((prev) => prev + 2);
       };
 
       return null;
@@ -49,6 +50,7 @@ describe('useState', () => {
       }, [count]);
 
       trigger = () => {
+        // ! test it
         setCount(2);
       };
 

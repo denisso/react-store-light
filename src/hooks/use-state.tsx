@@ -6,19 +6,6 @@ import type { IContextValueId } from '../types';
 
 type IArgs<T extends object, K extends keyof T> = T[K] | ((prev: T[K]) => T[K]);
 
-// proxy method for set field in the store by key
-const setStateProxy = <T extends object, S extends object, K extends keyof S>(
-  store: Store<T, S>,
-  key: K,
-) => {
-  return (arg: IArgs<S, K>) => {
-    if (typeof arg === 'function') {
-      return store.set(key, (arg as (prev: S[K]) => S[K])(store.get(key)));
-    }
-    store.set(key, arg);
-  };
-};
-
 export function useState<T extends object, S extends object, K extends keyof S>(
   contextValueId: IContextValueId<Store<T, S>>,
   key: K,
@@ -44,9 +31,12 @@ export function useState<T extends object, S extends object, K extends keyof S>(
 ): [S[K], (args: IArgs<S, K>) => void] {
   const store = typeof storeOrId === 'symbol' ? useStore(storeOrId) : storeOrId;
 
-  const [_setState] = React.useState<ReturnType<typeof setStateProxy<T, S, K>>>(() =>
-    setStateProxy<T, S, K>(store, key),
-  );
+  const [_setState] = React.useState(() => (arg: IArgs<S, K>) => {
+    if (arg instanceof Function) {
+      return store.set(key, arg(store.get(key)));
+    }
+    store.set(key, arg);
+  });
 
   const [state] = useConnectListenersToStore(store, key as string);
 
