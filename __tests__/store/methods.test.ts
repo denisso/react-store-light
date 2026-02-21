@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createStore, Store } from '../../src';
 
-describe('Store', () => {
+describe('Store methods', () => {
   it('updates value on init', () => {
     const { addListener } = createStore({ count: 1 });
     const listener = vi.fn<(name: string, value: number) => void>();

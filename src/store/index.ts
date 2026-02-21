@@ -1,1 +1,8 @@
-export { createStore, Store, type StoreBase, type Listener, getStateValue } from "./store";
+export {
+  createStore,
+  Store,
+  type StoreBase,
+  type Listener,
+  getStateValue,
+  type PrepValues,
+} from './store';

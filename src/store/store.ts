@@ -26,7 +26,8 @@ export type PrepValues<S> = {
 };
 
 export type TreeNode = {
-  parent?: TreeNode;
+  parent?: TreeNode | null;
+  name: string;
   children?: Map<string, TreeNode>;
   values?: Record<string, Value>;
 };
@@ -66,7 +67,7 @@ export class Store<T extends object, S extends object = T> {
 
   __parentStore?: Store<any>;
 
-  __headTreeNode: TreeNode = {};
+  __headTreeNode: TreeNode = { name: '' };
 
   __parentTreeNode?: TreeNode;
 
@@ -84,7 +85,7 @@ export class Store<T extends object, S extends object = T> {
       }
     }
     this.initTree(prepValues);
-    // this.shrinkTree();
+    this.shrinkTree();
   }
 
   private initTree(values: PrepValues<S>) {
@@ -97,10 +98,10 @@ export class Store<T extends object, S extends object = T> {
         }
         let child = parent.children.get(values[key].path[i] as string);
         if (!child) {
-          child = { parent };
+          child = { parent, name: values[key].path[i] };
           parent.children.set(values[key].path[i], child);
         }
-        
+
         parent = child;
       }
       if (!parent.values) {
@@ -112,39 +113,43 @@ export class Store<T extends object, S extends object = T> {
     return;
   }
 
-  // private shrinkTree = () => {
-  //   const parentsStack: TreeNode[] = [];
-  //   const stack: TreeNode[] = [this.__headTreeNode];
-  //   const visited = new Set<TreeNode>();
-  //   while (stack.length) {
-  //     const node = stack.at(-1) as TreeNode;
-  //     if (visited.has(node)) {
-  //       const parent = stack.pop();
-  //       if (parent === parentsStack.at(-1)) {
-  //         parentsStack.pop();
-  //       }
-  //       continue;
-  //     }
-  //     visited.add(node);
+  private shrinkTree = () => {
+    const parentsStack: TreeNode[] = [];
+    const stack: TreeNode[] = [this.__headTreeNode];
+    const visited = new Set<TreeNode>();
+    while (stack.length) {
+      const node = stack.at(-1) as TreeNode;
+      if (visited.has(node)) {
+        const parent = stack.pop();
+        if (parent === parentsStack.at(-1)) {
+          parentsStack.pop();
+        }
+        continue;
+      }
+      visited.add(node);
 
-  //     if (node.values && parentsStack.at(-1)) {
-  //       const parent = parentsStack.at(-1) as TreeNode;
-  //       // parent.children.set();
-  //     }
-  //     if (node?.children && node.children.size > 1) {
-  //       if (parentsStack.length) {
-  //         node.parent = parentsStack.at(-1);
-  //       }
-  //       parentsStack.push(node);
-  //     }
-  //     if (node.children) {
-  //       for (const child of node.children?.values()) {
-  //         stack.push(child);
-  //       }
-  //       node.children.clear();
-  //     }
-  //   }
-  // };
+      node.parent = null;
+
+      if (!node.name || (node?.children && node.children.size > 1) || node.values) {
+        if (parentsStack.length) {
+          const parent = parentsStack.at(-1) as TreeNode;
+          node.parent = parent;
+          parent.children?.set(node.name, node);
+        }
+        parentsStack.push(node);
+      } else {
+        stack.pop();
+      }
+
+      if (node.children) {
+        for (const child of node.children?.values()) {
+          stack.push(child);
+        }
+        node.children.clear();
+      }
+    }
+    return;
+  };
 
   getObject(isDeepCopy = true) {
     if (isDeepCopy) {

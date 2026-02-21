@@ -6,18 +6,13 @@ import type { ListenerOptions, SetOptions, TreeNode } from './store';
  * when the value changes.
  */
 export class Value {
-  key: string;
-  value: any;
-  listeners: Set<Function>;
-  node: TreeNode;
-  path: string[];
-  constructor(node: TreeNode, value: any, key: string, path: string[]) {
-    this.node = node;
-    this.key = key;
-    this.value = value;
-    this.listeners = new Set();
-    this.path = path;
-  }
+  private listeners = new Set<Function>();
+  constructor(
+    public node: TreeNode,
+    public value: any,
+    public key: string,
+    public path: string[],
+  ) {}
 
   addListener(listener: Function, options?: ListenerOptions) {
     this.listeners.add(listener);
