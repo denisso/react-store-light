@@ -18,7 +18,7 @@ export const getStateValue = <T>(obj: T, currentPath: string[] = []): DeepGetter
   return fn;
 };
 
-type PrepValues<S> = {
+export type PrepValues<S> = {
   [K in keyof S]: {
     path: string[];
     value: S[K];
@@ -27,7 +27,7 @@ type PrepValues<S> = {
 
 export type TreeNode = {
   parent?: TreeNode;
-  children?: Record<string, TreeNode>;
+  children?: Map<string, TreeNode>;
   values?: Record<string, Value>;
 };
 
@@ -64,36 +64,43 @@ export class Store<T extends object, S extends object = T> {
    */
   __keys: (keyof S)[];
 
-  __treeHead: TreeNode = {};
+  __parentStore?: Store<any>;
+
+  __headTreeNode: TreeNode = {};
+
+  __parentTreeNode?: TreeNode;
 
   __values: Record<keyof S, Value> = {} as Record<keyof S, Value>;
 
   __object: T;
 
-  constructor(object: T, values?: PrepValues<S>) {
+  constructor(object: T, prepValues?: PrepValues<S>) {
     this.__object = object;
-    this.__keys = (values ? Object.keys(values) : Object.keys(object)) as (keyof S)[];
-    if (!values) {
-      values = {} as PrepValues<S>;
+    this.__keys = (prepValues ? Object.keys(prepValues) : Object.keys(object)) as (keyof S)[];
+    if (!prepValues) {
+      prepValues = {} as PrepValues<S>;
       for (const key of this.__keys) {
-        values[key] = getStateValue<any>(object)(key)();
+        prepValues[key] = getStateValue<any>(object)(key)();
       }
     }
-    this.init(values);
+    this.initTree(prepValues);
+    // this.shrinkTree();
   }
 
-  private init(values: PrepValues<S>) {
+  private initTree(values: PrepValues<S>) {
+    // init tree
     for (const key of this.__keys) {
-      let parent = this.__treeHead;
+      let parent = this.__headTreeNode;
       for (let i = 0; i < values[key].path.length - 1; i++) {
         if (!parent.children) {
-          parent.children = {};
+          parent.children = new Map<string, TreeNode>();
         }
-        let child = parent.children[values[key].path[i]];
+        let child = parent.children.get(values[key].path[i] as string);
         if (!child) {
           child = { parent };
+          parent.children.set(values[key].path[i], child);
         }
-        parent.children[values[key].path[i]] = child;
+        
         parent = child;
       }
       if (!parent.values) {
@@ -105,12 +112,47 @@ export class Store<T extends object, S extends object = T> {
     return;
   }
 
+  // private shrinkTree = () => {
+  //   const parentsStack: TreeNode[] = [];
+  //   const stack: TreeNode[] = [this.__headTreeNode];
+  //   const visited = new Set<TreeNode>();
+  //   while (stack.length) {
+  //     const node = stack.at(-1) as TreeNode;
+  //     if (visited.has(node)) {
+  //       const parent = stack.pop();
+  //       if (parent === parentsStack.at(-1)) {
+  //         parentsStack.pop();
+  //       }
+  //       continue;
+  //     }
+  //     visited.add(node);
+
+  //     if (node.values && parentsStack.at(-1)) {
+  //       const parent = parentsStack.at(-1) as TreeNode;
+  //       // parent.children.set();
+  //     }
+  //     if (node?.children && node.children.size > 1) {
+  //       if (parentsStack.length) {
+  //         node.parent = parentsStack.at(-1);
+  //       }
+  //       parentsStack.push(node);
+  //     }
+  //     if (node.children) {
+  //       for (const child of node.children?.values()) {
+  //         stack.push(child);
+  //       }
+  //       node.children.clear();
+  //     }
+  //   }
+  // };
+
   getObject(isDeepCopy = true) {
     if (isDeepCopy) {
       return structuredClone(this.__object);
     }
     return this.__object;
   }
+
   setObject(object: T) {
     for (const key of this.__keys) {
       let value: any = object;
