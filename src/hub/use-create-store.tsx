@@ -22,7 +22,14 @@ export const useCreateHubStore = <T extends object, S extends HubStore<T>>(
     }
     return new HubStore(ref);
   });
-
+  const [prevRef] = React.useState(() => {
+    store.setObject(ref, { reason: _REASON_NEW_STATE_UPDATE_ });
+    return { ref };
+  });
+  if (prevRef.ref !== ref) {
+    store.setObject(ref, { reason: _REASON_NEW_STATE_UPDATE_ });
+    prevRef.ref = ref;
+  }
   React.useEffect(() => {
     hub.mountStore(store, ref);
     return () => {

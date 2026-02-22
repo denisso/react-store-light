@@ -1,30 +1,30 @@
 import { Store, type Listener } from '../store';
-import { addListNode, removeListNode, ListNode } from '../helpers/list';
+import { addListNode, removeListNode } from '../helpers/list';
+import type { PrepValues } from '../store/store';
 
 const _REASON_NEW_STATE_UPDATE_ = Symbol();
 
 /**
  * HubStore to work with the Hub class
  */
-export class HubStore<T extends object> extends Store<T> {
-  __next: HubStore<T> | null = null;
-  __prev: HubStore<T> | null = null;
+export class HubStore<T extends object, S extends object = T> extends Store<T, S> {
+  __next: HubStore<T, S> | null = null;
+  __prev: HubStore<T, S> | null = null;
   __ref: T;
-  constructor(ref: T, keys?: (keyof T)[]) {
-    const _keys = keys ? keys : (Object.keys(ref) as (keyof T)[]);
-    super(ref, _keys);
+  constructor(ref: T, values?: PrepValues<S>) {
+    const _keys = (values ? Object.keys(values) : Object.keys(ref)) as (keyof S)[];
+    super(ref, values as PrepValues<any>);
     const __self = this;
     for (const key of _keys) {
-      const listener: Listener<T, keyof T> = (key: keyof T, value: T[keyof T], options) => {
+      const listener: Listener<S, keyof S> = (key: keyof S, value: S[keyof S], options) => {
         const reason = options?.reason;
-        __self.__ref[key] = value;
         if (reason === _REASON_NEW_STATE_UPDATE_) return;
-        let next: HubStore<T> | null = __self.__next;
+        let next: HubStore<T, S> | null = __self.__next;
         while (next) {
           next.set(key, value);
           next = next.__next;
         }
-        let prev: HubStore<T> | null = __self.__prev;
+        let prev: HubStore<T, S> | null = __self.__prev;
         while (prev) {
           prev.set(key, value);
           prev = prev.__prev;
@@ -77,7 +77,7 @@ export class Hub<T extends object> {
     }
     this.mapRefStores.set(store.__ref, head);
 
-    store.setState(store.__ref, { reason: _REASON_NEW_STATE_UPDATE_ });
+    // store.setState(store.__ref, { reason: _REASON_NEW_STATE_UPDATE_ });
   }
 
   /**
