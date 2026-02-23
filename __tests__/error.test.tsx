@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
 import Light from '../src';
-import { formatError } from '../src/helpers/error';
+import { FormatError } from '../src/helpers/error';
 
 describe('Error', () => {
   it('Hook must be used within a React Provider.', () => {
@@ -11,7 +11,7 @@ describe('Error', () => {
       return null;
     };
 
-    expect(() => render(<Test />)).toThrow(formatError['hookMustBeInsideProvider']());
+    expect(() => render(<Test />)).toThrow(FormatError['hookMustBeInsideProvider']());
   });
 
   it('The storage does not exist in the React Provider.', () => {
@@ -26,7 +26,7 @@ describe('Error', () => {
           <Test />
         </Light.Provider>,
       ),
-    ).toThrow(formatError['valueIdNotExist']());
+    ).toThrow(FormatError['valueIdNotExist']());
   });
 
   it('In the useAsync hook, only IAsync values can be used.', () => {
@@ -38,6 +38,6 @@ describe('Error', () => {
       return null;
     };
 
-    expect(() => render(<Test />)).toThrow(formatError['isNotAsync']('one'));
+    expect(() => render(<Test />)).toThrow(FormatError['isNotAsync']('one'));
   });
 });

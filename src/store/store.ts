@@ -1,4 +1,5 @@
 import { Value } from './value';
+import { FormatError } from '../helpers/error';
 
 type DeepGetter<T> = (<K extends keyof T>(key: K) => DeepGetter<T[K]>) &
   (() => { value: T; path: string[] });
@@ -112,7 +113,7 @@ export class Store<T extends object, S extends object = T> {
         parent = child;
       }
       if (parent.key) {
-        throw Error('not allowed property with same path');
+        throw FormatError['notAllowedStoreProp']();
       }
       parent.key = key as string;
     }

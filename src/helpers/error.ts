@@ -1,9 +1,10 @@
-import type { IContextValueId } from "../types";
+
 const messages = {
   hookMustBeInsideProvider: () => `Hook must be used within a React Provider.`,
   valueIdNotExist: () => `The value with such id does not exist in the Context.`,
   storeUniqIdAlreadyExist: () => 'A store with this id already exists in the provider.',
   isNotAsync: (key: string) => `Key ${key} is not type IAsync`,
+  notAllowedStoreProp: () => 'not allowed property with same path',
   errorKeyMessage: (key: PropertyKey) => {
     let strKey = `typeof ${typeof key}`;
     if (typeof key == 'string' || typeof key == 'number') {
@@ -32,4 +33,4 @@ const patch = <T extends MessageMap>(obj: T): ToErrorMap<T> => {
   return out;
 };
 
-export const formatError = patch(messages);
+export const FormatError = patch(messages);
