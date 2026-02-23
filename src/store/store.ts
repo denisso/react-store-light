@@ -25,11 +25,11 @@ export type PrepValues<S> = {
   };
 };
 
-export type TreeNode = {
-  parent?: TreeNode | null;
-  name: string;
-  children?: Map<string, TreeNode>;
-  values?: Record<string, Value>;
+type TreeNode = {
+  children?: Record<string, TreeNode>;
+  key?: string;
+
+  // valDeep: number
 };
 
 /**
@@ -49,10 +49,11 @@ export type ListenerOptions = Pick<NonNullable<SetOptions>, 'reason'> & {
 /**
  * Listener signature for store updates.
  * Receives the key name and the new value.
+ * template param 'S' is state of Store
  */
-export type Listener<T extends object, K extends keyof T> = (
+export type Listener<S extends object, K extends keyof S> = (
   name: K,
-  value: T[K],
+  value: S[K],
   options?: Omit<ListenerOptions, 'isAutoCallListener'>,
 ) => void;
 
@@ -67,16 +68,15 @@ export class Store<T extends object, S extends object = T> {
 
   __parentStore?: Store<any>;
 
-  __headTreeNode: TreeNode = { name: '' };
-
-  __parentTreeNode?: TreeNode;
-
   __values: Record<keyof S, Value> = {} as Record<keyof S, Value>;
+
+  __rootValue: Value;
 
   __object: T;
 
   constructor(object: T, prepValues?: PrepValues<S>) {
     this.__object = object;
+    this.__rootValue = new Value(object);
     this.__keys = (prepValues ? Object.keys(prepValues) : Object.keys(object)) as (keyof S)[];
     if (!prepValues) {
       prepValues = {} as PrepValues<S>;
@@ -84,72 +84,87 @@ export class Store<T extends object, S extends object = T> {
         prepValues[key] = getStateValue<any>(object)(key)();
       }
     }
-    this.initTree(prepValues);
-    this.shrinkTree();
+    this.__rootValue.children = new Map();
+    this.get = this.get.bind(this);
+    this.set = this.set.bind(this);
+    this.getState = this.getState.bind(this);
+    this.setState = this.setState.bind(this);
+    this.addListener = this.addListener.bind(this);
+    this.removeListener = this.removeListener.bind(this);
+
+    this.initValues(prepValues);
   }
 
-  private initTree(values: PrepValues<S>) {
-    // init tree
+  private initValues(values: PrepValues<S>) {
+    const tree: TreeNode = {};
     for (const key of this.__keys) {
-      let parent = this.__headTreeNode;
-      for (let i = 0; i < values[key].path.length - 1; i++) {
+      let parent = tree;
+      for (const name of values[key].path) {
         if (!parent.children) {
-          parent.children = new Map<string, TreeNode>();
+          parent.children = {};
         }
-        let child = parent.children.get(values[key].path[i] as string);
+        let child = parent.children[name];
         if (!child) {
-          child = { parent, name: values[key].path[i] };
-          parent.children.set(values[key].path[i], child);
+          child = {};
+          parent.children[name] = child;
         }
 
         parent = child;
       }
-      if (!parent.values) {
-        parent.values = {};
+      if (parent.key) {
+        throw Error('not allowed property with same path');
       }
-      this.__values[key] = new Value(parent, values[key].value, key as string, values[key].path);
-      parent.values[key as string] = this.__values[key];
+      parent.key = key as string;
     }
+    this.shrinkTreeAndInitValues(values, tree);
     return;
   }
 
-  private shrinkTree = () => {
-    const parentsStack: TreeNode[] = [];
-    const stack: TreeNode[] = [this.__headTreeNode];
+  private shrinkTreeAndInitValues(values: PrepValues<S>, tree: TreeNode) {
+    const stack = Object.values(tree.children ?? {});
+    const parents: Value[] = [this.__rootValue];
     const visited = new Set<TreeNode>();
     while (stack.length) {
       const node = stack.at(-1) as TreeNode;
       if (visited.has(node)) {
-        const parent = stack.pop();
-        if (parent === parentsStack.at(-1)) {
-          parentsStack.pop();
+        // stack.at(-1) and parents.at(-1) cannot be undefined
+        if ((stack.pop() as TreeNode).key === (parents.at(-1) as Value).key) {
+          parents.pop();
         }
         continue;
       }
       visited.add(node);
 
-      node.parent = null;
-
-      if (!node.name || (node?.children && node.children.size > 1) || node.values) {
-        if (parentsStack.length) {
-          const parent = parentsStack.at(-1) as TreeNode;
-          node.parent = parent;
-          parent.children?.set(node.name, node);
+      if (typeof node.key === 'string') {
+        const parentValue = parents.at(-1) as Value;
+        if (!parentValue.children) {
+          parentValue.children = new Map();
         }
-        parentsStack.push(node);
+
+        const value = new Value(
+          values[node.key as keyof S].value,
+          node.key,
+          values[node.key as keyof S].path,
+          parentValue,
+        );
+        this.__values[node.key as keyof S] = value;
+        parentValue.children.set(node.key, value);
+
+        if (node.children) {
+          parents.push(value);
+        }
       } else {
         stack.pop();
       }
-
-      if (node.children) {
-        for (const child of node.children?.values()) {
-          stack.push(child);
-        }
-        node.children.clear();
+      if (!node.children) {
+        continue;
+      }
+      for (const key of Object.keys(node.children)) {
+        stack.push(node.children[key]);
       }
     }
     return;
-  };
+  }
 
   getObject(isDeepCopy = true) {
     if (isDeepCopy) {
@@ -161,8 +176,10 @@ export class Store<T extends object, S extends object = T> {
   setObject(object: T) {
     for (const key of this.__keys) {
       let value: any = object;
-      for (let i = 0; i < this.__values[key].path.length; i++) {
-        value = value[this.__values[key].path[i]];
+      if (this.__values[key].path) {
+        for (let i = 0; i < this.__values[key].path.length; i++) {
+          value = value[this.__values[key].path[i]];
+        }
       }
       this.set(key, value);
     }

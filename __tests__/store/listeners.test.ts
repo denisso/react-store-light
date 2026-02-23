@@ -1,10 +1,19 @@
-import { describe, it, expect } from 'vitest';
-import { createStore } from '../../src';
+import { describe, it, expect, vi } from 'vitest';
+import Light from '../../src';
 
 describe('Listeners', () => {
+    it('usage isAutoCallListener for updates value on init', () => {
+    const { addListener } = Light.createStore({ count: 1 });
+    const listener = vi.fn<(name: string, value: number) => void>();
+
+    addListener('count', listener, { isAutoCallListener: true });
+
+    expect(listener).toHaveBeenCalledWith('count', 1, { isAutoCallListener: true });
+  });
+
   it('multiple listeners', () => {
     const state = { count: 0, text: '' }
-    const { addListener, set } = createStore(state);
+    const { addListener, set } = Light.createStore(state);
     let count: { name: string; value: number } = { name: '', value: state.count };
     let text: { name: string; value: string } = { name: '', value: state.text };
 
@@ -23,7 +32,7 @@ describe('Listeners', () => {
   });
 
   it('removeListener', () => {
-    const { addListener, removeListener, get, set } = createStore({ count: 0 });
+    const { addListener, removeListener, get, set } = Light.createStore({ count: 0 });
     let name = '';
     let value = 0;
 

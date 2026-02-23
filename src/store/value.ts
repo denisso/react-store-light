@@ -1,20 +1,28 @@
-import type { ListenerOptions, SetOptions, TreeNode } from './store';
+import type { ListenerOptions, SetOptions } from './store';
 
+const UPDATE_TREE = Symbol();
+
+const ArrayPlaceholder: any[] = [];
 /**
  * Typed Value implements a simple observable pattern.
  * It stores a value, allows subscriptions, and notifies observers and listeners
  * when the value changes.
  */
 export class Value {
-  private listeners = new Set<Function>();
+  private listeners?: Set<Function>;
+  children?: Map<string, Value>;
   constructor(
-    public node: TreeNode,
     public value: any,
-    public key: string,
-    public path: string[],
+    public key: string | null = null,
+    public path: string[] = ArrayPlaceholder,
+    public parent: Value | null = null,
   ) {}
 
   addListener(listener: Function, options?: ListenerOptions) {
+    if (!this.listeners) {
+      // lazy inintialization Set listeners
+      this.listeners = new Set();
+    }
     this.listeners.add(listener);
     if (options && options.isAutoCallListener) {
       listener(this.key, this.value, options);
@@ -22,9 +30,51 @@ export class Value {
   }
 
   removeListener(listener: Function) {
-    this.listeners.delete(listener);
+    if (this.listeners) this.listeners.delete(listener);
   }
 
+  private notifyParents = () => {
+    let parent = this.parent;
+    let prevParent: Value = this;
+
+    while (parent) {
+      let value = parent.value;
+      let indxPath = parent.path.length;
+      for (; indxPath < prevParent.path.length - 1; indxPath++) {
+        value = value[prevParent.path[indxPath]];
+      }
+      value[prevParent.path[indxPath]] = prevParent.value;
+      parent.notify(parent.value, { reason: UPDATE_TREE });
+      prevParent = parent;
+      parent = parent.parent;
+    }
+  };
+
+  private notifyChildren = () => {
+    if (!this.children) {
+      return;
+    }
+
+    const parents: Value[] = [this];
+    while (parents.length) {
+      const parent = parents.pop() as Value;
+
+      if (!parent.children) {
+        continue;
+      }
+      for (const child of parent.children.values()) {
+        let indxPath = parent.path.length;
+        let value = parent.value;
+        for (; indxPath < child.path.length - 1; indxPath++) {
+          value = value[child.path[indxPath]];
+        }
+        child.notify(value[child.path[indxPath]], { reason: UPDATE_TREE });
+        if (child.children) {
+          parents.push(child);
+        }
+      }
+    }
+  };
   /**
    * Update the value and notify subscribers.
    * @param value - new value
@@ -32,19 +82,22 @@ export class Value {
    * @returns undefined
    */
   notify(value: any, options?: SetOptions) {
-    if (this.value === value) {
-      return;
+    this.value = value;
+    if (options?.reason !== UPDATE_TREE) {
+      this.notifyParents();
+      this.notifyChildren();
     }
 
-    this.value = value;
     let _options: SetOptions | undefined;
 
     if (options) {
       _options = {};
       if (options.hasOwnProperty('reason')) _options.reason = options.reason;
     }
-    this.listeners.forEach((listener) => {
-      listener(this.key, this.value, _options);
-    });
+    if (this.listeners) {
+      this.listeners.forEach((listener) => {
+        listener(this.key, this.value, _options);
+      });
+    }
   }
 }
