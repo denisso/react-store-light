@@ -3,6 +3,6 @@ export {
   Store,
   type StoreBase,
   type Listener,
-  getStateValue,
+  createStateValue,
   type PrepValues,
 } from './store';

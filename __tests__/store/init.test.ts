@@ -47,9 +47,9 @@ describe('Store init', () => {
     };
 
     {
-      const q = Light.getStateValue(post)('meta')('image')('quality');
+      const q = Light.createStateValue(post)('meta')('image')('quality');
       const values = {
-        text: Light.getStateValue(post)('text')(),
+        text: Light.createStateValue(post)('text')(),
         quality: q(),
         lowH: q('low')('h')(),
         highH: q('high')('h')(),

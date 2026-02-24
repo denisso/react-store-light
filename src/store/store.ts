@@ -1,10 +1,11 @@
 import { Value } from './value';
 import { FormatError } from '../helpers/error';
+import { DO_NOT_UPDATE_TREE, UPDATE_PARENT_ONLY_STORE } from '../constants';
 
 type DeepGetter<T> = (<K extends keyof T>(key: K) => DeepGetter<T[K]>) &
   (() => { value: T; path: string[] });
 
-export const getStateValue = <T>(obj: T, currentPath: string[] = []): DeepGetter<T> => {
+export const createStateValue = <T>(obj: T, currentPath: string[] = []): DeepGetter<T> => {
   const fn = ((key?: PropertyKey) => {
     if (key === undefined) {
       return {
@@ -13,7 +14,7 @@ export const getStateValue = <T>(obj: T, currentPath: string[] = []): DeepGetter
       };
     }
 
-    return getStateValue((obj as any)[key], [...currentPath, String(key)]);
+    return createStateValue((obj as any)[key], [...currentPath, String(key)]);
   }) as DeepGetter<T>;
 
   return fn;
@@ -41,7 +42,8 @@ export interface StoreBase {
 }
 
 export type SetOptions = Partial<{
-  reason: symbol;
+  reason: Set<symbol>;
+  condition: Map<symbol, any>;
 }>;
 
 export type ListenerOptions = Pick<NonNullable<SetOptions>, 'reason'> & {
@@ -73,16 +75,13 @@ export class Store<T extends object, S extends object = T> {
 
   __rootValue: Value;
 
-  __object: T;
-
   constructor(object: T, prepValues?: PrepValues<S>) {
-    this.__object = object;
     this.__rootValue = new Value(object);
     this.__keys = (prepValues ? Object.keys(prepValues) : Object.keys(object)) as (keyof S)[];
     if (!prepValues) {
       prepValues = {} as PrepValues<S>;
       for (const key of this.__keys) {
-        prepValues[key] = getStateValue<any>(object)(key)();
+        prepValues[key] = createStateValue<any>(object)(key)();
       }
     }
     this.__rootValue.children = new Map();
@@ -167,32 +166,14 @@ export class Store<T extends object, S extends object = T> {
     return;
   }
 
-  getObject(isDeepCopy = true) {
-    if (isDeepCopy) {
-      return structuredClone(this.__object);
-    }
-    return this.__object;
-  }
-
-  setObject(object: T) {
-    for (const key of this.__keys) {
-      let value: any = object;
-      if (this.__values[key].path) {
-        for (let i = 0; i < this.__values[key].path.length; i++) {
-          value = value[this.__values[key].path[i]];
-        }
-      }
-      this.set(key, value);
-    }
-    this.__object = object;
-  }
   /**
    * Returns the current value for a given key.
    *
-   * @param key K - key
+   * @param key K - key of Store state
+   * @param isDeepCopy - is need to make a deep copy? [default: false
    * @returns T[K] - value
    */
-  get<K extends keyof S>(key: K, isDeepCopy = true) {
+  get<K extends keyof S>(key: K, isDeepCopy = false) {
     let value = this.__values[key].value as S[K];
     if (value instanceof Object && isDeepCopy) {
       return structuredClone(value);
@@ -214,9 +195,10 @@ export class Store<T extends object, S extends object = T> {
   /**
    * Return state
    *
+   * @param isDeepCopy - is need to make a deep copy? [default: false]
    * @returns state
    */
-  getState(isDeepCopy = true) {
+  getState(isDeepCopy = false) {
     const state = {} as S;
     for (const key of this.__keys) {
       state[key] = this.__values[key].value;
@@ -231,14 +213,55 @@ export class Store<T extends object, S extends object = T> {
    * Set state
    *
    * @param state - Initial store state
-   * @param isAlwaysNotify - notify listiners always [default: false]
+   * @param options.isAlwaysNotify - notify listiners always [default: false]
    */
   setState(state: S, options?: SetOptions) {
+    if (!options) {
+      options = {};
+    }
+    if (!options.reason) {
+      options.reason = new Set();
+    }
+    options.reason.add(DO_NOT_UPDATE_TREE);
     for (const key of this.__keys) {
       this.__values[key].notify(state[key], options);
     }
+    // need update parent Store
   }
 
+  /**
+   * Get Store.__object
+   *
+   * @param isDeepCopy - is need to make a deep copy? [default: false
+   * @returns
+   */
+  getObject(isDeepCopy = false) {
+    if (isDeepCopy) {
+      return structuredClone(this.__rootValue.value);
+    }
+    return this.__rootValue.value;
+  }
+
+  setObject(object: T, options?: SetOptions) {
+    if (!options) {
+      options = {};
+    }
+    if (!options.reason) {
+      options.reason = new Set();
+    }
+    options.reason.add(DO_NOT_UPDATE_TREE);
+    for (const key of this.__keys) {
+      let value: any = object;
+      if (this.__values[key].path) {
+        for (let i = 0; i < this.__values[key].path.length; i++) {
+          value = value[this.__values[key].path[i]];
+        }
+      }
+      this.set(key, value, options);
+    }
+    // need update parent Store
+    this.__rootValue.notify(object, { reason: new Set([UPDATE_PARENT_ONLY_STORE]) });
+  }
   /**
    * Subscribes a listener to changes of a specific key.
    *

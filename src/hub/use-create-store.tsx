@@ -1,5 +1,6 @@
 import React from 'react';
 import { HubStore, Hub } from './hub';
+import { UPDATE_FROM_PARENT_STORE } from '../constants';
 
 type HubStoreCtor<T extends object, S extends HubStore<T>> = new (ref: T) => S;
 
@@ -8,7 +9,7 @@ type HubStoreCtor<T extends object, S extends HubStore<T>> = new (ref: T) => S;
  *
  * @param ref T
  * @param hub Hub<T>
- * @param CustomHubStore S extends HubStore<T> [optional]
+ * @param CustomHubStore S extends HubStore<T> [optional default: HubStore<T>]
  * @returns HubStore<T>
  */
 export const useCreateHubStore = <T extends object, S extends HubStore<T>>(
@@ -22,12 +23,12 @@ export const useCreateHubStore = <T extends object, S extends HubStore<T>>(
     }
     return new HubStore(ref);
   });
+  // ref keeper from parent 
   const [prevRef] = React.useState(() => {
-    store.setObject(ref, { reason: _REASON_NEW_STATE_UPDATE_ });
     return { ref };
   });
   if (prevRef.ref !== ref) {
-    store.setObject(ref, { reason: _REASON_NEW_STATE_UPDATE_ });
+    store.setObject(ref, { reason: new Set([UPDATE_FROM_PARENT_STORE]) });
     prevRef.ref = ref;
   }
   React.useEffect(() => {

@@ -26,15 +26,17 @@ describe('Store methods', () => {
     expect(get('name')).toEqual('test');
   });
 
-  it('From parent to children', () => {
+  it('Update Store state from parent to children', () => {
     const _post = structuredClone(post);
     type State = {
       quality: (typeof _post)['meta']['image']['quality'];
       highH: number;
     };
-    const q = Light.getStateValue(_post)('meta')('image')('quality');
+    const q = Light.createStateValue(_post)('meta')('image')('quality');
     const prepValues = {
+      // parent
       quality: q(),
+      // children
       highH: q('high')('h')(),
     };
     const store = new Light.Store<Post, State>(_post, prepValues);
@@ -43,21 +45,23 @@ describe('Store methods', () => {
       qualityResults.push(value);
     };
     store.addListener('highH', qualityListener);
-    _post["meta"]["image"]["quality"]["high"]["h"] = 40
-    store.set('quality', _post["meta"]["image"]["quality"]);
+    _post['meta']['image']['quality']['high']['h'] = 40;
+    store.set('quality', _post['meta']['image']['quality']);
     expect(qualityResults.length).toBe(1);
     expect(qualityResults[0]).toBe(40);
   });
 
-  it('From children to parent', () => {
+  it('Update Store state from children to parent', () => {
     const _post = structuredClone(post);
     type State = {
       quality: (typeof _post)['meta']['image']['quality'];
       highH: number;
     };
-    const q = Light.getStateValue(_post)('meta')('image')('quality');
+    const q = Light.createStateValue(_post)('meta')('image')('quality');
     const prepValues = {
+      // parent
       quality: q(),
+      // children
       highH: q('high')('h')(),
     };
     const store = new Light.Store<Post, State>(_post, prepValues);
@@ -69,5 +73,52 @@ describe('Store methods', () => {
     store.set('highH', 20);
     expect(qualityResults.length).toBe(1);
     expect(qualityResults[0]['high']['h']).toBe(20);
+  });
+
+  it('Store.setState and Store.setObject', () => {
+    const _post = structuredClone(post);
+    const p = Light.createStateValue(_post);
+    const m = p('meta');
+    const q = p('meta')('image')('quality');
+
+    type State = {
+      quality: Post['meta']['image']['quality'];
+      meta: Post['meta'];
+      lowH: number;
+      lowW: number;
+      highH: number;
+      highW: number;
+    };
+
+    const preValues = {
+      quality: q(),
+      meta: m(),
+      lowH: q('high')('h')(),
+      lowW: q('high')('w')(),
+      highH: q('low')('h')(),
+      highW: q('low')('w')(),
+    };
+
+    const store = new Light.Store<Post, State>(_post, preValues);
+
+    const resultsTest: any[] = [];
+    const listener = (_: string, value: any) => {
+      resultsTest.push(value)
+    };
+    store.addListener('highH', listener);
+    store.addListener('highW', listener);
+    store.addListener('lowW', listener);
+    store.addListener('lowH', listener);
+    store.addListener('meta', listener);
+    store.addListener('quality', listener);
+
+    const state = store.getState(true);
+
+    state.highH = 140;
+    state.highW = 140;
+    store.setState(state);
+
+    expect(resultsTest.length).toBe(6)
+    
   });
 });

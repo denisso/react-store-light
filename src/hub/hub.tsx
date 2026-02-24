@@ -1,8 +1,6 @@
-import { Store, type Listener } from '../store';
+import { Store, type Listener, type PrepValues } from '../store';
 import { addListNode, removeListNode } from '../helpers/list';
-import type { PrepValues } from '../store/store';
-
-const _REASON_NEW_STATE_UPDATE_ = Symbol();
+import { UPDATE_FROM_PARENT_STORE } from '../constants';
 
 /**
  * HubStore to work with the Hub class
@@ -17,8 +15,7 @@ export class HubStore<T extends object, S extends object = T> extends Store<T, S
     const __self = this;
     for (const key of _keys) {
       const listener: Listener<S, keyof S> = (key: keyof S, value: S[keyof S], options) => {
-        const reason = options?.reason;
-        if (reason === _REASON_NEW_STATE_UPDATE_) return;
+        if (options?.reason?.has(UPDATE_FROM_PARENT_STORE)) return;
         let next: HubStore<T, S> | null = __self.__next;
         while (next) {
           next.set(key, value);

@@ -1,5 +1,4 @@
-export { createStore, Store, getStateValue, type Listener } from './store';
-// export { getStateValue, Store2 } from './store2';
+export { createStore, Store, createStateValue, type Listener, type PrepValues } from './store';
 export { Provider, Context, createContextValueId } from './context';
 export { createHub, Hub, useCreateHubStore, HubStore, useById } from './hub';
 export { useState, useAsync, useStore } from './hooks';

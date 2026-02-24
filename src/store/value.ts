@@ -1,8 +1,8 @@
 import type { ListenerOptions, SetOptions } from './store';
-
-const UPDATE_TREE = Symbol();
+import { DO_NOT_UPDATE_TREE } from '../constants';
 
 const ArrayPlaceholder: any[] = [];
+
 /**
  * Typed Value implements a simple observable pattern.
  * It stores a value, allows subscriptions, and notifies observers and listeners
@@ -44,7 +44,7 @@ export class Value {
         value = value[prevParent.path[indxPath]];
       }
       value[prevParent.path[indxPath]] = prevParent.value;
-      parent.notify(parent.value, { reason: UPDATE_TREE });
+      parent.notify(parent.value, { reason: new Set([DO_NOT_UPDATE_TREE]) });
       prevParent = parent;
       parent = parent.parent;
     }
@@ -65,10 +65,10 @@ export class Value {
       for (const child of parent.children.values()) {
         let indxPath = parent.path.length;
         let value = parent.value;
-        for (; indxPath < child.path.length - 1; indxPath++) {
+        for (; indxPath < child.path.length; indxPath++) {
           value = value[child.path[indxPath]];
         }
-        child.notify(value[child.path[indxPath]], { reason: UPDATE_TREE });
+        child.notify(value, { reason: new Set([DO_NOT_UPDATE_TREE]) });
         if (child.children) {
           parents.push(child);
         }
@@ -83,20 +83,14 @@ export class Value {
    */
   notify(value: any, options?: SetOptions) {
     this.value = value;
-    if (options?.reason !== UPDATE_TREE) {
+    if (!options?.reason || !options.reason.has(DO_NOT_UPDATE_TREE)) {
       this.notifyParents();
       this.notifyChildren();
     }
-
-    let _options: SetOptions | undefined;
-
-    if (options) {
-      _options = {};
-      if (options.hasOwnProperty('reason')) _options.reason = options.reason;
-    }
+    
     if (this.listeners) {
       this.listeners.forEach((listener) => {
-        listener(this.key, this.value, _options);
+        listener(this.key, this.value, options);
       });
     }
   }
