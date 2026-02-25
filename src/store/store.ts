@@ -1,6 +1,5 @@
 import { Value } from './value';
 import { FormatError } from '../helpers/error';
-import { DO_NOT_UPDATE_TREE, UPDATE_PARENT_ONLY_STORE } from '../constants';
 
 type DeepGetter<T> = (<K extends keyof T>(key: K) => DeepGetter<T[K]>) &
   (() => { value: T; path: string[] });
@@ -42,11 +41,10 @@ export interface StoreBase {
 }
 
 export type SetOptions = Partial<{
-  reason: Set<symbol>;
-  condition: Map<symbol, any>;
+  visited: Set<Value>;
 }>;
 
-export type ListenerOptions = Pick<NonNullable<SetOptions>, 'reason'> & {
+export type ListenerOptions = Pick<NonNullable<SetOptions>, 'visited'> & {
   isAutoCallListener: boolean;
 };
 /**
@@ -216,13 +214,6 @@ export class Store<T extends object, S extends object = T> {
    * @param options.isAlwaysNotify - notify listiners always [default: false]
    */
   setState(state: S, options?: SetOptions) {
-    if (!options) {
-      options = {};
-    }
-    if (!options.reason) {
-      options.reason = new Set();
-    }
-    options.reason.add(DO_NOT_UPDATE_TREE);
     for (const key of this.__keys) {
       this.__values[key].notify(state[key], options);
     }
@@ -243,13 +234,7 @@ export class Store<T extends object, S extends object = T> {
   }
 
   setObject(object: T, options?: SetOptions) {
-    if (!options) {
-      options = {};
-    }
-    if (!options.reason) {
-      options.reason = new Set();
-    }
-    options.reason.add(DO_NOT_UPDATE_TREE);
+
     for (const key of this.__keys) {
       let value: any = object;
       if (this.__values[key].path) {
@@ -260,7 +245,7 @@ export class Store<T extends object, S extends object = T> {
       this.set(key, value, options);
     }
     // need update parent Store
-    this.__rootValue.notify(object, { reason: new Set([UPDATE_PARENT_ONLY_STORE]) });
+    // this.__rootValue.notify(object, { reason: new Set([UPDATE_PARENT_ONLY_STORE]) });
   }
   /**
    * Subscribes a listener to changes of a specific key.

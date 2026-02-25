@@ -1,5 +1,4 @@
 import type { ListenerOptions, SetOptions } from './store';
-import { DO_NOT_UPDATE_TREE } from '../constants';
 
 const ArrayPlaceholder: any[] = [];
 
@@ -10,6 +9,7 @@ const ArrayPlaceholder: any[] = [];
  */
 export class Value {
   private listeners?: Set<Function>;
+  
   children?: Map<string, Value>;
   constructor(
     public value: any,
@@ -33,7 +33,7 @@ export class Value {
     if (this.listeners) this.listeners.delete(listener);
   }
 
-  private notifyParents = () => {
+  private notifyParents = (options: SetOptions) => {
     let parent = this.parent;
     let prevParent: Value = this;
 
@@ -44,13 +44,13 @@ export class Value {
         value = value[prevParent.path[indxPath]];
       }
       value[prevParent.path[indxPath]] = prevParent.value;
-      parent.notify(parent.value, { reason: new Set([DO_NOT_UPDATE_TREE]) });
+      parent.notify(parent.value, options);
       prevParent = parent;
       parent = parent.parent;
     }
   };
 
-  private notifyChildren = () => {
+  private notifyChildren = (options: SetOptions) => {
     if (!this.children) {
       return;
     }
@@ -68,7 +68,7 @@ export class Value {
         for (; indxPath < child.path.length; indxPath++) {
           value = value[child.path[indxPath]];
         }
-        child.notify(value, { reason: new Set([DO_NOT_UPDATE_TREE]) });
+        child.notify(value, options);
         if (child.children) {
           parents.push(child);
         }
@@ -81,13 +81,19 @@ export class Value {
    * @param options - SetOptions
    * @returns undefined
    */
-  notify(value: any, options?: SetOptions) {
-    this.value = value;
-    if (!options?.reason || !options.reason.has(DO_NOT_UPDATE_TREE)) {
-      this.notifyParents();
-      this.notifyChildren();
+  notify(value: any, options: SetOptions = { visited: new Set() }) {
+    if (!options?.visited) {
+      options.visited = new Set();
     }
-    
+    if (options.visited.has(this)) {
+      return;
+    }
+    options.visited.add(this);
+    this.value = value;
+
+    this.notifyParents(options);
+    this.notifyChildren(options);
+
     if (this.listeners) {
       this.listeners.forEach((listener) => {
         listener(this.key, this.value, options);

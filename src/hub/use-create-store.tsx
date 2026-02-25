@@ -1,6 +1,5 @@
 import React from 'react';
 import { HubStore, Hub } from './hub';
-import { UPDATE_FROM_PARENT_STORE } from '../constants';
 
 type HubStoreCtor<T extends object, S extends HubStore<T>> = new (ref: T) => S;
 
@@ -28,7 +27,7 @@ export const useCreateHubStore = <T extends object, S extends HubStore<T>>(
     return { ref };
   });
   if (prevRef.ref !== ref) {
-    store.setObject(ref, { reason: new Set([UPDATE_FROM_PARENT_STORE]) });
+    store.setObject(ref);
     prevRef.ref = ref;
   }
   React.useEffect(() => {
