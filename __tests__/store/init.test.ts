@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import Light from '../../src';
 import { Post, post } from '../data/post';
+
 describe('Store init', () => {
   type TN = Light.Store<any>['__rootValue'];
   type TestNode = {

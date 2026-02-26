@@ -1,4 +1,4 @@
-import type { ListenerOptions, SetOptions } from './store';
+import type { ListenersGroup, ValueListener } from './types';
 
 const ArrayPlaceholder: any[] = [];
 
@@ -8,96 +8,54 @@ const ArrayPlaceholder: any[] = [];
  * when the value changes.
  */
 export class Value {
-  private listeners?: Set<Function>;
-  
+  private groups: Map<ListenersGroup, Set<ValueListener>> = new Map();
+  private listeners: Map<ValueListener, ListenersGroup> = new Map();
   children?: Map<string, Value>;
   constructor(
+    public key: string | null,
     public value: any,
-    public key: string | null = null,
     public path: string[] = ArrayPlaceholder,
     public parent: Value | null = null,
   ) {}
 
-  addListener(listener: Function, options?: ListenerOptions) {
-    if (!this.listeners) {
-      // lazy inintialization Set listeners
-      this.listeners = new Set();
+  addListener(listener: Function, group: symbol) {
+    let groupSet = this.groups.get(group);
+    if (!groupSet) {
+      groupSet = new Set();
+      this.groups.set(group, groupSet);
     }
-    this.listeners.add(listener);
-    if (options && options.isAutoCallListener) {
-      listener(this.key, this.value, options);
-    }
+    this.listeners.set(listener, group);
+    groupSet.add(listener);
   }
 
   removeListener(listener: Function) {
-    if (this.listeners) this.listeners.delete(listener);
-  }
-
-  private notifyParents = (options: SetOptions) => {
-    let parent = this.parent;
-    let prevParent: Value = this;
-
-    while (parent) {
-      let value = parent.value;
-      let indxPath = parent.path.length;
-      for (; indxPath < prevParent.path.length - 1; indxPath++) {
-        value = value[prevParent.path[indxPath]];
-      }
-      value[prevParent.path[indxPath]] = prevParent.value;
-      parent.notify(parent.value, options);
-      prevParent = parent;
-      parent = parent.parent;
-    }
-  };
-
-  private notifyChildren = (options: SetOptions) => {
-    if (!this.children) {
+    const group = this.listeners.get(listener);
+    this.listeners.delete(listener);
+    if (!group) {
       return;
     }
+    // without delete group with size 0 for optimization time
+    // because i think group not too much,
+    // and group with size 0 not a big memory problem
+    const listenersSet = this.groups.get(group);
+    listenersSet?.delete(listener);
+  }
 
-    const parents: Value[] = [this];
-    while (parents.length) {
-      const parent = parents.pop() as Value;
-
-      if (!parent.children) {
-        continue;
-      }
-      for (const child of parent.children.values()) {
-        let indxPath = parent.path.length;
-        let value = parent.value;
-        for (; indxPath < child.path.length; indxPath++) {
-          value = value[child.path[indxPath]];
-        }
-        child.notify(value, options);
-        if (child.children) {
-          parents.push(child);
-        }
-      }
-    }
-  };
   /**
    * Update the value and notify subscribers.
    * @param value - new value
    * @param options - SetOptions
    * @returns undefined
    */
-  notify(value: any, options: SetOptions = { visited: new Set() }) {
-    if (!options?.visited) {
-      options.visited = new Set();
-    }
-    if (options.visited.has(this)) {
-      return;
-    }
-    options.visited.add(this);
+  notify(value: any, group: ListenersGroup) {
     this.value = value;
 
-    this.notifyParents(options);
-    this.notifyChildren(options);
-
-    if (this.listeners) {
-      this.listeners.forEach((listener) => {
-        listener(this.key, this.value, options);
-      });
+    const listeners = this.groups.get(group);
+    if (!listeners) {
+      return;
     }
+    listeners.forEach((listener) => {
+      listener(this.key, this.value, { group });
+    });
   }
 }

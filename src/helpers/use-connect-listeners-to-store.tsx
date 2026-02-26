@@ -1,6 +1,6 @@
 import React from 'react';
 import { Store } from '../store';
-
+import { ThisValueListenerGroup } from '../store/constants';
 /**
  * Connect listeners to store
  *
@@ -15,7 +15,7 @@ export const useConnectListenersToStore = (store: Store<any>, key: string) => {
   const [result, setResult] = React.useState([store.get(key)]);
 
   React.useEffect(() => {
-    store.addListener(key, setState);
+    store.addListener(key, setState, { group: ThisValueListenerGroup });
     return () => {
       store.removeListener(key, setState);
     };

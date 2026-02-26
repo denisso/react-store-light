@@ -1,6 +1,19 @@
-import { Store, type Listener, type PrepValues } from '../store';
+import {
+  Store,
+  type Listener,
+  type PreValues,
+  type ListenersGroup,
+  type SetOptions,
+  Value,
+} from '../store';
 import { addListNode, removeListNode } from '../helpers/list';
+import { defaultGroups } from '../store/constants';
 
+const runListenersForUpadateRef = (nodeValue: Value, value: any) => {
+  for (const group of defaultGroups) {
+    nodeValue.notify(value, group);
+  }
+};
 /**
  * HubStore to work with the Hub class
  */
@@ -8,28 +21,46 @@ export class HubStore<T extends object, S extends object = T> extends Store<T, S
   __next: HubStore<T, S> | null = null;
   __prev: HubStore<T, S> | null = null;
   __ref: T;
-  constructor(ref: T, values?: PrepValues<S>) {
+  __refGroup: ListenersGroup = Symbol('RefListenerGroup');
+  
+  constructor(ref: T, values?: PreValues<S>) {
     const _keys = (values ? Object.keys(values) : Object.keys(ref)) as (keyof S)[];
-    super(ref, values as PrepValues<any>);
+    super(ref, values as PreValues<any>);
     const __self = this;
     for (const key of _keys) {
-      const listener: Listener<S, keyof S> = (key: keyof S, value: S[keyof S], options) => {
-        // if (options?.reason?.has(UPDATE_FROM_PARENT_STORE)) return;
+      const listener: Listener<S, keyof S> = (key: keyof S, value: S[keyof S]) => {
+        if (!values) {
+          (this.__ref as Record<string, any>)[key as string] = value;
+        } else {
+          const path = values[key].path;
+          let object = this.__ref as Record<string, any>;
+          for (let i = 0; i < path.length - 1; i++) {
+            object = object[path[i]];
+          }
+          object[key as string] = value;
+        }
+
         let next: HubStore<T, S> | null = __self.__next;
         while (next) {
-          next.set(key, value, options);
+          const valueNode = next.__values[key];
+          runListenersForUpadateRef(valueNode, value);
           next = next.__next;
         }
         let prev: HubStore<T, S> | null = __self.__prev;
         while (prev) {
-          prev.set(key, value, options);
+          runListenersForUpadateRef(prev.__values[key], value);
           prev = prev.__prev;
         }
       };
-      this.addListener(key, listener);
+      this.addListener(key, listener, { group: this.__refGroup });
     }
 
     this.__ref = ref;
+  }
+
+  set<K extends keyof S>(key: K, value: S[K], options?: SetOptions) {
+    super.set(key, value, options);
+    this.__values[key].notify(value, this.__refGroup);
   }
 }
 

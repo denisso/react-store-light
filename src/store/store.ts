@@ -1,37 +1,8 @@
 import { Value } from './value';
-import { FormatError } from '../helpers/error';
-
-type DeepGetter<T> = (<K extends keyof T>(key: K) => DeepGetter<T[K]>) &
-  (() => { value: T; path: string[] });
-
-export const createStateValue = <T>(obj: T, currentPath: string[] = []): DeepGetter<T> => {
-  const fn = ((key?: PropertyKey) => {
-    if (key === undefined) {
-      return {
-        value: obj,
-        path: currentPath,
-      };
-    }
-
-    return createStateValue((obj as any)[key], [...currentPath, String(key)]);
-  }) as DeepGetter<T>;
-
-  return fn;
-};
-
-export type PrepValues<S> = {
-  [K in keyof S]: {
-    path: string[];
-    value: S[K];
-  };
-};
-
-type TreeNode = {
-  children?: Record<string, TreeNode>;
-  key?: string;
-
-  // valDeep: number
-};
+import type { PreValues, SetOptions, Listener, ListenerOptions } from './types';
+import { initValues } from './helpers/init-values';
+import { createStateValue } from './helpers/creatre-value';
+import { defaultGroups, ThisValueListenerGroup, UserListenerGroup } from './constants';
 
 /**
  * Branding type Store
@@ -40,24 +11,6 @@ export interface StoreBase {
   readonly __brand: 'Store';
 }
 
-export type SetOptions = Partial<{
-  visited: Set<Value>;
-}>;
-
-export type ListenerOptions = Pick<NonNullable<SetOptions>, 'visited'> & {
-  isAutoCallListener: boolean;
-};
-/**
- * Listener signature for store updates.
- * Receives the key name and the new value.
- * template param 'S' is state of Store
- */
-export type Listener<S extends object, K extends keyof S> = (
-  name: K,
-  value: S[K],
-  options?: Omit<ListenerOptions, 'isAutoCallListener'>,
-) => void;
-
 export class Store<T extends object, S extends object = T> {
   /**
    * Cached list of state keys.
@@ -65,7 +18,7 @@ export class Store<T extends object, S extends object = T> {
    * Initialized once from the initial state:
    * this.__keys = Object.keys(state) as (keyof T)[];
    */
-  __keys: (keyof S)[];
+  readonly __keys: (keyof S)[];
 
   __parentStore?: Store<any>;
 
@@ -73,11 +26,11 @@ export class Store<T extends object, S extends object = T> {
 
   __rootValue: Value;
 
-  constructor(object: T, prepValues?: PrepValues<S>) {
-    this.__rootValue = new Value(object);
+  constructor(object: T, prepValues?: PreValues<S>) {
+    this.__rootValue = new Value(null, object);
     this.__keys = (prepValues ? Object.keys(prepValues) : Object.keys(object)) as (keyof S)[];
     if (!prepValues) {
-      prepValues = {} as PrepValues<S>;
+      prepValues = {} as PreValues<S>;
       for (const key of this.__keys) {
         prepValues[key] = createStateValue<any>(object)(key)();
       }
@@ -90,78 +43,7 @@ export class Store<T extends object, S extends object = T> {
     this.addListener = this.addListener.bind(this);
     this.removeListener = this.removeListener.bind(this);
 
-    this.initValues(prepValues);
-  }
-
-  private initValues(values: PrepValues<S>) {
-    const tree: TreeNode = {};
-    for (const key of this.__keys) {
-      let parent = tree;
-      for (const name of values[key].path) {
-        if (!parent.children) {
-          parent.children = {};
-        }
-        let child = parent.children[name];
-        if (!child) {
-          child = {};
-          parent.children[name] = child;
-        }
-
-        parent = child;
-      }
-      if (parent.key) {
-        throw FormatError['notAllowedStoreProp']();
-      }
-      parent.key = key as string;
-    }
-    this.shrinkTreeAndInitValues(values, tree);
-    return;
-  }
-
-  private shrinkTreeAndInitValues(values: PrepValues<S>, tree: TreeNode) {
-    const stack = Object.values(tree.children ?? {});
-    const parents: Value[] = [this.__rootValue];
-    const visited = new Set<TreeNode>();
-    while (stack.length) {
-      const node = stack.at(-1) as TreeNode;
-      if (visited.has(node)) {
-        // stack.at(-1) and parents.at(-1) cannot be undefined
-        if ((stack.pop() as TreeNode).key === (parents.at(-1) as Value).key) {
-          parents.pop();
-        }
-        continue;
-      }
-      visited.add(node);
-
-      if (typeof node.key === 'string') {
-        const parentValue = parents.at(-1) as Value;
-        if (!parentValue.children) {
-          parentValue.children = new Map();
-        }
-
-        const value = new Value(
-          values[node.key as keyof S].value,
-          node.key,
-          values[node.key as keyof S].path,
-          parentValue,
-        );
-        this.__values[node.key as keyof S] = value;
-        parentValue.children.set(node.key, value);
-
-        if (node.children) {
-          parents.push(value);
-        }
-      } else {
-        stack.pop();
-      }
-      if (!node.children) {
-        continue;
-      }
-      for (const key of Object.keys(node.children)) {
-        stack.push(node.children[key]);
-      }
-    }
-    return;
+    this.__values = initValues(prepValues, this) as Record<keyof S, Value>;
   }
 
   /**
@@ -187,7 +69,17 @@ export class Store<T extends object, S extends object = T> {
    * @param options - SetOptions
    */
   set<K extends keyof S>(key: K, value: S[K], options?: SetOptions) {
-    this.__values[key].notify(value, options);
+    for (const group of defaultGroups) {
+      this.__values[key].notify(value, group);
+    }
+    const groups = options?.groups;
+    if (!groups) {
+      this.__values[key].notify(value, UserListenerGroup);
+      return;
+    }
+    for (const group of groups) {
+      this.__values[key].notify(value, group);
+    }
   }
 
   /**
@@ -213,11 +105,10 @@ export class Store<T extends object, S extends object = T> {
    * @param state - Initial store state
    * @param options.isAlwaysNotify - notify listiners always [default: false]
    */
-  setState(state: S, options?: SetOptions) {
+  setState(state: S) {
     for (const key of this.__keys) {
-      this.__values[key].notify(state[key], options);
+      this.__values[key].notify(state[key], ThisValueListenerGroup);
     }
-    // need update parent Store
   }
 
   /**
@@ -233,8 +124,7 @@ export class Store<T extends object, S extends object = T> {
     return this.__rootValue.value;
   }
 
-  setObject(object: T, options?: SetOptions) {
-
+  setObject(object: T) {
     for (const key of this.__keys) {
       let value: any = object;
       if (this.__values[key].path) {
@@ -242,10 +132,8 @@ export class Store<T extends object, S extends object = T> {
           value = value[this.__values[key].path[i]];
         }
       }
-      this.set(key, value, options);
+      this.__values[key].notify(value, ThisValueListenerGroup);
     }
-    // need update parent Store
-    // this.__rootValue.notify(object, { reason: new Set([UPDATE_PARENT_ONLY_STORE]) });
   }
   /**
    * Subscribes a listener to changes of a specific key.
@@ -257,8 +145,15 @@ export class Store<T extends object, S extends object = T> {
    * @returns UnSubscribe function
    */
   addListener<K extends keyof S>(key: K, listener: Listener<S, K>, options?: ListenerOptions) {
-    this.__values[key].addListener(listener, options);
-    return () => this.removeListener(key, listener);
+    let group = UserListenerGroup;
+    if (options?.group) {
+      group = options.group;
+    }
+    this.__values[key].addListener(listener, group);
+
+    if (options?.isAutoCallListener) {
+      listener(key, this.__values[key].value);
+    }
   }
 
   /**
@@ -283,7 +178,7 @@ export class Store<T extends object, S extends object = T> {
  */
 export const createStore = <T extends object, S extends object = T>(
   object: T,
-  values?: PrepValues<S>,
+  values?: PreValues<S>,
 ) => {
   return new Store<T, S>(object, values);
 };

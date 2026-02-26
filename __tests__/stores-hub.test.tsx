@@ -276,7 +276,7 @@ describe('Tree stores', () => {
   it('Custom Hub Store', () => {
     type Counter = { count: number };
     class CustomHubStore extends HubStore<Counter> {
-      getSustomState() {
+      getCustomState() {
         return super.getState();
       }
     }
@@ -287,7 +287,7 @@ describe('Tree stores', () => {
     const testResults: Counter[] = [];
     const StoreCounterComp = () => {
       const custoStore = Light.useStore(counterStoreId);
-      testResults.push(custoStore.getSustomState());
+      testResults.push(custoStore.getCustomState());
       return null;
     };
     type Props = { counter: Counter };
