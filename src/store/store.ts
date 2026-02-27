@@ -3,7 +3,7 @@ import type { PreValues, SetOptions, Listener, ListenerOptions } from './types';
 import { initValues } from './helpers/init-values';
 import { createStateValue } from './helpers/creatre-value';
 import { defaultGroups, ThisValueListenerGroup, UserListenerGroup } from './constants';
-
+import { AbstractStore } from './abstract';
 /**
  * Branding type Store
  */
@@ -11,7 +11,7 @@ export interface StoreBase {
   readonly __brand: 'Store';
 }
 
-export class Store<T extends object, S extends object = T> {
+export class Store<T extends object, S extends object = T> extends AbstractStore {
   /**
    * Cached list of state keys.
    *
@@ -27,6 +27,7 @@ export class Store<T extends object, S extends object = T> {
   __rootValue: Value;
 
   constructor(object: T, prepValues?: PreValues<S>) {
+    super()
     this.__rootValue = new Value(null, object);
     this.__keys = (prepValues ? Object.keys(prepValues) : Object.keys(object)) as (keyof S)[];
     if (!prepValues) {

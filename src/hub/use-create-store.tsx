@@ -23,14 +23,15 @@ export const useCreateHubStore = <T extends object, S extends HubStore<T>>(
     return new HubStore(ref);
   });
   // ref keeper from parent 
-  const [prevRef] = React.useState(() => {
-    return { ref };
-  });
-  if (prevRef.ref !== ref) {
-    store.setObject(ref);
-    prevRef.ref = ref;
-  }
+  // const [prevRef] = React.useState(() => {
+  //   return { ref };
+  // });
+  // if (prevRef.ref !== ref) {
+  //   store.setObject(ref);
+  //   prevRef.ref = ref;
+  // }
   React.useEffect(() => {
+    store.setObject(ref);
     hub.mountStore(store, ref);
     return () => {
       hub.unMountStore(store);

@@ -1,7 +1,7 @@
 import React from 'react';
 import type { IContext, IContextValueId } from '../types';
 import { FormatError } from '../helpers/error';
-import { Context } from '../context';
+import { Context } from './context';
 
 export const useById = <T extends object>(constextValueId: IContextValueId<T>) => {
   const context = React.useContext(Context) as IContext;

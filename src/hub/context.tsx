@@ -1,5 +1,5 @@
 import React from 'react';
-import type { IContext, IContextValueId } from './types';
+import type { IContext, IContextValueId } from '../types';
 
 export function createContextValueId<T extends object>(name?: string): IContextValueId<T> {
   return Symbol(name) as IContextValueId<T>;
