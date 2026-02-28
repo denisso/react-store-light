@@ -4,8 +4,6 @@ export abstract class AbstractStore {
   abstract set(key: PropertyKey, value: unknown): void;
   abstract getState(): unknown;
   abstract setState(state: unknown): void;
-  abstract getObject(): unknown;
-  abstract setObject(object: unknown): void;
   abstract addListener(key: PropertyKey, listener: Function): void
   abstract removeListener(key: PropertyKey, listener: Function): void
 }

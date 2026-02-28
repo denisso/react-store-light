@@ -1,20 +1,16 @@
 import React from 'react';
-import { Store } from '../store';
-import { useConnectListenersToStore } from '../helpers/use-connect-listeners-to-store';
+import { Store, Listener } from '../store';
 import { useStore } from './use-store';
 import type { IContextValueId } from '../types';
 
 type IArgs<T extends object, K extends keyof T> = T[K] | ((prev: T[K]) => T[K]);
 
-export function useState<T extends object, S extends object, K extends keyof S>(
-  contextValueId: IContextValueId<Store<T, S>>,
+export function useState<T extends object, K extends keyof T>(
+  contextValueId: IContextValueId<Store<T>>,
   key: K,
-): [S[K], (args: IArgs<S, K>) => void];
+): T[K];
 
-export function useState<T extends object, S extends object, K extends keyof S>(
-  store: Store<T, S>,
-  key: K,
-): [S[K], (args: IArgs<S, K>) => void];
+export function useState<T extends object, K extends keyof T>(store: Store<T>, key: K): T[K];
 
 /**
  * Subscribes a component to a single store field by key.
@@ -25,20 +21,23 @@ export function useState<T extends object, S extends object, K extends keyof S>(
  * @param store - Store<T> | IContextValueId<Store<T>>
  * @param key - name field in the store
  */
-export function useState<T extends object, S extends object, K extends keyof S>(
-  storeOrId: Store<T, S> | IContextValueId<Store<T, S>>,
+export function useState<T extends object, K extends keyof T>(
+  storeOrId: Store<T> | IContextValueId<Store<T>>,
   key: K,
-): [S[K], (args: IArgs<S, K>) => void] {
+): T[K] {
   const store = typeof storeOrId === 'symbol' ? useStore(storeOrId) : storeOrId;
+  const [args] = React.useState(() => {
+    return {
+      getSnapshot() {
+        return store.get(key);
+      },
 
-  const [_setState] = React.useState(() => (arg: IArgs<S, K>) => {
-    if (arg instanceof Function) {
-      return store.set(key, arg(store.get(key)));
-    }
-    store.set(key, arg);
+      subscribe(listener: Listener<T, K>) {
+        const remove = store.addListener(key, listener);
+        return () => remove();
+      },
+    };
   });
-
-  const [state] = useConnectListenersToStore(store, key as string);
-
-  return [state, _setState];
+  const state = React.useSyncExternalStore(args.subscribe, args.getSnapshot);
+  return state;
 }

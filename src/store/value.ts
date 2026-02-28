@@ -42,7 +42,7 @@ export class Value {
   }
 
   /**
-   * Update the value and notify subscribers.
+   * Update the value and notify addListenerrs.
    * @param value - new value
    * @param options - SetOptions
    * @returns undefined

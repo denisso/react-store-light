@@ -1,50 +1,25 @@
 import { Value } from './value';
-import type { PreValues, SetOptions, Listener, ListenerOptions } from './types';
-import { initValues } from './helpers/init-values';
-import { createStateValue } from './helpers/creatre-value';
+import type { SetOptions, Listener, ListenerOptions } from './types';
 import { defaultGroups, ThisValueListenerGroup, UserListenerGroup } from './constants';
 import { AbstractStore } from './abstract';
-/**
- * Branding type Store
- */
-export interface StoreBase {
-  readonly __brand: 'Store';
-}
 
-export class Store<T extends object, S extends object = T> extends AbstractStore {
-  /**
-   * Cached list of state keys.
-   *
-   * Initialized once from the initial state:
-   * this.__keys = Object.keys(state) as (keyof T)[];
-   */
-  readonly __keys: (keyof S)[];
+export class Store<T extends object> extends AbstractStore {
+  readonly __keys: (keyof T)[];
 
-  __parentStore?: Store<any>;
+  __values = {} as Record<keyof T, Value>;
 
-  __values: Record<keyof S, Value> = {} as Record<keyof S, Value>;
+  __state: T;
 
-  __rootValue: Value;
-
-  constructor(object: T, prepValues?: PreValues<S>) {
-    super()
-    this.__rootValue = new Value(null, object);
-    this.__keys = (prepValues ? Object.keys(prepValues) : Object.keys(object)) as (keyof S)[];
-    if (!prepValues) {
-      prepValues = {} as PreValues<S>;
-      for (const key of this.__keys) {
-        prepValues[key] = createStateValue<any>(object)(key)();
-      }
-    }
-    this.__rootValue.children = new Map();
+  constructor(state: T) {
+    super();
+    this.__state = state;
+    this.__keys = Object.keys(state) as (keyof T)[];
     this.get = this.get.bind(this);
     this.set = this.set.bind(this);
     this.getState = this.getState.bind(this);
     this.setState = this.setState.bind(this);
     this.addListener = this.addListener.bind(this);
     this.removeListener = this.removeListener.bind(this);
-
-    this.__values = initValues(prepValues, this) as Record<keyof S, Value>;
   }
 
   /**
@@ -54,8 +29,8 @@ export class Store<T extends object, S extends object = T> extends AbstractStore
    * @param isDeepCopy - is need to make a deep copy? [default: false
    * @returns T[K] - value
    */
-  get<K extends keyof S>(key: K, isDeepCopy = false) {
-    let value = this.__values[key].value as S[K];
+  get<K extends keyof T>(key: K, isDeepCopy = false) {
+    let value = this.__values[key].value as T[K];
     if (value instanceof Object && isDeepCopy) {
       return structuredClone(value);
     }
@@ -69,7 +44,7 @@ export class Store<T extends object, S extends object = T> extends AbstractStore
    * @param value - T[K] - value
    * @param options - SetOptions
    */
-  set<K extends keyof S>(key: K, value: S[K], options?: SetOptions) {
+  set<K extends keyof T>(key: K, value: T[K], options?: SetOptions) {
     for (const group of defaultGroups) {
       this.__values[key].notify(value, group);
     }
@@ -90,14 +65,10 @@ export class Store<T extends object, S extends object = T> extends AbstractStore
    * @returns state
    */
   getState(isDeepCopy = false) {
-    const state = {} as S;
-    for (const key of this.__keys) {
-      state[key] = this.__values[key].value;
-    }
     if (isDeepCopy) {
-      return structuredClone(state);
+      return structuredClone(this.__state);
     }
-    return state;
+    return this.__state;
   }
 
   /**
@@ -106,46 +77,19 @@ export class Store<T extends object, S extends object = T> extends AbstractStore
    * @param state - Initial store state
    * @param options.isAlwaysNotify - notify listiners always [default: false]
    */
-  setState(state: S) {
-    for (const key of this.__keys) {
-      this.__values[key].notify(state[key], ThisValueListenerGroup);
-    }
-  }
-
-  /**
-   * Get Store.__object
-   *
-   * @param isDeepCopy - is need to make a deep copy? [default: false
-   * @returns
-   */
-  getObject(isDeepCopy = false) {
-    if (isDeepCopy) {
-      return structuredClone(this.__rootValue.value);
-    }
-    return this.__rootValue.value;
-  }
-
-  setObject(object: T) {
-    for (const key of this.__keys) {
-      let value: any = object;
-      if (this.__values[key].path) {
-        for (let i = 0; i < this.__values[key].path.length; i++) {
-          value = value[this.__values[key].path[i]];
-        }
-      }
-      this.__values[key].notify(value, ThisValueListenerGroup);
-    }
+  setState(state: T) {
+    return (this.__state = state);
   }
   /**
    * Subscribes a listener to changes of a specific key.
    *
-   * @param key Store key to subscribe to
+   * @param key Store key to addListener to
    * @param listener Callback invoked on value changes
    * @param isAutoCallListener - Whether to call the listener immediately
    *                         with the current value [default: false]
    * @returns UnSubscribe function
    */
-  addListener<K extends keyof S>(key: K, listener: Listener<S, K>, options?: ListenerOptions) {
+  addListener<K extends keyof T>(key: K, listener: Listener<T, K>, options?: ListenerOptions) {
     let group = UserListenerGroup;
     if (options?.group) {
       group = options.group;
@@ -155,15 +99,16 @@ export class Store<T extends object, S extends object = T> extends AbstractStore
     if (options?.isAutoCallListener) {
       listener(key, this.__values[key].value);
     }
+    return () => this.__values[key].removeListener(listener);
   }
 
   /**
    * Removes a previously registered listener for a key.
    *
-   * @param key Store key to subscribe to
+   * @param key Store key to addListener to
    * @param listener Callback invoked on value changes
    */
-  removeListener<K extends keyof S>(key: K, listener: Listener<S, K>) {
+  removeListener<K extends keyof T>(key: K, listener: Listener<T, K>) {
     this.__values[key].removeListener(listener);
   }
 }
@@ -177,9 +122,6 @@ export class Store<T extends object, S extends object = T> extends AbstractStore
  * @param state - Initial store state
  * @returns Store API with get/set and subscription methods
  */
-export const createStore = <T extends object, S extends object = T>(
-  object: T,
-  values?: PreValues<S>,
-) => {
-  return new Store<T, S>(object, values);
+export const createStore = <T extends object>(object: T) => {
+  return new Store<T>(object);
 };
