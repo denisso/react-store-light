@@ -10,7 +10,7 @@ describe('useState', () => {
     let trigger!: () => void;
     let countTest = 0;
     const TestComponent = () => {
-      const [count, setCount] = Light.useState(store, 'count');
+      const count = Light.useState(store, 'count');
 
       React.useEffect(() => {
         // ! test it
@@ -19,7 +19,7 @@ describe('useState', () => {
 
       trigger = () => {
         // ! test it
-        setCount((prev) => prev + 2);
+        store.set('count', count + 2);
       };
 
       return null;
@@ -40,9 +40,9 @@ describe('useState', () => {
     const store = Light.createStore<Counter>({ count: 0 });
     let trigger!: () => void;
     let countTest = 0;
-    const storeId = Light.createContextValueId<Light.Store<Counter>>();
+    const storeId = Light.createContextId<Light.Store<Counter>>();
     const TestComponent = () => {
-      const [count, setCount] = Light.useState(storeId, 'count');
+      const count = Light.useState(storeId, 'count');
 
       React.useEffect(() => {
         // ! test it
@@ -51,7 +51,7 @@ describe('useState', () => {
 
       trigger = () => {
         // ! test it
-        setCount(2);
+        store.set('count', 2);
       };
 
       return null;

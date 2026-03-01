@@ -12,7 +12,7 @@ describe('useStore', () => {
     }
     const store = new CustomStore({ count: 1 });
     const spy = vi.spyOn(store, 'test');
-    const storeId = Light.createContextValueId<CustomStore>();
+    const storeId = Light.createContextId<CustomStore>();
 
     const Store = () => {
       const store = Light.useStore(storeId);
