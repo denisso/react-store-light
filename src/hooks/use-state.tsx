@@ -1,9 +1,7 @@
 import React from 'react';
 import { Store, Listener } from '../store';
-import { useStore } from './use-store';
+import { useContextId } from './use-context-id';
 import type { IContextValueId } from '../types';
-
-type IArgs<T extends object, K extends keyof T> = T[K] | ((prev: T[K]) => T[K]);
 
 export function useState<T extends object, K extends keyof T>(
   contextValueId: IContextValueId<Store<T>>,
@@ -25,7 +23,7 @@ export function useState<T extends object, K extends keyof T>(
   storeOrId: Store<T> | IContextValueId<Store<T>>,
   key: K,
 ): T[K] {
-  const store = typeof storeOrId === 'symbol' ? useStore(storeOrId) : storeOrId;
+  const store = typeof storeOrId === 'symbol' ? useContextId(storeOrId) : storeOrId;
   const [args] = React.useState(() => {
     return {
       getSnapshot() {

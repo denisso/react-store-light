@@ -1,2 +1,2 @@
 export { useState } from './use-state';
-export { useStore } from './use-store';
+export { useContextId } from './use-context-id';

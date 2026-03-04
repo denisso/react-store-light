@@ -15,7 +15,7 @@ describe('useStore', () => {
     const storeId = Light.createContextId<CustomStore>();
 
     const Store = () => {
-      const store = Light.useStore(storeId);
+      const store = Light.useContextId(storeId);
       React.useEffect(() => {
         store.test();
       }, [store]);
