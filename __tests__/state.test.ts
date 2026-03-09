@@ -29,7 +29,8 @@ const isListEmpty = (node: StateNode) => {
 describe('state test', () => {
   it('Create tree', () => {
     const dict = structuredClone(_dict);
-    const path = getPath(dict)(posts[0].id)('meta')('author')('name')();
+    const path = getPath<typeof dict>()(posts[0].id)('meta')('author')('name')();
+    
     const state = new State(dict);
     const subscribe = state.subsribe(path);
     let levels = 0;
@@ -43,9 +44,10 @@ describe('state test', () => {
 
   it('Subscribe same path and unsubscribe', () => {
     const dict = structuredClone(_dict);
+
     let paths: string[][] = [
-      getPath(dict)(posts[0].id)('meta')('author')('name')(),
-      getPath(dict)(posts[0].id)('meta')('author')('name')(),
+      getPath<typeof dict>()(posts[0].id)('meta')('author')('name')(),
+      getPath<typeof dict>()(posts[0].id)('meta')('author')('name')(),
     ];
     const state = new State(dict);
 
@@ -67,8 +69,8 @@ describe('state test', () => {
     const dict = structuredClone(_dict);
 
     let paths: string[][] = [
-      getPath(dict)(posts[0].id)('meta')('author')('name')(),
-      getPath(dict)(posts[1].id)('meta')('author')('name')(),
+      getPath<typeof dict>()(posts[0].id)('meta')('author')('name')(),
+      getPath<typeof dict>()(posts[1].id)('meta')('author')('name')(),
     ];
     const state = new State(dict);
 
