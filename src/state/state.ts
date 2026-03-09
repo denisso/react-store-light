@@ -2,8 +2,9 @@ type ChildId = bigint;
 type ParentId = bigint;
 type PropName = string;
 type Listener = Function;
+type Subscribe = (listener: Function) => () => void;
 
-class StateNode {
+export class StateNode {
   // name, uniqId for name - for bottom top updates
   childrenCounter = 0n;
   listeners = new Map<ParentId, Set<Listener>>();
@@ -18,7 +19,7 @@ class StateNode {
   ) {
     this.subsribe = this.subsribe.bind(this);
   }
-  subsribe(path: string[], parentId: bigint) {
+  subsribe(path: string[], parentId: bigint): Subscribe {
     if (this.depth == path.length - 1) {
       // register and return listener
       const _self = this;
@@ -31,8 +32,8 @@ class StateNode {
         listeners.add(listener);
         return () => {
           listeners.delete(listener);
-          if (!listener) {
-            _self.unsubscribe(parentId);
+          if (!listeners.size) {
+            _self.unSubscribe(path, parentId);
           }
         };
       };
@@ -53,18 +54,22 @@ class StateNode {
     if (!this.next) {
       this.next = new StateNode(this, this.depth + 1);
     }
-    this.next.subsribe(path, childrenId);
+    return this.next.subsribe(path, childrenId);
   }
-  unsubscribe(parentId: bigint) {
-    if (this.children.has(parentId)) {
+  unSubscribe(path: string[], parentId: bigint) {
+    
+    const listeners = this.listeners.get(parentId);
+    if (listeners && listeners.size) {
       return;
     }
+    this.children.delete(parentId);
     if (!this.prev) {
       return;
     }
     const prevParentId = this.prev.parents.get(parentId);
+
     if (prevParentId !== undefined) {
-      this.prev.unsubscribe(prevParentId);
+      this.prev.unSubscribe(path, prevParentId);
     }
   }
 }
@@ -77,12 +82,12 @@ export class StateRoot extends StateNode {
     this.subsribe = this.subsribe.bind(this);
   }
   subsribe(path: string[]) {
-    let parentPseudo = this.parentsId.get(path[0]);
-    if (parentPseudo === undefined) {
-      parentPseudo = this.parentCounter++;
-      this.parentsId.set(path[0], parentPseudo);
+    let parentId = this.parentsId.get(path[0]);
+    if (parentId === undefined) {
+      parentId = this.parentCounter++;
+      this.parentsId.set(path[0], parentId);
     }
-    return super.subsribe(path, parentPseudo);
+    return super.subsribe(path, parentId);
   }
 }
 
