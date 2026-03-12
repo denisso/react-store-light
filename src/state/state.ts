@@ -57,7 +57,6 @@ export class StateNode {
     return this.next.subsribe(path, childrenId);
   }
   unSubscribe(path: string[], parentId: bigint) {
-    
     const listeners = this.listeners.get(parentId);
     if (listeners && listeners.size) {
       return;
@@ -93,8 +92,49 @@ export class StateRoot extends StateNode {
 
 export class State {
   tree = new StateRoot();
-  constructor(public object: Record<string, any>) {}
-  set(path: string[] = [], value: any) {}
+  constructor(public object: Record<string, any>) {
+    this.set = this.set.bind(this);
+    this.get = this.get.bind(this);
+    this.subsribe = this.subsribe.bind(this);
+  }
+  getState(isDeepCopy = false) {
+    if (isDeepCopy) {
+      return structuredClone(this.object);
+    }
+    return this.object;
+  }
+  setState(object: Record<string, any>){
+    // not implemented yet
+    
+  }
+  set(path: string[] = [], value: any) {
+    let indxPath = 0;
+    let next = this.tree;
+    let parentObject = this.object;
+    let object = this.object[path[indxPath]];
+    let parentId = this.tree.parentsId.get(path[0]);
+    if (parentId === undefined) {
+      return;
+    }
+
+    while (indxPath < path.length) {
+      let prev = object;
+      if (object === undefined) {
+        object = {};
+        parentObject[path[indxPath]] = object;
+      }
+      if (parentId !== undefined) {
+        const children = next.children.get(parentId);
+        const listeners = next.listeners.get(parentId);
+        if (prev === object && listeners?.size) {
+        }
+        parentId = children?.get(path[indxPath]);
+      }
+
+      parentObject = object;
+      indxPath++;
+    }
+  }
   get(path: string[]) {
     let value = this.object;
     for (const name of path) {
