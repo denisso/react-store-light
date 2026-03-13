@@ -12,7 +12,7 @@ export class Store<T extends object> extends AbstractStore {
     this.set = this.set.bind(this);
     this.getState = this.getState.bind(this);
     // this.setState = this.setState.bind(this);
-    this.addListener = this.addListener.bind(this);
+    this.subscribe = this.subscribe.bind(this);
   }
 
   /**
@@ -59,13 +59,13 @@ export class Store<T extends object> extends AbstractStore {
   /**
    * Subscribes a listener to changes of a specific key.
    *
-   * @param key Store key to addListener to
+   * @param key Store key to subscribe to
    * @param listener Callback invoked on value changes
    * @param isAutoCallListener - Whether to call the listener immediately
    *                         with the current value [default: false]
    * @returns UnSubscribe function
    */
-  addListener<K extends keyof T>(key: K, listener: Listener<T, K>) {
+  subscribe<K extends keyof T>(key: K, listener: Listener<T, K>) {
     const subscribe = this.__state.subsribe([key as string])
     return subscribe(listener)
   }

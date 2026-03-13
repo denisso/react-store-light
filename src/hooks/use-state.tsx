@@ -1,10 +1,9 @@
 import React from 'react';
 import { Store, Listener } from '../store';
-import { useContextId } from './use-context-id';
-import type { IContextValueId } from '../types';
+import { Aliases } from '../aliases';
 
-export function useState<T extends object, K extends keyof T>(
-  contextValueId: IContextValueId<Store<T>>,
+export function useState<T extends Record<string, any>, K extends keyof T>(
+  aliases: Aliases<T>,
   key: K,
 ): T[K];
 
@@ -19,23 +18,21 @@ export function useState<T extends object, K extends keyof T>(store: Store<T>, k
  * @param store - Store<T> | IContextValueId<Store<T>>
  * @param key - name field in the store
  */
-export function useState<T extends object, K extends keyof T>(
-  storeOrId: Store<T> | IContextValueId<Store<T>>,
+export function useState<T extends Record<string, any>, K extends keyof T>(
+  stateHolder: Store<T> | Aliases<T>,
   key: K,
 ): T[K] {
-  const store = typeof storeOrId === 'symbol' ? useContextId(storeOrId) : storeOrId;
   const [args] = React.useState(() => {
     return {
       getSnapshot() {
-        return store.get(key);
+        return stateHolder.get(key);
       },
 
       subscribe(listener: Listener<T, K>) {
-        const remove = store.addListener(key, listener);
-        return () => remove();
+        return stateHolder.subscribe(key, listener);
       },
     };
   });
-  const state = React.useSyncExternalStore(args.subscribe, args.getSnapshot);
+  const state = React.useSyncExternalStore(args.subscribe, args.getSnapshot) as T[K];
   return state;
 }
