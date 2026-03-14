@@ -40,11 +40,10 @@ export class Store<T extends object> extends AbstractStore {
   /**
    * Return state
    *
-   * @param isDeepCopy - is need to make a deep copy? [default: false]
    * @returns state
    */
-  getState(isDeepCopy = false) {
-    return this.__state.getState(isDeepCopy);
+  getState() {
+    return this.__state;
   }
 
   /**
