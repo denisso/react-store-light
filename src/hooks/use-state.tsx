@@ -1,6 +1,8 @@
 import React from 'react';
 import { Store, Listener } from '../store';
 import { Aliases } from '../aliases';
+import { State } from '../state';
+import { compileAccessor } from '../helpers';
 
 export function useState<T extends Record<string, any>, K extends keyof T>(
   aliases: Aliases<T>,
@@ -23,9 +25,17 @@ export function useState<T extends Record<string, any>, K extends keyof T>(
   key: K,
 ): T[K] {
   const [args] = React.useState(() => {
+    let accessorBykey: (state: State) => any;
+    if (stateHolder instanceof Store) {
+      accessorBykey = compileAccessor([key as string]);
+    } else {
+      accessorBykey = compileAccessor(stateHolder.getAliases(key)());
+    }
     return {
       getSnapshot() {
-        return stateHolder.get(key);
+        try {
+          return accessorBykey(stateHolder.getState());
+        } catch {}
       },
 
       subscribe(listener: Listener<T, K>) {

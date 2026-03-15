@@ -103,21 +103,18 @@ export class State {
     }
     return this.object;
   }
-  setState(object: Record<string, any>){
+  setState(object: Record<string, any>) {
     // not implemented yet
-    
   }
   set(path: string[] = [], value: any) {
     let indxPath = 0;
     let next = this.tree;
     let parentObject = this.object;
-    let object = this.object[path[indxPath]];
+
     let parentId = this.tree.parentsId.get(path[0]);
-    if (parentId === undefined) {
-      return;
-    }
 
     while (indxPath < path.length) {
+      let object = parentObject[path[indxPath]];
       let prev = object;
       if (object === undefined) {
         object = {};
@@ -126,7 +123,18 @@ export class State {
       if (parentId !== undefined) {
         const children = next.children.get(parentId);
         const listeners = next.listeners.get(parentId);
-        if (prev === object && listeners?.size) {
+        if (listeners?.size) {
+          if (object instanceof Object) {
+            if (prev === object) {
+              object = { ...object };
+            }
+          } else {
+            parentObject[path[indxPath]] = value;
+            object = value;
+          }
+          for (const listener of listeners) {
+            listener();
+          }
         }
         parentId = children?.get(path[indxPath]);
       }

@@ -1,11 +1,6 @@
-import { GetPath, Listener } from '../public-api';
+import type { GetPath, Listener } from '../public-api';
 import { State } from '../state';
-
-function compileAccessor(path: string[]) {
-  const code = 'return state.object' + path.map((p) => `["${p}"]`).join('');
-
-  return new Function('state', code);
-}
+import { compileAccessor } from '../helpers';
 
 type UnwrapGetPath<T> = T extends GetPath<infer U> ? U : never;
 
@@ -22,9 +17,13 @@ export class Aliases<A extends Record<PropertyKey, GetPath<any>>> {
       this.__accessors[key] = compileAccessor(aliases[key]());
     }
     this.get = this.get.bind(this);
+    this.getAliases = this.getAliases.bind(this);
+    this.getState = this.getState.bind(this);
     this.subscribe = this.subscribe.bind(this);
   }
-
+  getState(){
+    return this.__state
+  }
   getAliases<K extends keyof A>(key: K): A[K] {
     return this.__aliases[key];
   }

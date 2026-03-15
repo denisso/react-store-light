@@ -42,7 +42,8 @@ describe('useState', () => {
     let countTest = 0;
     const storeId = Light.createContextId<Light.Store<Counter>>();
     const TestComponent = () => {
-      const count = Light.useState(storeId, 'count');
+      const store = Light.useContextId(storeId);
+      const count = Light.useState(store, 'count');
 
       React.useEffect(() => {
         // ! test it
