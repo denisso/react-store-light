@@ -1,17 +1,17 @@
 import type { GetPath, Listener } from '../public-api';
 import { State } from '../state';
-import { compileAccessor } from '../helpers';
+import { compileAccessor, type Accessor } from '../helpers';
 
 type UnwrapGetPath<T> = T extends GetPath<infer U> ? U : never;
 
 export class Aliases<A extends Record<PropertyKey, GetPath<any>>> {
-  __accessors: Record<keyof A, Function>;
+  __accessors: Record<keyof A, Accessor>;
   __state: State;
   __aliases: A;
   constructor( aliases: A, state: State) {
     this.__aliases = aliases;
     this.__state = state;
-    this.__accessors = {} as Record<keyof A, Function>;
+    this.__accessors = {} as Record<keyof A, Accessor>;
 
     for (const key of Object.keys(aliases) as (keyof A)[]) {
       this.__accessors[key] = compileAccessor(aliases[key]());

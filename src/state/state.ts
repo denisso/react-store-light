@@ -92,45 +92,45 @@ export class StateRoot extends StateNode {
 
 export class State {
   tree = new StateRoot();
-  constructor(public object: Record<string, any>) {
+  constructor(public values: Record<string, any>) {
     this.set = this.set.bind(this);
     this.get = this.get.bind(this);
     this.subsribe = this.subsribe.bind(this);
   }
-  getState(isDeepCopy = false) {
+  getValues(isDeepCopy = false) {
     if (isDeepCopy) {
-      return structuredClone(this.object);
+      return structuredClone(this.values);
     }
-    return this.object;
+    return this.values;
   }
-  setState(object: Record<string, any>) {
+  setValues(values: Record<string, any>) {
     // not implemented yet
   }
   set(path: string[] = [], value: any) {
     let indxPath = 0;
     let next = this.tree;
-    let parentObject = this.object;
+    let parentObject = this.values;
 
     let parentId = this.tree.parentsId.get(path[0]);
 
     while (indxPath < path.length) {
-      let object = parentObject[path[indxPath]];
-      let prev = object;
-      if (object === undefined) {
-        object = {};
-        parentObject[path[indxPath]] = object;
+      let values = parentObject[path[indxPath]];
+      let prev = values;
+      if (values === undefined) {
+        values = {};
+        parentObject[path[indxPath]] = values;
       }
       if (parentId !== undefined) {
         const children = next.children.get(parentId);
         const listeners = next.listeners.get(parentId);
         if (listeners?.size) {
-          if (object instanceof Object) {
-            if (prev === object) {
-              object = { ...object };
+          if (values instanceof Object) {
+            if (prev === values) {
+              values = { ...values };
             }
           } else {
             parentObject[path[indxPath]] = value;
-            object = value;
+            values = value;
           }
           for (const listener of listeners) {
             listener();
@@ -139,12 +139,12 @@ export class State {
         parentId = children?.get(path[indxPath]);
       }
 
-      parentObject = object;
+      parentObject = values;
       indxPath++;
     }
   }
   get(path: string[]) {
-    let value = this.object;
+    let value = this.values;
     for (const name of path) {
       if (value instanceof Object) {
         value = value[name];

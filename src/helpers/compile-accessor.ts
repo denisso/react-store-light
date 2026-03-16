@@ -1,6 +1,13 @@
-import { State } from "../state";
-export function compileAccessor(path: string[]): (state: State) => any {
-  const code = 'return state.getState()' + path.map((p) => `["${p}"]`).join('');
+import { State } from '../state';
 
-  return new Function('state', code) as (state: State) => any;
+export interface Accessor {
+  (state: State & { getValues: () => void }): any;
+}
+
+export function compileAccessor(
+  path: string[],
+): Accessor {
+  const code = 'return state.getValues()' + path.map((p) => `["${p}"]`).join('');
+
+  return new Function('state', code) as Accessor;
 }
