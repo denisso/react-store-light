@@ -1,101 +1,14 @@
-type ChildId = bigint;
-type ParentId = bigint;
-type PropName = string;
-type Listener = Function;
-type Subscribe = (listener: Function) => () => void;
-
-export class StateNode {
-  // name, uniqId for name - for bottom top updates
-  childrenCounter = 0n;
-  listeners = new Map<ParentId, Set<Listener>>();
-  // for top bottom
-  children = new Map<ParentId, Map<PropName, ChildId>>();
-  next: StateNode | null = null;
-  // for bottom top
-  parents = new Map<ChildId, ParentId>();
-  constructor(
-    public prev: StateNode | null,
-    public depth: number,
-  ) {
-    this.subsribe = this.subsribe.bind(this);
-  }
-  subsribe(path: string[], parentId: bigint): Subscribe {
-    if (this.depth == path.length - 1) {
-      // register and return listener
-      const _self = this;
-      return (listener: Function) => {
-        let listeners = this.listeners.get(parentId);
-        if (listeners === undefined) {
-          listeners = new Set();
-          this.listeners.set(parentId, listeners);
-        }
-        listeners.add(listener);
-        return () => {
-          listeners.delete(listener);
-          if (!listeners.size) {
-            _self.unSubscribe(path, parentId);
-          }
-        };
-      };
-    }
-
-    let children = this.children.get(parentId);
-    if (!children) {
-      children = new Map();
-      this.children.set(parentId, children);
-    }
-    let childrenId = children.get(path[this.depth]);
-
-    if (childrenId === undefined) {
-      childrenId = this.childrenCounter++;
-      children.set(path[this.depth], childrenId);
-    }
-    this.parents.set(childrenId, parentId);
-    if (!this.next) {
-      this.next = new StateNode(this, this.depth + 1);
-    }
-    return this.next.subsribe(path, childrenId);
-  }
-  unSubscribe(path: string[], parentId: bigint) {
-    const listeners = this.listeners.get(parentId);
-    if (listeners && listeners.size) {
-      return;
-    }
-    this.children.delete(parentId);
-    if (!this.prev) {
-      return;
-    }
-    const prevParentId = this.prev.parents.get(parentId);
-
-    if (prevParentId !== undefined) {
-      this.prev.unSubscribe(path, prevParentId);
-    }
-  }
-}
-
-export class StateRoot extends StateNode {
-  parentsId = new Map<string, bigint>();
-  parentCounter = 0n;
-  constructor() {
-    super(null, 0);
-    this.subsribe = this.subsribe.bind(this);
-  }
-  subsribe(path: string[]) {
-    let parentId = this.parentsId.get(path[0]);
-    if (parentId === undefined) {
-      parentId = this.parentCounter++;
-      this.parentsId.set(path[0], parentId);
-    }
-    return super.subsribe(path, parentId);
-  }
-}
+import { ListenersTree, subscribe } from './listeners';
+import { Accessor } from '../helpers';
 
 export class State {
-  tree = new StateRoot();
+  listenersTree = new ListenersTree();
   constructor(public values: Record<string, any>) {
     this.set = this.set.bind(this);
     this.get = this.get.bind(this);
     this.subsribe = this.subsribe.bind(this);
+    this.setValues = this.setValues.bind(this);
+    this.getValues = this.getValues.bind(this);
   }
   getValues(isDeepCopy = false) {
     if (isDeepCopy) {
@@ -103,45 +16,29 @@ export class State {
     }
     return this.values;
   }
+
   setValues(values: Record<string, any>) {
-    // not implemented yet
+    // const prev = this.values;
+    // this.values = values;
+    // const keys = Object.keys(values);
+    // for (const key of keys) {
+    //   this._notifyBroadCast;
+    // }
   }
-  set(path: string[] = [], value: any) {
-    let indxPath = 0;
-    let next = this.tree;
-    let parentObject = this.values;
-
-    let parentId = this.tree.parentsId.get(path[0]);
-
-    while (indxPath < path.length) {
-      let values = parentObject[path[indxPath]];
-      let prev = values;
-      if (values === undefined) {
-        values = {};
-        parentObject[path[indxPath]] = values;
-      }
-      if (parentId !== undefined) {
-        const children = next.children.get(parentId);
-        const listeners = next.listeners.get(parentId);
-        if (listeners?.size) {
-          if (values instanceof Object) {
-            if (prev === values) {
-              values = { ...values };
-            }
-          } else {
-            parentObject[path[indxPath]] = value;
-            values = value;
-          }
-          for (const listener of listeners) {
-            listener();
-          }
-        }
-        parentId = children?.get(path[indxPath]);
-      }
-
-      parentObject = values;
-      indxPath++;
-    }
+  set(path: string[], value: any, parentAccessor?: Accessor) {
+    // let parentId = this.listenersTree.parentsId.get(path[0]);
+    // let parent = this.values;
+    // if (parentAccessor) {
+    //   parent = parentAccessor(this);
+    // } else if (path instanceof Array) {
+    //   for (let i = 0; i < path.length - 1; i++) {
+    //     parent = parent[path[i]];
+    //   }
+    // }
+    // parent[path.at(-1) as string] = value;
+    // if (parentId !== undefined) {
+    //   this._notifyByPath(path, parentId);
+    // }
   }
   get(path: string[]) {
     let value = this.values;
@@ -154,8 +51,8 @@ export class State {
     }
     return value;
   }
-  subsribe(path: string[]) {
+  subsribe(path: string[], listener: Function) {
     // let node: TreeNode;
-    return this.tree.subsribe(path);
+    return subscribe(this.listenersTree, path, listener);
   }
 }
