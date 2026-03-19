@@ -53,7 +53,7 @@ export class Store<T extends object> extends AbstractStore {
    * @param options.isAlwaysNotify - notify listiners always [default: false]
    */
   setState(state: T) {
-    this.__state.setState(state);
+    this.__state.setValues(state);
   }
   /**
    * Subscribes a listener to changes of a specific key.
@@ -65,8 +65,8 @@ export class Store<T extends object> extends AbstractStore {
    * @returns UnSubscribe function
    */
   subscribe<K extends keyof T>(key: K, listener: Listener<T, K>) {
-    const subscribe = this.__state.subsribe([key as string])
-    return subscribe(listener)
+    const subscribe = this.__state.subsribe([key as string], listener);
+    return subscribe;
   }
 }
 

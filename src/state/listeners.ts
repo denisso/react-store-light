@@ -1,6 +1,6 @@
 type ChildId = bigint;
 type ParentId = bigint;
-type PropName = string;
+type PathName = string;
 type Listener = Function;
 
 export class ListenersNode {
@@ -8,7 +8,7 @@ export class ListenersNode {
   childrenCounter = 0n;
   listeners = new Map<ParentId, Set<Listener>>();
   // for top bottom
-  children = new Map<ParentId, Map<PropName, ChildId>>();
+  children = new Map<ParentId, Map<PathName, ChildId>>();
   next: ListenersNode | null = null;
   // for bottom top
   parents = new Map<ChildId, ParentId>();
@@ -19,8 +19,7 @@ export class ListenersNode {
 }
 
 export class ListenersTree extends ListenersNode {
-  nameToId = new Map<string, bigint>();
-  parentCounter = 0n;
+  parentId = 0n;
   constructor() {
     super(null, -1);
   }
@@ -38,7 +37,7 @@ function addChildNameToNode(node: ListenersNode, name: string, parentId: bigint)
   let children = node.children.get(parentId);
   if (!children) {
     // Create a dictionary of child elements if it doesn't exist.
-    children = new Map<PropName, ChildId>();
+    children = new Map<PathName, ChildId>();
     node.children.set(parentId, children);
   }
   // Get unique IDs based on real names in the path.
@@ -55,59 +54,77 @@ function addChildNameToNode(node: ListenersNode, name: string, parentId: bigint)
 }
 
 export function subscribe(tree: ListenersTree, path: string[], listener: Function) {
-  let topNameId = tree.nameToId.get(path[0]);
-  if (topNameId === undefined) {
-    // Add new top name to root node tree
-    topNameId = tree.parentCounter++;
-    tree.nameToId.set(path[0], topNameId);
-  }
-  let nameId = topNameId;
-  let nextNode: ListenersNode = tree;
+  let nameId = tree.parentId;
+  let node: ListenersNode = tree;
   for (const name of path) {
     //
-    nameId = addChildNameToNode(nextNode, name, nameId);
-    if (!nextNode.next) {
-      nextNode.next = new ListenersNode(nextNode, nextNode.depth + 1);
-      nextNode.next.prev = nextNode;
+    nameId = addChildNameToNode(node, name, nameId);
+    if (!node.next) {
+      node.next = new ListenersNode(node, node.depth + 1);
+      node.next.prev = node;
     }
-    nextNode = nextNode.next;
+    node = node.next;
   }
-  let listeners = nextNode.listeners.get(nameId);
+  let listeners = node.listeners.get(nameId);
   if (!listeners) {
     listeners = new Set<Listener>();
-    nextNode.listeners.set(nameId, listeners);
+    node.listeners.set(nameId, listeners);
   }
   listeners.add(listener);
 
   return () => {
-    unSubscribe(nextNode, path, nameId, listener);
+    unSubscribe(node, path, nameId, listener);
   };
 }
 
 function unSubscribe(node: ListenersNode, path: string[], nameId: bigint, listener: Function) {
-  let listeners = node.listeners.get(nameId);
+  // check the node containing the listener
+  // delete listener
+  const listeners = node.listeners.get(nameId);
   if (listeners && listeners.has(listener)) {
     listeners.delete(listener);
   }
-  if (listeners?.size) {
+  // if got children break, beacause they have listeners
+  const children = node.children.get(nameId);
+  if (listeners?.size || children?.size) {
     return;
   }
   node.listeners.delete(nameId);
-  let prev: ListenersNode | null = node;
+  node.children.delete(nameId);
+  // got to parent prev node
+  let prev: ListenersNode | null = node.prev;
   while (prev) {
+    // get parent id for check children and listenteners on this node
     const parentId = prev.parents.get(nameId);
-    const name = path[prev.depth];
-    const children = prev.children.get(parentId as bigint);
+
+    // first delete child without listeners
+    const name = path[prev.depth + 1];
+    // Map<PathName, ChildId>
+    const children = prev?.children?.get(parentId as bigint);
     children?.delete(name);
+    // If child elements exists, then return
     if (children?.size) {
       return;
     }
-    listeners = prev.listeners.get(parentId as bigint);
+    prev?.children?.delete(parentId as bigint);
+    // If listeners exists by parentId, then return
+    // Map<ParentId, Set<Listener>>
+    const listeners = prev.listeners.get(parentId as bigint);
     if (listeners?.size) {
       return;
     }
+    prev.listeners.delete(parentId as bigint);
+    prev.parents.delete(nameId)
+    //
+    if (prev instanceof ListenersTree) {
+      break;
+    }
     prev = prev.prev;
+
+    nameId = parentId as bigint;
   }
+
+
 }
 /**
  *

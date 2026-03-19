@@ -1,89 +1,59 @@
 import { describe, it, expect } from 'vitest';
-import { State, type StateNode } from '../src/state';
-import { posts, type Post } from './data/posts';
-import { getPath } from '../src/helpers/get-path-value';
+import { State, ListenersNode, ListenersTree } from '../src/state';
+import { posts, dict as _dict, Post } from './data/posts';
+import { getPath } from '../src/helpers/get-path';
 
-const _dict = posts.reduce<Record<string, Post>>((a, post) => {
-  a[post.id] = post;
-  return a;
-}, {});
+const forState = (state: State, cb: (node: ListenersNode) => void) => {
+  const tree = state.listenersTree;
 
-const checkList = (node: StateNode, cb: (node: StateNode) => void) => {
-  let next: StateNode | null = node;
+  let next: ListenersNode | null = tree;
+
   while (next) {
     cb(next);
     next = next.next;
   }
 };
 
-const isListEmpty = (node: StateNode) => {
-  let count = 0;
-  checkList(node, (node) => {
-    count += node.parents.size;
-    count += node.children.size;
-    count += node.listeners.size;
-  });
-  return !count;
-};
-
 describe('state test', () => {
-  it('Create tree', () => {
+  it('subscribe', () => {
     const dict = structuredClone(_dict);
-    const path = getPath<typeof dict>()(posts[0].id)('meta')('author')('name')();
-    
     const state = new State(dict);
-    const subscribe = state.subsribe(path);
-    let levels = 0;
-    checkList(state.tree, () => levels++);
-    expect(levels).toBe(path.length);
-    const unsub = subscribe(() => {});
+    const pathMeta = getPath<typeof dict>()(posts[0].id)('meta')();
+    const listener = () => {};
+    const unsub = state.subsribe(pathMeta, listener);
+    let nameId: bigint;
+    forState(state, (node) => {
+      if (node.depth == -1 && node instanceof ListenersTree) {
+        const children = node.children.get(node.parentId);
+        expect(children?.has(pathMeta[node.depth + 1])).toBe(true);
+        const nextId = children?.get(posts[0].id) as bigint;
+        expect(typeof nextId).toBe('bigint');
+        expect(node.listeners.size).toBe(0);
+        nameId = nextId;
+      }
+      if (node.depth == 0) {
+        const children = node.children.get(nameId);
+        expect(children?.has(pathMeta[node.depth + 1])).toBe(true);
+        const nextId = children?.get(pathMeta[node.depth + 1]) as bigint;
+        expect(typeof nextId).toBe('bigint');
+        expect(node.parents.get(nextId)).toBe(nameId);
+        expect(node.listeners.size).toBe(0);
+        nameId = nextId;
+      }
+      if (node.depth == 1) {
+        expect(node.listeners.size).toBe(1);
+        const listeners = node.listeners.get(nameId);
+        expect(listeners instanceof Set).toBe(true);
+        expect(listeners?.has(listener)).toBe(true);
+      }
+    });
+
     unsub();
-    expect(levels).toBe(path.length);
-    expect(isListEmpty(state.tree)).toBe(false);
-  });
 
-  it('Subscribe same path and unsubscribe', () => {
-    const dict = structuredClone(_dict);
-
-    let paths: string[][] = [
-      getPath<typeof dict>()(posts[0].id)('meta')('author')('name')(),
-      getPath<typeof dict>()(posts[0].id)('meta')('author')('name')(),
-    ];
-    const state = new State(dict);
-
-    const usubs: Function[] = [];
-    for (const path of paths) {
-      const subscribe = state.subsribe(path);
-      usubs.push(subscribe(() => {}));
-    }
-
-    for (const unsub of usubs) {
-      expect(state.tree.children.size).toBe(1);
-      unsub();
-    }
-
-    expect(isListEmpty(state.tree)).toBe(false);
-  });
-
-  it('subscribe same path', () => {
-    const dict = structuredClone(_dict);
-
-    let paths: string[][] = [
-      getPath<typeof dict>()(posts[0].id)('meta')('author')('name')(),
-      getPath<typeof dict>()(posts[1].id)('meta')('author')('name')(),
-    ];
-    const state = new State(dict);
-
-    const usubs: Function[] = [];
-    for (const path of paths) {
-      const subscribe = state.subsribe(path);
-      usubs.push(subscribe(() => {}));
-    }
-    let count = 2;
-    for (const unsub of usubs) {
-      expect(state.tree.children.size).toBe(count--);
-      unsub();
-    }
-    expect(isListEmpty(state.tree)).toBe(false);
+    forState(state, (node) => {
+      expect(node.children.size).toBe(0);
+      expect(node.listeners.size).toBe(0);
+      expect(node.parents.size).toBe(0);
+    });
   });
 });
