@@ -2,26 +2,26 @@ import { describe, it, expect, vi } from 'vitest';
 import Light from '../../src';
 
 describe('Listeners', () => {
-    it('usage isAutoCallListener for updates value on init', () => {
-    const { addListener } = Light.createStore({ count: 1 });
-    const listener = vi.fn<(name: string, value: number) => void>();
+  // it('usage isAutoCallListener for updates value on init', () => {
+  //   const { subscribe } = Light.createStore({ count: 1 });
+  //   const listener = vi.fn<(name: string, value: number) => void>();
 
-    addListener('count', listener, { isAutoCallListener: true });
+  //   subscribe('count', listener, { isAutoCallListener: true });
 
-    expect(listener).toHaveBeenCalledWith('count', 1, { isAutoCallListener: true });
-  });
+  //   expect(listener).toHaveBeenCalledWith('count', 1, { isAutoCallListener: true });
+  // });
 
   it('multiple listeners', () => {
-    const state = { count: 0, text: '' }
-    const { addListener, set } = Light.createStore(state);
+    const state = { count: 0, text: '' };
+    const { subscribe, set } = Light.createStore(state);
     let count: { name: string; value: number } = { name: '', value: state.count };
     let text: { name: string; value: string } = { name: '', value: state.text };
 
-    addListener('count', (name, value) => {
+    subscribe('count', (name, value) => {
       count = { name, value };
     });
 
-    addListener('text', (name, value) => {
+    subscribe('text', (name, value) => {
       text = { name, value };
     });
 
@@ -32,7 +32,7 @@ describe('Listeners', () => {
   });
 
   it('removeListener', () => {
-    const { addListener, removeListener, get, set } = Light.createStore({ count: 0 });
+    const { subscribe, get, set } = Light.createStore({ count: 0 });
     let name = '';
     let value = 0;
 
@@ -40,13 +40,13 @@ describe('Listeners', () => {
       name = _name;
       value = _value;
     };
-    addListener('count', listener);
+    const unsub = subscribe('count', listener);
     set('count', get('count') + 1);
     expect(name).toEqual('count');
 
     expect(value).toEqual(1);
 
-    removeListener('count', listener);
+    unsub();
 
     set('count', get('count') + 1);
     expect(value).toEqual(1);

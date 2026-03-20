@@ -2,11 +2,12 @@ type ChildId = bigint;
 type ParentId = bigint;
 type PathName = string;
 type Listener = Function;
+type Counter = number;
 
 export class ListenersNode {
   // name, uniqId for name - for bottom top updates
   childrenCounter = 0n;
-  listeners = new Map<ParentId, Set<Listener>>();
+  listeners = new Map<ParentId, Map<Listener, Counter>>();
   // for top bottom
   children = new Map<ParentId, Map<PathName, ChildId>>();
   next: ListenersNode | null = null;
@@ -67,10 +68,12 @@ export function subscribe(tree: ListenersTree, path: string[], listener: Functio
   }
   let listeners = node.listeners.get(nameId);
   if (!listeners) {
-    listeners = new Set<Listener>();
+    listeners = new Map<Listener, Counter>();
     node.listeners.set(nameId, listeners);
   }
-  listeners.add(listener);
+  const listenerCounter = listeners.get(listener);
+
+  listeners.set(listener, (listenerCounter ?? 0) + 1);
 
   return () => {
     unSubscribe(node, path, nameId, listener);
@@ -82,7 +85,19 @@ function unSubscribe(node: ListenersNode, path: string[], nameId: bigint, listen
   // delete listener
   const listeners = node.listeners.get(nameId);
   if (listeners && listeners.has(listener)) {
-    listeners.delete(listener);
+    let counter = listeners.get(listener);
+    if (counter === undefined) {
+      return;
+    }
+    counter--;
+    if (counter == 0) {
+      listeners.delete(listener);
+    } else {
+      listeners.set(listener, counter);
+      return;
+    }
+  } else {
+    return;
   }
   // if got children break, beacause they have listeners
   const children = node.children.get(nameId);
@@ -113,6 +128,7 @@ function unSubscribe(node: ListenersNode, path: string[], nameId: bigint, listen
     if (listeners?.size) {
       return;
     }
+
     prev.listeners.delete(parentId as bigint);
     prev.parents.delete(nameId);
     //
