@@ -8,7 +8,7 @@ with built-in async support.
 
 ## Features
 
-- **Observer-based state updates** Components automatically re-render when a addListenerd value
+- **Observer-based state updates** Components automatically re-render when a subscribed value
   changes.
 
 - **Works with React hooks** Built around a simple `useStore(key)` hook.
@@ -53,13 +53,13 @@ instantiated multiple times.
     - returns:
       - store - store with api type IStore<T>
 
-  - useState (providerValueId, key, [Context]) addListeners a component to a single store field by key.
+  - useState (providerValueId, key, [Context]) subscribes a component to a single store field by key.
     - returns:
       - analog [value, setValue] = React.useState
     - features:
       - key that was assigned during initialization will be used, you cannot change it
 
-  - useAsync (key, async callback, [Context]) - addListeners a   component to a single **async store field** by key.
+  - useAsync (key, async callback, [Context]) - subscribes a   component to a single **async store field** by key.
     - returns:
       - dispatch - runs asynchronous callback
       - value - async store state type IAsync 
@@ -171,7 +171,7 @@ Listeners are useful for reacting to state changes without triggering renders (e
 `localStorage`, logging, analytics).
 
 ```ts
-store.addListener('count', (key, value) => {
+store.subscribe('count', (key, value) => {
   console.log(`${key} changed to`, value);
 });
 

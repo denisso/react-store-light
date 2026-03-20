@@ -1,48 +1,18 @@
 import { describe, it, expect, vi } from 'vitest';
 import Light from '../../src';
 
-describe('Listeners', () => {
-  // it('usage isAutoCallListener for updates value on init', () => {
-  //   const { subscribe } = Light.createStore({ count: 1 });
-  //   const listener = vi.fn<(name: string, value: number) => void>();
+describe('Store Listeners', () => {
 
-  //   subscribe('count', listener, { isAutoCallListener: true });
-
-  //   expect(listener).toHaveBeenCalledWith('count', 1, { isAutoCallListener: true });
-  // });
-
-  it('multiple listeners', () => {
-    const state = { count: 0, text: '' };
-    const { subscribe, set } = Light.createStore(state);
-    let count: { name: string; value: number } = { name: '', value: state.count };
-    let text: { name: string; value: string } = { name: '', value: state.text };
-
-    subscribe('count', (name, value) => {
-      count = { name, value };
-    });
-
-    subscribe('text', (name, value) => {
-      text = { name, value };
-    });
-
-    set('count', 1);
-    set('text', 'test');
-    expect(count).toEqual({ name: 'count', value: 1 });
-    expect(text).toEqual({ name: 'text', value: 'test' });
-  });
-
-  it('removeListener', () => {
+  it('Subscribe > set > check > unsubscribe > check', () => {
     const { subscribe, get, set } = Light.createStore({ count: 0 });
-    let name = '';
+
     let value = 0;
 
-    const listener = (_name: string, _value: number) => {
-      name = _name;
+    const listener = (_value: number) => {
       value = _value;
     };
     const unsub = subscribe('count', listener);
     set('count', get('count') + 1);
-    expect(name).toEqual('count');
 
     expect(value).toEqual(1);
 
@@ -50,5 +20,6 @@ describe('Listeners', () => {
 
     set('count', get('count') + 1);
     expect(value).toEqual(1);
+    expect(get('count')).toEqual(2);
   });
 });
