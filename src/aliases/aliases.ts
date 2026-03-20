@@ -1,6 +1,6 @@
 import type { GetPath, Listener } from '../public-api';
 import { State } from '../state';
-import { compileAccessor, type Accessor } from '../helpers';
+import { compileAccessor, type Accessor } from '../state/compile-accessor';
 
 type UnwrapGetPath<T> = T extends GetPath<infer U> ? U : never;
 
@@ -8,7 +8,7 @@ export class Aliases<A extends Record<PropertyKey, GetPath<any>>> {
   __accessors: Record<keyof A, Accessor>;
   __state: State;
   __aliases: A;
-  constructor( aliases: A, state: State) {
+  constructor(aliases: A, state: State) {
     this.__aliases = aliases;
     this.__state = state;
     this.__accessors = {} as Record<keyof A, Accessor>;
@@ -21,8 +21,8 @@ export class Aliases<A extends Record<PropertyKey, GetPath<any>>> {
     this.getState = this.getState.bind(this);
     this.subscribe = this.subscribe.bind(this);
   }
-  getState(){
-    return this.__state
+  getState() {
+    return this.__state;
   }
   getAliases<K extends keyof A>(key: K): A[K] {
     return this.__aliases[key];
@@ -30,8 +30,9 @@ export class Aliases<A extends Record<PropertyKey, GetPath<any>>> {
   get<K extends keyof A>(key: K): UnwrapGetPath<A[K]> {
     return this.__accessors[key](this.__state) as UnwrapGetPath<A[K]>;
   }
+  set<K extends keyof A>(key: K, value: UnwrapGetPath<A[K]>) {}
   subscribe<K extends keyof A>(key: K, listener: Listener<A, K>) {
-    const subscribe = this.__state.subsribe([key as string]);
-    return subscribe(listener);
+    const subscribe = this.__state.subsribe([key as string], listener);
+    return subscribe;
   }
 }

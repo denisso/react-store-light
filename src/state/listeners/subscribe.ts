@@ -27,13 +27,13 @@ export class ListenersTree extends ListenersNode {
 }
 
 /**
- *
- * @param node
- * @param path - string[]
- * @param parentId - used in node.listeners Map<ParentId, Set<Listener>>
+ * Create part of the path 
+ * @param node - ListenersNode
+ * @param childName - path[indx]
+ * @param parentId - uniq id for parent path[indx]
  * @returns bigint - parent id for next level
  */
-function addChildNameToNode(node: ListenersNode, name: string, parentId: bigint) {
+function addChildNameToNode(node: ListenersNode, childName: string, parentId: bigint) {
   // Get a dictionary of child elements.
   let children = node.children.get(parentId);
   if (!children) {
@@ -42,23 +42,30 @@ function addChildNameToNode(node: ListenersNode, name: string, parentId: bigint)
     node.children.set(parentId, children);
   }
   // Get unique IDs based on real names in the path.
-  let childrenId = children.get(name);
+  let childrenId = children.get(childName);
 
   if (childrenId === undefined) {
     // Generate a unique id for the name in this ListenersNode.
     childrenId = node.childrenCounter++;
-    children.set(name, childrenId);
+    children.set(childName, childrenId);
   }
   // Associate a unique ID with the parent for traversal from "bottom to top".
   node.parents.set(childrenId, parentId);
   return childrenId;
 }
 
+/**
+ * Subscribe listener and add path to listener
+ * @param tree 
+ * @param path 
+ * @param listener 
+ * @returns 
+ */
 export function subscribe(tree: ListenersTree, path: string[], listener: Function) {
   let nameId = tree.parentId;
   let node: ListenersNode = tree;
+  // add path to listener and create ListenersNode's
   for (const name of path) {
-    //
     nameId = addChildNameToNode(node, name, nameId);
     if (!node.next) {
       node.next = new ListenersNode(node, node.depth + 1);
@@ -66,6 +73,7 @@ export function subscribe(tree: ListenersTree, path: string[], listener: Functio
     }
     node = node.next;
   }
+  // add listener by path
   let listeners = node.listeners.get(nameId);
   if (!listeners) {
     listeners = new Map<Listener, Counter>();
@@ -80,6 +88,14 @@ export function subscribe(tree: ListenersTree, path: string[], listener: Functio
   };
 }
 
+/**
+ * Unsubscribe listener and remove path to listener
+ * @param node 
+ * @param path 
+ * @param nameId 
+ * @param listener 
+ * @returns 
+ */
 function unSubscribe(node: ListenersNode, path: string[], nameId: bigint, listener: Function) {
   // check the node containing the listener
   // delete listener

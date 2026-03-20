@@ -1,15 +1,19 @@
-import { ListenersTree, subscribe } from './listeners';
-import { Accessor } from '../helpers';
+import { ListenersTree, subscribe } from './listeners/subscribe';
+import { notifyByPath, notifyBroadcast } from './listeners/notify';
+import { type Accessor } from './compile-accessor';
+
+export type Values = Record<string, any>;
 
 export class State {
   listenersTree = new ListenersTree();
-  constructor(public values: Record<string, any>) {
+  constructor(public values: Values) {
     this.set = this.set.bind(this);
     this.get = this.get.bind(this);
     this.subsribe = this.subsribe.bind(this);
     this.setValues = this.setValues.bind(this);
     this.getValues = this.getValues.bind(this);
   }
+
   getValues(isDeepCopy = false) {
     if (isDeepCopy) {
       return structuredClone(this.values);
@@ -17,28 +21,21 @@ export class State {
     return this.values;
   }
 
-  setValues(values: Record<string, any>) {
-    // const prev = this.values;
-    // this.values = values;
-    // const keys = Object.keys(values);
-    // for (const key of keys) {
-    //   this._notifyBroadCast;
-    // }
+  setValues(values: Values) {
+    this.values = structuredClone(values);
+    notifyBroadcast(this.listenersTree, this.listenersTree.parentId, values);
   }
   set(path: string[], value: any, parentAccessor?: Accessor) {
-    // let parentId = this.listenersTree.parentsId.get(path[0]);
-    // let parent = this.values;
-    // if (parentAccessor) {
-    //   parent = parentAccessor(this);
-    // } else if (path instanceof Array) {
-    //   for (let i = 0; i < path.length - 1; i++) {
-    //     parent = parent[path[i]];
-    //   }
-    // }
-    // parent[path.at(-1) as string] = value;
-    // if (parentId !== undefined) {
-    //   this._notifyByPath(path, parentId);
-    // }
+    let parent = this.values;
+    if (parentAccessor) {
+      parent = parentAccessor(this, true);
+    } else if (path instanceof Array) {
+      for (let i = 0; i < path.length - 1; i++) {
+        parent = parent[path[i]];
+      }
+    }
+    parent[path.at(-1) as string] = value;
+    notifyByPath(this.listenersTree, path, this.values);
   }
   get(path: string[]) {
     let value = this.values;
@@ -52,7 +49,6 @@ export class State {
     return value;
   }
   subsribe(path: string[], listener: Function) {
-    // let node: TreeNode;
     return subscribe(this.listenersTree, path, listener);
   }
 }
