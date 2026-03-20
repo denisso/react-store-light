@@ -114,7 +114,7 @@ function unSubscribe(node: ListenersNode, path: string[], nameId: bigint, listen
       return;
     }
     prev.listeners.delete(parentId as bigint);
-    prev.parents.delete(nameId)
+    prev.parents.delete(nameId);
     //
     if (prev instanceof ListenersTree) {
       break;
@@ -123,8 +123,6 @@ function unSubscribe(node: ListenersNode, path: string[], nameId: bigint, listen
 
     nameId = parentId as bigint;
   }
-
-
 }
 /**
  *
