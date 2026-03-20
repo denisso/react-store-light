@@ -140,17 +140,4 @@ function unSubscribe(node: ListenersNode, path: string[], nameId: bigint, listen
     nameId = parentId as bigint;
   }
 }
-/**
- *
- * @param node
- * @param childId
- */
-export function removePathById(node: ListenersNode, path: string[], parentId: bigint) {
-  const children = node.children.get(parentId);
-  const name = path[node.depth];
-  if (children?.size) {
-    node.children.delete(parentId);
-  }
-  const prevParentId = node.prev?.parents.get(parentId);
-  // node.prev?.children.get();
-}
+
