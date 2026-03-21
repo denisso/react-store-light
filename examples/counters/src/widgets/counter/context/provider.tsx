@@ -1,12 +1,14 @@
 import React from 'react';
 import Light from 'react-store-light';
-import type { Counter } from '../../../entities/counter';
-import { counterHub, couterStoreId } from './context';
+import { counterId, getAliases } from './context';
+import { countersStore } from '../../../_app';
 
-type Props = { children: React.ReactNode; counter: Counter; indx: number };
+type Props = { children: React.ReactNode; id: string };
 
-export const CounterProvider = ({ children, counter }: Props) => {
-  const counterStore = Light.useCreateHubStore(counter, counterHub);
+export const CounterProvider = ({ children, id }: Props) => {
+  const [aliases] = React.useState(() => {
+    return new Light.Aliases(getAliases(id), countersStore.getState());
+  });
 
-  return <Light.Provider value={{ [couterStoreId]: counterStore }}>{children}</Light.Provider>;
+  return <Light.Provider value={{ [counterId]: aliases }}>{children}</Light.Provider>;
 };

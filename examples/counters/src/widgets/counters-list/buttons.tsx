@@ -1,4 +1,4 @@
-import { countersStore } from '../../app/index';
+import { countersStore } from '../../_app/index';
 import { Button } from '../../shared/ui/ctrls/button';
 import { Container } from '../../shared/ui/layout';
 

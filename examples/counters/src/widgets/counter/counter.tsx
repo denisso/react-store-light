@@ -2,15 +2,15 @@ import { CounterProvider } from './context/provider';
 import { CounterReader } from './reader';
 import { CouterWritter } from './writter';
 import { CounterButtons } from './buttons';
-import type { Counter as TypeCounter } from '../../entities/counter';
+
 
 import { CounterName } from './name';
 
-type Props = { counter: TypeCounter; indx: number };
+type Props = { id: string };
 
-export const Counter = ({ counter, indx }: Props) => {
+export const Counter = ({ id }: Props) => {
   return (
-    <CounterProvider counter={counter} indx={indx}>
+    <CounterProvider id={id}>
       <CounterName />
       <CouterWritter />
       <CounterReader />

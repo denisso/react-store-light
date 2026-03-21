@@ -1,23 +1,24 @@
 import React from 'react';
 import Light from 'react-store-light';
-import { couterStoreId } from './context';
+import { counterId } from './context';
 import { changeCounter } from '../../entities/counter';
 import { Input } from '../../shared/ui/ctrls/input/';
 import { Button } from '../../shared/ui/ctrls/button';
 
 export const CouterWritter = () => {
-  const store = Light.useStore(couterStoreId);
-  const [count, setCount] = Light.useState(store, 'count');
+  const counter = Light.useContextId(counterId)
+
+  const count = Light.useState(counter, 'count');
 
   return (
     <div className='gap-4 flex'>
-      <Button onClick={() => changeCounter(store, '+')}>+</Button>
+      <Button onClick={() => changeCounter(counter, '+')}>+</Button>
       <Input
         type='number'
         value={count}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCount(+e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => counter.set("count", +e.target.value)}
       />
-      <Button onClick={() => changeCounter(store, '-')}>-</Button>
+      <Button onClick={() => changeCounter(counter, '-')}>-</Button>
     </div>
   );
 };

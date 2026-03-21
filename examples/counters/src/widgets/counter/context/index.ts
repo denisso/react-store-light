@@ -1,2 +1,2 @@
-export { couterStoreId } from './context';
+export { counterId } from './context';
 export { CounterProvider } from './provider';

@@ -1,21 +1,22 @@
 import Light from 'react-store-light';
 import { getNextId } from './helpers/get-next-id';
-
-const id = [0];
-
+import { CounterAlias } from '../../../widgets/counter/context/context';
+const nextId = ((ids: number[]) => {
+  return () => getNextId(ids);
+})([0]);
 export type Counter = { count: number; id: string };
-export type Counters = { counters: Counter[] };
+export type CountersStoreType = { dict: Record<string, Counter>; ids: string[] };
 
-export const changeCounter = (store: Light.Store<Counter>, arg: '+' | '-') => {
+export const changeCounter = (counter: CounterAlias, arg: '+' | '-') => {
   if (arg == '+') {
-    store.set('count', store.get('count') + 1);
+    counter.set('count', counter.get('count') + 1);
   } else {
-    store.set('count', store.get('count') - 1);
+    counter.set('count', counter.get('count') - 1);
   }
 };
 
-export class CountersStore extends Light.Store<Counters> {
-  constructor(state: Counters) {
+export class CountersStore extends Light.Store<CountersStoreType> {
+  constructor(state: CountersStoreType) {
     super(state);
     this.addCounter = this.addCounter.bind(this);
     this.deleteCounterById = this.deleteCounterById.bind(this);
@@ -24,29 +25,35 @@ export class CountersStore extends Light.Store<Counters> {
     this.deepRewrite = this.deepRewrite.bind(this);
   }
   addCounter() {
-    const counters = this.get('counters');
-    counters.push({ count: 0, id: getNextId(id) });
-    this.set('counters', counters.slice());
+    const id = nextId();
+    this.set('ids', [...this.get('ids'), id]);
+    const dict = this.get('dict');
+    dict[id] = { count: 0, id };
   }
   deleteCounterById(id: string) {
     this.set(
-      'counters',
-      this.get('counters').filter((item) => item.id != id),
+      'ids',
+      this.get('ids')
+        .filter((e) => e !== id)
+        .slice(),
     );
+    const dict = this.get('dict');
+    delete dict[id];
   }
   reverseCountersArray() {
-    this.set('counters', this.get('counters').reverse().slice());
+    this.set('ids', this.get('ids').reverse().slice());
   }
   copyCounterByValue(count: number) {
-    const counters = this.get('counters');
-    this.set('counters', [...counters, { id: getNextId(id), count }]);
+    const id = nextId();
+    this.set('ids', [...this.get('ids'), id]);
+    const dict = this.get('dict');
+    dict[id] = { count, id };
   }
   deepRewrite() {
-    this.set(
-      'counters',
-      this.get('counters').map((counter) => {
-        return { id: counter.id, count: counter.count + 1 };
-      }),
-    );
+    const dict = this.getValues()['dict'];
+    for (const key of Object.keys(dict)) {
+      dict[key].count++;
+    }
+    this.setValues(structuredClone(this.getValues()));
   }
 }

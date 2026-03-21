@@ -1,10 +1,10 @@
 import Light from 'react-store-light';
-import { couterStoreId } from './context';
-import { countersStore } from '../../app/index';
+import { counterId } from './context';
+import { countersStore } from '../../_app/index';
 import { Button } from '../../shared/ui/ctrls/button';
 
 export const CounterButtons = () => {
-  const store = Light.useStore(couterStoreId);
+  const store = Light.useContextId(counterId);
 
   return (
     <div className='flex gap-4'>
