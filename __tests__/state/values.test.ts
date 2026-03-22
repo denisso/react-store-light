@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { State } from '../../src/state';
-import { posts, dict as _dict, type Post } from '../data/posts';
+import { posts, dict as _dict, type Post } from '../__stubs__/posts';
 import { getPath } from '../../src/helpers/get-path';
 import { compileAccessor } from '../../src/state/compile-accessor';
 

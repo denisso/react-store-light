@@ -11,7 +11,8 @@ export class Store<T extends object> extends AbstractStore {
     this.get = this.get.bind(this);
     this.set = this.set.bind(this);
     this.getState = this.getState.bind(this);
-    // this.setState = this.setState.bind(this);
+    this.getValues = this.getValues.bind(this);
+    this.setValues = this.setValues.bind(this);
     this.subscribe = this.subscribe.bind(this);
   }
 
@@ -46,14 +47,17 @@ export class Store<T extends object> extends AbstractStore {
     return this.__state;
   }
 
+  getValues(isDeepCopy = false): T {
+    return this.__state.getValues(isDeepCopy) as T;
+  }
   /**
    * Set state
    *
    * @param state - Initial store state
    * @param options.isAlwaysNotify - notify listiners always [default: false]
    */
-  setState(state: T) {
-    this.__state.setValues(state);
+  setValues(values: T) {
+    this.__state.setValues(values);
   }
   /**
    * Subscribes a listener to changes of a specific key.

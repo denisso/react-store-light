@@ -26,6 +26,7 @@ export class State {
     notifyBroadcast(this.listenersTree, this.listenersTree.parentId, values);
   }
   set(path: string[], value: any, parentAccessor?: Accessor) {
+
     let parent = this.values;
     if (parentAccessor) {
       parent = parentAccessor(this, true);

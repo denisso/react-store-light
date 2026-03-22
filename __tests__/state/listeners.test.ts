@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { State, ListenersNode } from '../../src/state';
-import { posts, dict as _dict } from '../data/posts';
+import { posts, dict as _dict } from '../__stubs__/posts';
 import { getPath } from '../../src/helpers/get-path';
 
 const forState = (state: State, cb: (node: ListenersNode) => boolean | void) => {

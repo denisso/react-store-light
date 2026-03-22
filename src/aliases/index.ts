@@ -1,1 +1,1 @@
-export { Aliases } from './aliases';
+export { Aliases, type UnwrapGetPath } from './aliases';

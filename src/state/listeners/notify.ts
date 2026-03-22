@@ -3,27 +3,29 @@ import type { Values } from '../state';
 
 function notifyListeners(
   node: ListenersNode,
-  nemeId: bigint,
+  nameId: bigint,
   parent: Record<string, any>,
   key: string,
 ) {
-  const listeners = node.listeners.get(nemeId);
+  const listeners = node.listeners.get(nameId);
 
-  let values;
+  let values: Record<string, any> | undefined;
 
   if (parent instanceof Object && parent.hasOwnProperty(key)) {
     values = parent[key];
   }
+
   if (listeners?.size) {
-    if (values instanceof Object) {
+    if (values && values instanceof Object) {
       values = { ...values };
       parent[key] = values;
     }
+
     for (const listener of listeners.keys()) {
       listener(values);
     }
   }
-  return values;
+  return values as Record<string, any>;
 }
 
 /**
@@ -35,7 +37,6 @@ function notifyListeners(
 export function notifyByPath(tree: ListenersTree, path: string[], values: Values) {
   let parentId = tree.parentId;
   let next: ListenersNode = tree;
-
   for (const name of path) {
     values = notifyListeners(next, parentId, values, name);
     const children = next.children.get(parentId);
@@ -49,6 +50,7 @@ export function notifyByPath(tree: ListenersTree, path: string[], values: Values
 
   notifyBroadcast(next, parentId, values);
 }
+
 /**
  * DFS
  * @param node

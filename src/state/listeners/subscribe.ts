@@ -27,7 +27,7 @@ export class ListenersTree extends ListenersNode {
 }
 
 /**
- * Create part of the path 
+ * Create part of the path
  * @param node - ListenersNode
  * @param childName - path[indx]
  * @param parentId - uniq id for parent path[indx]
@@ -56,10 +56,10 @@ function addChildNameToNode(node: ListenersNode, childName: string, parentId: bi
 
 /**
  * Subscribe listener and add path to listener
- * @param tree 
- * @param path 
- * @param listener 
- * @returns 
+ * @param tree
+ * @param path
+ * @param listener
+ * @returns
  */
 export function subscribe(tree: ListenersTree, path: string[], listener: Function) {
   let nameId = tree.parentId;
@@ -90,11 +90,11 @@ export function subscribe(tree: ListenersTree, path: string[], listener: Functio
 
 /**
  * Unsubscribe listener and remove path to listener
- * @param node 
- * @param path 
- * @param nameId 
- * @param listener 
- * @returns 
+ * @param node
+ * @param path
+ * @param nameId
+ * @param listener
+ * @returns
  */
 function unSubscribe(node: ListenersNode, path: string[], nameId: bigint, listener: Function) {
   // check the node containing the listener
@@ -156,4 +156,3 @@ function unSubscribe(node: ListenersNode, path: string[], nameId: bigint, listen
     nameId = parentId as bigint;
   }
 }
-

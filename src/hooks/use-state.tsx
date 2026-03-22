@@ -1,24 +1,13 @@
 import React from 'react';
 import { Store, Listener } from '../store';
-import { Aliases } from '../aliases';
+import { Aliases, type UnwrapGetPath } from '../aliases';
+
 export function useState<T extends Record<string, any>, K extends keyof T>(
   aliases: Aliases<T>,
   key: K,
-): T[K];
-
-export function useState<T extends Record<string, any>, K extends keyof T, R>(
-  aliases: Aliases<T>,
-  key: K,
-  cb: (value: T[K]) => R,
-): R;
+): UnwrapGetPath<T[K]>;
 
 export function useState<T extends object, K extends keyof T>(store: Store<T>, key: K): T[K];
-
-export function useState<T extends object, K extends keyof T, R>(
-  store: Store<T>,
-  key: K,
-  cb: (value: T[K]) => R,
-): R;
 /**
  * Subscribes a component to a single store field by key.
  *
@@ -28,11 +17,10 @@ export function useState<T extends object, K extends keyof T, R>(
  * @param store - Store<T> | IContextValueId<Store<T>>
  * @param key - name field in the store
  */
-export function useState<T extends Record<string, any>, K extends keyof T, R = T[K]>(
+export function useState<T extends Record<string, any>, K extends keyof T>(
   stateHolder: Store<T> | Aliases<T>,
   key: K,
-  transform?: (value: T[K]) => R,
-): R {
+): T[K] {
   const [args] = React.useState(() => {
     return {
       getSnapshot() {
@@ -49,12 +37,5 @@ export function useState<T extends Record<string, any>, K extends keyof T, R = T
 
   const state = React.useSyncExternalStore(args.subscribe, args.getSnapshot) as T[K];
 
-  const [result] = React.useState(() => {
-    return { result: transform ? transform(state) : (state as unknown as R), state };
-  });
-  if (result.state !== state) {
-    result.result = transform ? transform(state) : (state as unknown as R);
-    result.state = state;
-  }
-  return result.result;
+  return state;
 }
