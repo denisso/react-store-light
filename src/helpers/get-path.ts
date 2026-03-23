@@ -1,48 +1,48 @@
 import { Store } from '../store';
 
-export type UnwrapGetPath<T> = T extends GetPath<infer U> ? U : never;
-export type GetPath<T> = (T extends object
+export type UnwrapPath<T> = T extends CreatePath<infer U> ? U : never;
+export type CreatePath<T> = (T extends object
   ? {
-      <K extends keyof T>(key: K): GetPath<T[K]>;
+      <K extends keyof T>(key: K): CreatePath<T[K]>;
       (): string[];
     }
   : () => string[]) & {
   __type?: T;
 };
 
-export const getPath = <T extends object>(
+export const createPath = <T extends object>(
   store: Store<T> | null = null,
   currentPath: string[] = [],
-): GetPath<T> => {
+): CreatePath<T> => {
   const fn = ((key?: PropertyKey) => {
     if (key === undefined) {
       return currentPath;
     }
-    return getPath(store, [...currentPath, String(key)]);
-  }) as GetPath<T>;
+    return createPath(store, [...currentPath, String(key)]);
+  }) as CreatePath<T>;
   return fn;
 };
 
-export type UnwrapGetPathStore<T> = T extends GetPathWithState<infer U> ? U : never;
+export type UnwrapAlias<T> = T extends CreateAlias<infer U> ? U : never;
 
-export type GetPathWithState<T> = (T extends object
+export type CreateAlias<T> = (T extends object
   ? {
-      <K extends keyof T>(key: K): GetPathWithState<T[K]>;
+      <K extends keyof T>(key: K): CreateAlias<T[K]>;
       (): { path: string[]; store: Store<any> };
     }
   : () => { path: string[]; store: Store<any> }) & {
   __type?: T;
 };
 
-export const getPathWithStore = <T extends object>(
+export const createAlias = <T extends object>(
   store: Store<T>,
   currentPath: string[] = [],
-): GetPathWithState<T> => {
+): CreateAlias<T> => {
   const fn = ((key?: PropertyKey) => {
     if (key === undefined) {
       return { path: currentPath, store };
     }
-    return getPathWithStore(store, [...currentPath, String(key)]);
-  }) as GetPathWithState<T>;
+    return createAlias(store, [...currentPath, String(key)]);
+  }) as CreateAlias<T>;
   return fn;
 };

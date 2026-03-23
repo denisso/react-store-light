@@ -8,7 +8,7 @@ describe('Aliases', () => {
     const store = new Light.Store(dict);
 
     const getAliases = (id: string) => {
-      const p = Light.getPathWithStore(store)(id);
+      const p = Light.createAlias(store)(id);
 
       const aliases = {
         meta: p('meta'),

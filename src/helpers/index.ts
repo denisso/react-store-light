@@ -1,1 +1,1 @@
-export { getPath, getPathWithStore, type GetPath, type GetPathWithState } from './get-path';
+export { createPath, createAlias, type CreatePath, type CreateAlias } from './get-path';

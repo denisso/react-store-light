@@ -2,7 +2,7 @@ import Light from 'react-store-light';
 import type { CountersStoreType } from '../../../entities/counter';
 
 export const getAliases = (id: string) => {
-  const p = Light.getPath<CountersStoreType>()('dict')(id);
+  const p = Light.createPath<CountersStoreType>()('dict')(id);
   const aliases = {
     id: p('id'),
     count: p('count'),

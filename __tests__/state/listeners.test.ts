@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { State, ListenersNode } from '../../src/state';
 import { posts, dict as _dict } from '../__stubs__/posts';
-import { getPath } from '../../src/helpers/get-path';
+import { createPath } from '../../src/helpers/get-path';
 
 const forState = (state: State, cb: (node: ListenersNode) => boolean | void) => {
   const tree = state.listenersTree;
@@ -54,7 +54,7 @@ describe('State Listeners', () => {
   it('Subscribe different listeners', () => {
     const dict = structuredClone(_dict);
     const state = new State(dict);
-    const pathMeta = getPath<typeof dict>()(posts[0].id)('meta');
+    const pathMeta = createPath<typeof dict>()(posts[0].id)('meta');
     const pathAuthor = pathMeta('author');
     const pathName = pathAuthor('name');
     const listenerMeta = () => {};
@@ -78,7 +78,7 @@ describe('State Listeners', () => {
   it('Subscribe same listeners', () => {
     const dict = structuredClone(_dict);
     const state = new State(dict);
-    const pathMeta = getPath<typeof dict>()(posts[0].id)('meta');
+    const pathMeta = createPath<typeof dict>()(posts[0].id)('meta');
     const listenerMeta = () => {};
     const unsubs: Function[] = [];
     const n = 3;
@@ -100,7 +100,7 @@ describe('State Listeners', () => {
   it('Unsubscribe unsubscribed listener', () => {
     const dict = structuredClone(_dict);
     const state = new State(dict);
-    const pathMeta = getPath<typeof dict>()(posts[0].id)('meta');
+    const pathMeta = createPath<typeof dict>()(posts[0].id)('meta');
     const listenerMeta = () => {};
     const n = 3;
     const unsub = state.subsribe(pathMeta(), listenerMeta);

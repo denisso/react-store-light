@@ -6,7 +6,9 @@ export type Values = Record<string, any>;
 
 export class State {
   listenersTree = new ListenersTree();
-  constructor(public values: Values) {
+  values: Values;
+  constructor(values: Values) {
+    this.values = structuredClone(values);
     this.set = this.set.bind(this);
     this.get = this.get.bind(this);
     this.subsribe = this.subsribe.bind(this);
@@ -34,7 +36,7 @@ export class State {
         parent = parent[path[i]];
       }
     }
-    parent[path.at(-1) as string] = value;
+    parent[path.at(-1) as string] = structuredClone(value);
     notifyByPath(this.listenersTree, path, this.values);
   }
   get(path: string[]) {

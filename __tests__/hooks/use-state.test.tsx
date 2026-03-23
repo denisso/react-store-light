@@ -9,65 +9,72 @@ describe('useState', () => {
     type Counter = { count: number };
     const store = Light.createStore<Counter>({ count: 0 });
     let trigger!: () => void;
-    let countTest = 0;
+    const testData: number[] = [];
     const TestComponent = () => {
-      const count = Light.useState(store, 'count');
+      const [count, setCount] = Light.useState(store, 'count');
 
       React.useEffect(() => {
-        // ! test it
-        countTest = count;
+        testData.push(count);
       }, [count]);
 
       trigger = () => {
-        // ! test it
-        store.set('count', count + 2);
+        setCount(count + 2);
       };
 
       return null;
     };
 
     render(<TestComponent />);
-    expect(countTest).toBe(0);
 
+    expect(testData).toEqual([0]);
     act(() => {
       trigger();
     });
 
-    expect(countTest).toBe(2);
+    expect(testData).toEqual([0, 2]);
   });
 
-  it('useState wit Aliases', () => {
-    type PostsDict = Record<string, Post>
-    const _dict = structuredClone(dict) 
-    const store = Light.createStore<PostsDict>(_dict);
-    const p = Light.getPath<PostsDict>()('')('meta')
-    // const aliase = light.Aliases(store, p)
-    // let trigger!: () => void;
-    // let countTest = 0;
-    // const TestComponent = () => {
-    //   const count = Light.useState(store, 'count');
+  it('useState with Aliases', () => {
+    type PostsDict = Record<string, Post>;
+    const _dict: PostsDict = structuredClone(dict);
+    const keys = Object.keys(_dict);
 
-    //   React.useEffect(() => {
-    //     // ! test it
-    //     countTest = count;
-    //   }, [count]);
+    const createAlias = (id: string) => {
+      const meta = Light.createAlias<PostsDict>(store)(id)('meta');
+      return { meta };
+    };
+    const store = new Light.Store<PostsDict>(_dict);
 
-    //   trigger = () => {
-    //     // ! test it
-    //     store.set('count', count + 2);
-    //   };
+    type MetaAliase = ReturnType<typeof createAlias>;
 
-    //   return null;
-    // };
+    let trigger!: () => void;
 
-    // render(<TestComponent />);
-    // expect(countTest).toBe(0);
+    const alias = new Light.Aliases<MetaAliase>(createAlias(keys[0]));
 
-    // act(() => {
-    //   trigger();
-    // });
+    const testData: Post['meta'][] = [];
 
-    // expect(countTest).toBe(2);
+    const TestComponent = () => {
+      const [meta, setMeta] = Light.useState(alias, 'meta');
+
+      React.useEffect(() => {
+        testData.push(meta);
+      }, [meta]);
+
+      trigger = () => {
+        setMeta(_dict[keys[1]]['meta']);
+      };
+
+      return null;
+    };
+
+    render(<TestComponent />);
+
+    expect(testData).toEqual([_dict[keys[0]]['meta']]);
+    act(() => {
+      trigger();
+    });
+
+    expect(testData).toEqual([_dict[keys[0]]['meta'], _dict[keys[1]]['meta']]);
   });
 
   it('useState with Context value Id param', () => {
@@ -77,16 +84,13 @@ describe('useState', () => {
     let countTest = 0;
     const storeId = Light.createContextId<Light.Store<Counter>>();
     const TestComponent = () => {
-      const store = Light.useContextId(storeId);
-      const count = Light.useState(store, 'count');
+      const [count] = Light.useState(storeId, 'count');
 
       React.useEffect(() => {
-        // ! test it
         countTest = count;
       }, [count]);
 
       trigger = () => {
-        // ! test it
         store.set('count', 2);
       };
 

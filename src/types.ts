@@ -8,4 +8,4 @@ export type IContext = Record<IContextValueId<{}>, {}>;
  * Uniq id for Store
  */
 
-export type IContextValueId<T extends object> = symbol & { readonly __type?: T };
+export type IContextValueId<T> = symbol & { readonly __type?: T };
