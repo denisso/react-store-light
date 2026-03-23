@@ -45,16 +45,14 @@ describe('useState', () => {
     };
     const store = new Light.Store<PostsDict>(_dict);
 
-    type MetaAliase = ReturnType<typeof createAlias>;
-
     let trigger!: () => void;
 
-    const alias = new Light.Aliases<MetaAliase>(createAlias(keys[0]));
+    const metaAlias = new Light.Aliases(createAlias(keys[0]));
 
     const testData: Post['meta'][] = [];
 
     const TestComponent = () => {
-      const [meta, setMeta] = Light.useState(alias, 'meta');
+      const [meta, setMeta] = Light.useState(metaAlias, 'meta');
 
       React.useEffect(() => {
         testData.push(meta);

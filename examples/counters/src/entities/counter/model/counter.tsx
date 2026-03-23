@@ -15,6 +15,11 @@ export const changeCounter = (counter: CounterAlias, arg: '+' | '-') => {
   }
 };
 
+function randomInteger(min: number, max: number) {
+  const rand = min - 0.5 + Math.random() * (max - min + 1);
+  return Math.round(rand);
+}
+
 export class CountersStore extends Light.Store<CountersStoreType> {
   constructor(state: CountersStoreType) {
     super(state);
@@ -22,7 +27,8 @@ export class CountersStore extends Light.Store<CountersStoreType> {
     this.deleteCounterById = this.deleteCounterById.bind(this);
     this.reverseCountersArray = this.reverseCountersArray.bind(this);
     this.copyCounterByValue = this.copyCounterByValue.bind(this);
-    this.deepRewrite = this.deepRewrite.bind(this);
+    this.setStateCountersPlusOne = this.setStateCountersPlusOne.bind(this);
+    this.setStateRewriteCountersRandom = this.setStateRewriteCountersRandom.bind(this);
   }
   addCounter() {
     const id = nextId();
@@ -49,11 +55,21 @@ export class CountersStore extends Light.Store<CountersStoreType> {
     const dict = this.get('dict');
     dict[id] = { count, id };
   }
-  deepRewrite() {
+  setStateCountersPlusOne() {
     const dict = this.getValues()['dict'];
     for (const key of Object.keys(dict)) {
       dict[key].count++;
     }
     this.setValues(structuredClone(this.getValues()));
+  }
+  setStateRewriteCountersRandom() {
+    const ids: CountersStoreType['ids'] = Array.from({ length: randomInteger(5, 20) }, () =>
+      nextId(),
+    );
+    const dict = {} as CountersStoreType['dict'];
+    for (const id of ids) {
+      dict[id] = { count: randomInteger(5, 20), id };
+    }
+    this.setValues({ ids, dict });
   }
 }

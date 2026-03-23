@@ -4,7 +4,7 @@ import { Counter } from '../counter';
 import { Container } from '../../shared/ui/layout';
 
 export const List = () => {
-  const counters = Light.useState(countersStore, 'ids');
+  const [counters] = Light.useState(countersStore, 'ids');
   return (
     <Container className='grid grid-cols-[repeat(4,max-content)] gap-4'>
       {counters.map((id) => (

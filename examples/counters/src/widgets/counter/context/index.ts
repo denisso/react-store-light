@@ -1,2 +1,2 @@
-export { counterId } from './context';
+export { counterAliasId } from './context';
 export { CounterProvider } from './provider';

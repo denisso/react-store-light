@@ -1,4 +1,4 @@
-import { Buttons } from './buttons';
+import { Buttons } from './label';
 import { List } from './list';
 import { Container } from '../../shared/ui/layout';
 

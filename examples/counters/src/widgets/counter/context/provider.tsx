@@ -1,14 +1,14 @@
 import React from 'react';
 import Light from 'react-store-light';
-import { counterId, getAliases } from './context';
+import { counterAliasId, createAliases } from './context';
 import { countersStore } from '../../../_app';
 
 type Props = { children: React.ReactNode; id: string };
 
 export const CounterProvider = ({ children, id }: Props) => {
   const [aliases] = React.useState(() => {
-    return new Light.Aliases(getAliases(id), countersStore.getState());
+    return new Light.Aliases(createAliases(id, countersStore));
   });
 
-  return <Light.Provider value={{ [counterId]: aliases }}>{children}</Light.Provider>;
+  return <Light.Provider value={{ [counterAliasId]: aliases }}>{children}</Light.Provider>;
 };
