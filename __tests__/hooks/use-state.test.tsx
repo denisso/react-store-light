@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, act } from '@testing-library/react';
-import { dict, type Post } from '../__stubs__/posts';
+import { dictPosts, type Post } from '../__stubs__/posts';
 import Light from '../../src';
 
 describe('useState', () => {
@@ -36,7 +36,7 @@ describe('useState', () => {
 
   it('useState with Aliases', () => {
     type PostsDict = Record<string, Post>;
-    const _dict: PostsDict = structuredClone(dict);
+    const _dict: PostsDict = structuredClone(dictPosts);
     const keys = Object.keys(_dict);
 
     const createAlias = (id: string) => {

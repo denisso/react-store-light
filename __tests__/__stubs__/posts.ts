@@ -114,7 +114,7 @@ export const posts: Post[] = [
   },
 ];
 
-export const dict = posts.reduce<Record<string, Post>>((a, post) => {
+export const dictPosts = posts.reduce<Record<string, Post>>((a, post) => {
   a[post.id] = post;
   return a;
 }, {});

@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { dict, type Post } from './__stubs__/posts';
+import { dictPosts, type Post } from './__stubs__/posts';
 import Light from '../src';
 
 describe('Aliases', () => {
   it('Create aliases', () => {
-    const keys = Object.keys(dict);
-    const store = new Light.Store(dict);
+    const keys = Object.keys(dictPosts);
+    const store = new Light.Store(dictPosts);
 
     const getAliases = (id: string) => {
       const p = Light.createAlias(store)(id);
@@ -23,7 +23,7 @@ describe('Aliases', () => {
 
     const post = new Light.Aliases(getAliases(keys[0]));
 
-    expect(post.get('author')).toEqual(dict[keys[0]].meta.author);
+    expect(post.get('author')).toEqual(dictPosts[keys[0]].meta.author);
 
     const author: Post['meta']['author'] = { name: 'John Doe' };
     post.set('author', author);
