@@ -1,6 +1,26 @@
 import { ListenersNode, ListenersTree } from './subscribe';
 import type { Values } from '../state';
 
+let notifyCounter = 0;
+let notifyCounterPrev = 0;
+function throttle<T extends (...args: Parameters<T>) => void>(
+  cb: T,
+  delay: number = 200,
+): (...args: Parameters<T>) => void {
+  let timeoutId: ReturnType<typeof setTimeout>;
+
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      cb(...args);
+    }, delay);
+  };
+}
+
+const log = throttle(() => {
+  console.log('notifyCounter:', notifyCounter - notifyCounterPrev);
+  notifyCounterPrev = notifyCounter;
+});
 function notifyListeners(
   node: ListenersNode,
   nameId: bigint,
@@ -23,6 +43,8 @@ function notifyListeners(
 
     for (const listener of listeners.keys()) {
       listener(values);
+      notifyCounter++;
+      log();
     }
   }
   return values as Record<string, any>;
@@ -75,6 +97,8 @@ export function notifyBroadcast(node: ListenersNode, parentId: bigint, values: V
     if (listeners) {
       for (const listener of listeners.keys()) {
         listener(values);
+        notifyCounter++;
+        log();
       }
     }
     const children = node.children.get(parentId);
@@ -91,8 +115,8 @@ export function notifyBroadcast(node: ListenersNode, parentId: bigint, values: V
       stackNodes.push(node.next);
       if (values instanceof Object) {
         stackValues.push(values[name]);
-      } else {
-        stackValues.push(undefined as unknown as Values);
+      } else if (values !== undefined) {
+        stackValues.push(values);
       }
     }
   }

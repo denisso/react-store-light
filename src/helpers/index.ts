@@ -1,1 +1,1 @@
-export { getPath } from './get-path';
+export { getPath, getPathWithStore, type GetPath, type GetPathWithState } from './get-path';

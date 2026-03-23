@@ -37,5 +37,10 @@ export function useState<T extends Record<string, any>, K extends keyof T>(
 
   const state = React.useSyncExternalStore(args.subscribe, args.getSnapshot) as T[K];
 
-  return state;
+  // Not recommended because tearing is possible.
+  // const [state, setState] = React.useState(stateHolder.get(key));
+  // React.useEffect(() => {
+  //   stateHolder.subscribe(key, setState);
+  // }, [setState]);
+  return state as T[K];
 }

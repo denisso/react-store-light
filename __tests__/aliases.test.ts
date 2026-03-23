@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { dict } from './__stubs__/posts';
-import Light, { getPath } from '../src';
+import { dict, type Post } from './__stubs__/posts';
+import Light from '../src';
 
 describe('Aliases', () => {
   it('Create aliases', () => {
@@ -8,7 +8,7 @@ describe('Aliases', () => {
     const store = new Light.Store(dict);
 
     const getAliases = (id: string) => {
-      const p = getPath(store)(id);
+      const p = Light.getPathWithStore(store)(id);
 
       const aliases = {
         meta: p('meta'),
@@ -21,18 +21,13 @@ describe('Aliases', () => {
       return aliases;
     };
 
-    const post = new Light.Aliases(getAliases(keys[0]), store.getState());
-    const author = post.get('author');
-    expect(author).toEqual(dict[keys[0]].meta.author);
-    const im = post.getAliases('images')(0);
-    const imageAliases = {
-      h: im('h'),
-      alt: im('alt'),
-      w: im('w'),
-    };
+    const post = new Light.Aliases(getAliases(keys[0]));
 
-    const image = new Light.Aliases(imageAliases, store.getState());
-    const alt = image.get('alt');
-    expect(alt).toEqual(dict[keys[0]].images[0].alt);
+    expect(post.get('author')).toEqual(dict[keys[0]].meta.author);
+
+    const author: Post['meta']['author'] = { name: 'John Doe' };
+    post.set('author', author);
+
+    expect(post.get('author')).toEqual(author);
   });
 });
