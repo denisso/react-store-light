@@ -30,7 +30,7 @@ export class ListenersTree extends ListenersNode {
  * Create part of the path
  * @param node - ListenersNode
  * @param childName - path[indx]
- * @param parentId - uniq id for parent path[indx]
+ * @param parentId - unique id for parent path[indx]
  * @returns bigint - parent id for next level
  */
 function addChildNameToNode(node: ListenersNode, childName: string, parentId: bigint) {
@@ -115,7 +115,7 @@ function unSubscribe(node: ListenersNode, path: string[], nameId: bigint, listen
   } else {
     return;
   }
-  // if got children break, beacause they have listeners
+  // if got children break, because they have listeners
   const children = node.children.get(nameId);
   if (listeners?.size || children?.size) {
     return;
@@ -125,7 +125,7 @@ function unSubscribe(node: ListenersNode, path: string[], nameId: bigint, listen
   // got to parent prev node
   let prev: ListenersNode | null = node.prev;
   while (prev) {
-    // get parent id for check children and listenteners on this node
+    // get parent id for check children and listeners on this node
     const parentId = prev.parents.get(nameId);
 
     // first delete child without listeners

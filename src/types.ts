@@ -5,7 +5,7 @@
 export type IContext = Record<IContextValueId<{}>, {}>;
 
 /**
- * Uniq id for Store
+ * Unique id for Store
  */
 
 export type IContextValueId<T> = symbol & { readonly __type?: T };

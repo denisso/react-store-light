@@ -19,7 +19,7 @@ describe('State Values', () => {
     const listenerMeta = (meta: Post['meta']) => {
       expect(meta).toEqual(newMeta);
     };
-    state.subsribe(pathMeta(), listenerMeta);
+    state.subscribe(pathMeta(), listenerMeta);
     state.set(pathMeta(), newMeta);
     expect(state.get(pathMeta())).toEqual(newMeta);
   });
@@ -32,7 +32,7 @@ describe('State Values', () => {
     const listenerMeta = (meta: Post['meta']) => {
       expect(meta).toEqual(dictPosts[posts[0].id]['meta']);
     };
-    state.subsribe(pathMeta(), listenerMeta);
+    state.subscribe(pathMeta(), listenerMeta);
     state.setValues(dictPosts);
     expect(state.getValues()).toEqual(dictPosts);
   });
@@ -53,7 +53,7 @@ describe('State Values', () => {
       expect(meta).toEqual(newMeta);
     };
     expect(accessorMeta(state)).toEqual(dictPosts[posts[0].id]['meta']);
-    state.subsribe(pathMeta(), listenerMeta);
+    state.subscribe(pathMeta(), listenerMeta);
     state.set(pathMeta(), newMeta, accessorMeta);
     expect(state.get(pathMeta())).toEqual(newMeta);
   });

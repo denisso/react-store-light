@@ -11,7 +11,7 @@ export class State {
     this.values = structuredClone(values);
     this.set = this.set.bind(this);
     this.get = this.get.bind(this);
-    this.subsribe = this.subsribe.bind(this);
+    this.subscribe = this.subscribe.bind(this);
     this.setValues = this.setValues.bind(this);
     this.getValues = this.getValues.bind(this);
   }
@@ -50,7 +50,7 @@ export class State {
     }
     return value;
   }
-  subsribe(path: string[], listener: Function) {
+  subscribe(path: string[], listener: Function) {
     return subscribe(this.listenersTree, path, listener);
   }
 }

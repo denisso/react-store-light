@@ -60,9 +60,9 @@ describe('State Listeners', () => {
     const listenerMeta = () => {};
     const listenerAuthor = () => {};
     const listenerName = () => {};
-    const unsubMeta = state.subsribe(pathMeta(), listenerMeta);
-    const unsubAuthor = state.subsribe(pathAuthor(), listenerAuthor);
-    const unsubName = state.subsribe(pathName(), listenerName);
+    const unsubMeta = state.subscribe(pathMeta(), listenerMeta);
+    const unsubAuthor = state.subscribe(pathAuthor(), listenerAuthor);
+    const unsubName = state.subscribe(pathName(), listenerName);
     checkSubscribe(state, pathMeta(), listenerMeta);
     checkSubscribe(state, pathAuthor(), listenerAuthor);
     checkSubscribe(state, pathName(), listenerName);
@@ -83,7 +83,7 @@ describe('State Listeners', () => {
     const unsubs: Function[] = [];
     const n = 3;
     for (let i = 0; i < n; i++) {
-      const unsub = state.subsribe(pathMeta(), listenerMeta);
+      const unsub = state.subscribe(pathMeta(), listenerMeta);
       unsubs.push(unsub);
       checkSubscribe(state, pathMeta(), listenerMeta);
     }
@@ -103,7 +103,7 @@ describe('State Listeners', () => {
     const pathMeta = createPath<typeof dictPosts>()(posts[0].id)('meta');
     const listenerMeta = () => {};
     const n = 3;
-    const unsub = state.subsribe(pathMeta(), listenerMeta);
+    const unsub = state.subscribe(pathMeta(), listenerMeta);
     checkSubscribe(state, pathMeta(), listenerMeta);
 
     const anotherListenerMeta = () => {};
@@ -111,7 +111,7 @@ describe('State Listeners', () => {
     const unsubsAnother: Function[] = [];
 
     for (let i = 0; i < n; i++) {
-      const unsubAnother = state.subsribe(pathMeta(), anotherListenerMeta);
+      const unsubAnother = state.subscribe(pathMeta(), anotherListenerMeta);
       unsubsAnother.push(unsubAnother);
       checkSubscribe(state, pathMeta(), anotherListenerMeta);
     }

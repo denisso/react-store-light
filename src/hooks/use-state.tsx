@@ -29,7 +29,7 @@ export function useState<T extends object, K extends keyof T>(
  * Subscribes a component to a single store field by key.
  *
  * Returns:
- * - analog [value, setValue] = React.useState
+ * - similar to [value, setValue] = React.useState
  *
  * @param store - Store<T> | IContextValueId<Store<T>>
  * @param key - name field in the store

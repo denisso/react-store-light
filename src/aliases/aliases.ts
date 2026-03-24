@@ -36,7 +36,7 @@ export class Aliases<A extends Record<PropertyKey, CreateAlias<any>>> {
     this.__states[key].set(this.__paths[key], value, this.__accessors[key]);
   }
   subscribe<K extends keyof A>(key: K, listener: Listener<A, K>) {
-    const subscribe = this.__states[key].subsribe(this.__paths[key], listener);
+    const subscribe = this.__states[key].subscribe(this.__paths[key], listener);
     return subscribe;
   }
 }

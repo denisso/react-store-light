@@ -3,15 +3,15 @@ import type { IContext, IContextValueId } from '../types';
 import { Context } from '../context';
 
 export const useContextId = <T extends object>(
-  constextValueId: IContextValueId<T>
+  contextValueId: IContextValueId<T>
 ) => {
   const context = React.useContext(Context) as IContext;
   if (!context) {
-    throw new Error('hook Must Be Inside Provider');
+    throw new Error('Hook must be used inside Provider');
   }
-  const value = context[constextValueId] as unknown as T;
+  const value = context[contextValueId] as unknown as T;
   if (!value) {
-    throw new Error('value Id Not Exist');
+    throw new Error('Value ID does not exist');
   }
   return value as T;
 };
