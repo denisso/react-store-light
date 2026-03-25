@@ -2,6 +2,9 @@ import React from 'react';
 import type { IContext, IContextValueId } from '../types';
 import { Context } from '../context';
 
+/**
+ * Reads a typed value from the shared Provider by its context id.
+ */
 export const useContextId = <T extends object>(
   contextValueId: IContextValueId<T>
 ) => {

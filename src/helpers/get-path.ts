@@ -10,6 +10,9 @@ export type CreatePath<T> = (T extends object
   __type?: T;
 };
 
+/**
+ * Builds a typed accessor path as an array of keys.
+ */
 export const createPath = <T extends object>(
   store: Store<T> | null = null,
   currentPath: string[] = [],
@@ -34,6 +37,9 @@ export type CreateAlias<T> = (T extends object
   __type?: T;
 };
 
+/**
+ * Builds a typed alias descriptor with path and store reference.
+ */
 export const createAlias = <T extends object>(
   store: Store<T>,
   currentPath: string[] = [],

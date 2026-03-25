@@ -1,6 +1,9 @@
 import React from 'react';
 import type { IContext, IContextValueId } from './types';
 
+/**
+ * Creates a typed symbol used as context key for stores or aliases.
+ */
 export function createContextId<T>(name?: string): IContextValueId<T> {
   return Symbol(name) as IContextValueId<T>;
 }

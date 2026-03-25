@@ -1,6 +1,9 @@
 import { ListenersNode, ListenersTree } from './subscribe';
 import type { Values } from '../state';
 
+/**
+ * Notifies listeners at the current node and clones objects before emitting.
+ */
 function notifyListeners(
   node: ListenersNode,
   nameId: bigint,
@@ -29,10 +32,7 @@ function notifyListeners(
 }
 
 /**
- *
- * @param tree
- * @param path
- * @param values
+ * Notifies listeners on the exact path and then broadcasts to descendants.
  */
 export function notifyByPath(tree: ListenersTree, path: string[], values: Values) {
   let parentId = tree.parentId;
@@ -52,11 +52,7 @@ export function notifyByPath(tree: ListenersTree, path: string[], values: Values
 }
 
 /**
- * DFS
- * @param node
- * @param parentId
- * @param values
- * @returns
+ * Broadcasts updates through the listeners tree using DFS traversal.
  */
 export function notifyBroadcast(node: ListenersNode, parentId: bigint, values: Values) {
   const stackNodes = [node];

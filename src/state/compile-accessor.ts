@@ -4,6 +4,9 @@ export interface Accessor {
   (state: State & { getValues: () => void }, parent?: boolean): any;
 }
 
+/**
+ * Compiles a fast accessor function for a provided object path.
+ */
 export function compileAccessor(path: string[]): Accessor {
   const fullPath = path.map((p) => `["${p}"]`).join('');
   const parentPath = path.slice(0, -1).map((p) => `["${p}"]`).join('');

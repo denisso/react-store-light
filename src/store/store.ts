@@ -47,6 +47,11 @@ export class Store<T extends object> extends AbstractStore {
     return this.__state;
   }
 
+  /**
+   * Returns all current store values.
+   *
+   * @param isDeepCopy - Whether to return a deep-cloned object.
+   */
   getValues(isDeepCopy = false): T {
     return this.__state.getValues(isDeepCopy) as T;
   }

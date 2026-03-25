@@ -26,15 +26,27 @@ export class Aliases<A extends Record<PropertyKey, CreateAlias<any>>> {
     this.subscribe = this.subscribe.bind(this);
   }
 
+  /**
+   * Returns alias factory by key.
+   */
   getAliases<K extends keyof A>(key: K): A[K] {
     return this.__aliases[key];
   }
+  /**
+   * Reads the current value for an alias key.
+   */
   get<K extends keyof A>(key: K): UnwrapAlias<A[K]> {
     return this.__accessors[key](this.__states[key]) as UnwrapAlias<A[K]>;
   }
+  /**
+   * Updates value by alias key and notifies subscribers.
+   */
   set<K extends keyof A>(key: K, value: UnwrapAlias<A[K]>) {
     this.__states[key].set(this.__paths[key], value, this.__accessors[key]);
   }
+  /**
+   * Subscribes to updates for an alias key.
+   */
   subscribe<K extends keyof A>(key: K, listener: Listener<A, K>) {
     const subscribe = this.__states[key].subscribe(this.__paths[key], listener);
     return subscribe;

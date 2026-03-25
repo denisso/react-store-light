@@ -16,6 +16,9 @@ export class State {
     this.getValues = this.getValues.bind(this);
   }
 
+  /**
+   * Returns the full state object, optionally as a deep copy.
+   */
   getValues(isDeepCopy = false) {
     if (isDeepCopy) {
       return structuredClone(this.values);
@@ -23,10 +26,16 @@ export class State {
     return this.values;
   }
 
+  /**
+   * Replaces all state values and broadcasts updates to all listeners.
+   */
   setValues(values: Values) {
     this.values = structuredClone(values);
     notifyBroadcast(this.listenersTree, this.listenersTree.parentId, values);
   }
+  /**
+   * Sets value by path and notifies listeners for the changed branch.
+   */
   set(path: string[], value: any, parentAccessor?: Accessor) {
     let parent = this.values;
     if (parentAccessor) {
@@ -39,6 +48,9 @@ export class State {
     parent[path.at(-1) as string] = structuredClone(value);
     notifyByPath(this.listenersTree, path, this.values);
   }
+  /**
+   * Gets value by path from current state.
+   */
   get(path: string[]) {
     let value = this.values;
     for (const name of path) {
@@ -50,6 +62,9 @@ export class State {
     }
     return value;
   }
+  /**
+   * Subscribes a listener to a specific path.
+   */
   subscribe(path: string[], listener: Function) {
     return subscribe(this.listenersTree, path, listener);
   }
