@@ -1,6 +1,6 @@
 {
   "name": "react-store-light",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "A observer-based state manager for React",
   "author": "KUROCHKIN DENIS",
   "license": "MIT",
