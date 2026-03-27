@@ -23,9 +23,10 @@ const checkChildAndGetId = (node: ListenersNode, nameId: bigint, path: string[])
   return nextId;
 };
 
-const checkListener = (node: ListenersNode, nameId: bigint, listener: Function) => {
-  expect(node.listeners.has(nameId)).toBe(true);
-  const listeners = node.listeners.get(nameId);
+const checkListener = (node: ListenersNode, parentId: bigint, listener: Function) => {
+  expect(node.listeners.has(parentId)).toBe(true);
+  expect(node.listenersCount.has(parentId)).toBe(true);
+  const listeners = node.listeners.get(parentId);
   expect(listeners?.has(listener)).toBe(true);
 };
 
@@ -34,6 +35,7 @@ const checkEmpty = (state: State) => {
     expect(node.children.size).toBe(0);
     expect(node.listeners.size).toBe(0);
     expect(node.parents.size).toBe(0);
+    expect(node.listenersCount.size).toBe(0);
   });
 };
 
@@ -44,10 +46,28 @@ const checkSubscribe = (state: State, path: string[], listener: Function) => {
       ids.push(checkChildAndGetId(node, ids[node.depth + 1], path));
     } else {
       checkListener(node, ids[node.depth + 1], listener);
+      // break iterations
       return true;
     }
   });
   return ids;
+};
+type ExtractMapValueType<T extends Map<any, any>> = T extends Map<any, infer V> ? V : never;
+
+const checkCountListeners = (state: State, path: string[], count: number) => {
+  let parentId = state.listenersTree.parentId;
+  let indxPath = 0;
+  forState(state, (node) => {
+    expect(parentId !== undefined).toBe(true);
+    expect(node.listenersCount.get(parentId)).toBe(count);
+    const children = node.children.get(parentId) as ExtractMapValueType<typeof node.children>;
+    if (node.depth <= path.length) {
+      // break
+      return true;
+    }
+    expect(children instanceof Map).toBe(true);
+    parentId = children.get(path[indxPath++]) as ExtractMapValueType<typeof children>;
+  });
 };
 
 describe('State Listeners', () => {
@@ -87,6 +107,7 @@ describe('State Listeners', () => {
       unsubs.push(unsub);
       checkSubscribe(state, pathMeta(), listenerMeta);
     }
+    checkCountListeners(state, pathMeta(), n);
     for (let i = 0; i < n - 1; i++) {
       const unsub = unsubs.pop() as Function;
       unsub();
