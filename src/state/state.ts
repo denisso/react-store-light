@@ -1,4 +1,5 @@
-import { ListenersTree, subscribe } from './listeners/subscribe';
+import { ListenersTree } from './listeners/types';
+import { subscribe } from './listeners/subscribe';
 import { notifyByPath, notifyBroadcast } from './listeners/notify';
 import { type Accessor } from './compile-accessor';
 
@@ -30,8 +31,8 @@ export class State {
    * Replaces all state values and broadcasts updates to all listeners.
    */
   setValues(values: Values) {
-    this.values = structuredClone(values);
-    notifyBroadcast(this.listenersTree, this.listenersTree.parentId, values);
+    this.values = structuredClone(values)
+    notifyBroadcast(this.listenersTree, this.listenersTree.parentId, this.values);
   }
   /**
    * Sets value by path and notifies listeners for the changed branch.

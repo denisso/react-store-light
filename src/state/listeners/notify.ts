@@ -1,4 +1,4 @@
-import { ListenersNode, ListenersTree } from './subscribe';
+import { ListenersNode, ListenersTree } from './types';
 import type { Values } from '../state';
 
 /**
@@ -58,21 +58,25 @@ export function notifyBroadcast(node: ListenersNode, parentId: bigint, values: V
   const stackNodes = [node];
   const stackValues = [values];
   const stackIds = [parentId];
+  const visited = new Map();
   while (stackNodes.length) {
-    const parentId = stackIds.pop();
-    const values = stackValues.pop();
-    const node = stackNodes.pop();
-
-    if (!node || parentId === undefined) {
+    const parentId = stackIds.at(-1) as bigint;
+    const values = stackValues.at(-1) as Values;
+    const node = stackNodes.at(-1) as ListenersNode;
+    if (visited.has(node.depth + '-' + parentId)) {
+      stackIds.pop();
+      stackValues.pop();
+      stackNodes.pop();
+      const listeners = node.listeners.get(parentId);
+      if (listeners) {
+        for (const listener of listeners.keys()) {
+          listener(values);
+        }
+      }
       continue;
     }
+    visited.set(node.depth + '-' + parentId, false);
 
-    const listeners = node.listeners.get(parentId);
-    if (listeners) {
-      for (const listener of listeners.keys()) {
-        listener(values);
-      }
-    }
     const children = node.children.get(parentId);
     if (!children) {
       continue;

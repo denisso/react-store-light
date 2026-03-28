@@ -57,4 +57,26 @@ describe('State Values', () => {
     state.set(pathMeta(), newMeta, accessorMeta);
     expect(state.get(pathMeta())).toEqual(newMeta);
   });
+
+  it('Set same values do not call listener', () => {
+    const keys = Object.keys(_dict);
+    const post = structuredClone(_dict[keys[0]]);
+    post['meta'] = structuredClone(_dict[keys[1]]['meta']);
+    const state = new State(post);
+
+    const p = createPath<typeof post>()
+    let counrCalls = 0;
+    const listener = () => {
+      counrCalls++;
+    };
+    state.subscribe(p(), listener);
+    state.subscribe(p('text')(), listener);
+    state.subscribe(p('meta')(), listener);
+    state.subscribe(p('meta')('header')(), listener);
+    state.subscribe(p('meta')('tags')(), listener);
+    state.subscribe(p('meta')('author')(), listener);
+    state.subscribe(p('meta')('author')('name')(), listener);
+    state.setValues(_dict[keys[1]]);
+    expect(counrCalls).toBe(7);
+  });
 });
