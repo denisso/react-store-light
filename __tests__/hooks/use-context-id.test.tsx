@@ -22,7 +22,7 @@ describe('Context', () => {
     const contextIdPostAliases = Light.createContextId<PostAliases>();
     type Props = { id: string };
     const PostFields = () => {
-      const postAlias = Light.useContextId(contextIdPostAliases)
+      const postAlias = Light.useContextId(contextIdPostAliases);
       const [text] = Light.useState(postAlias, 'text');
       const [id] = Light.useState(postAlias, 'id');
       React.useEffect(() => {
@@ -54,5 +54,33 @@ describe('Context', () => {
     };
 
     render(<Parent />);
+  });
+  it('throws when hook used outside Provider', () => {
+    const id = Light.createContextId<{ value: number }>();
+
+    const TestComponent = () => {
+      Light.useContextId(id);
+      return null;
+    };
+
+    expect(() => render(<TestComponent />)).toThrow('Hook must be used inside Provider');
+  });
+
+  it('throws when id is missing in Provider value', () => {
+    const wantedId = Light.createContextId<{ value: number }>();
+    const otherId = Light.createContextId<{ value: number }>();
+
+    const TestComponent = () => {
+      Light.useContextId(wantedId);
+      return null;
+    };
+
+    expect(() =>
+      render(
+        <Light.Provider value={{ [otherId]: { value: 1 } }}>
+          <TestComponent />
+        </Light.Provider>,
+      ),
+    ).toThrow('Value ID does not exist');
   });
 });
